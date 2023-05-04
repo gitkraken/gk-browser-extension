@@ -118,37 +118,41 @@ export function injectionScope(url: string) {
 			let [, owner, repo, type, ...rest] = this.uri.pathname.split('/');
 
 			if (target === 'gkdev') {
-				const gkcUrl = this.tranformUrl('gitkraken');
+				const redirectUrl = this.tranformUrl('gitkraken');
+				// console.debug('redirectUrl', redirectUrl);
 				return new URL(
-					`https://redirect.gitkraken.dev/redirect/${encodeURIComponent(btoa(gkcUrl))}`,
+					`https://redirect.gitkraken.dev/redirect/${encodeURIComponent(btoa(redirectUrl))}`,
 				).toString();
 			}
 
 			const repoId = 0;
 
-			let gkUrl;
+			let url;
 			switch (target) {
 				case 'gitkraken': {
 					switch (type) {
 						case 'commit':
-							gkUrl = new URL(`${target}://repolink/${repoId}/commit/${rest.join('/')}`);
+							url = new URL(`${target}://repolink/${repoId}/commit/${rest.join('/')}`);
 							break;
 						case 'pull': {
 							const headTreeUrl =
 								document.querySelector<HTMLAnchorElement>('.commit-ref.head-ref a')?.href;
 							if (!headTreeUrl) {
-								gkUrl = new URL(`${target}://repolink/${repoId}`);
+								url = new URL(`${target}://repolink/${repoId}`);
 							} else {
+								const [pr] = rest;
 								[, owner, repo, type, ...rest] = new URL(headTreeUrl).pathname.split('/');
-								gkUrl = new URL(`${target}://repolink/${repoId}/branch/${rest.join('/')}`);
+								url = new URL(`${target}://repolink/${repoId}/branch/${rest.join('/')}`);
+								url.searchParams.set('pr', pr);
 							}
 							break;
 						}
 						case 'tree':
-							gkUrl = new URL(`${target}://repolink/${repoId}/branch/${rest.join('/')}`);
+							// TODO@eamodio this is naive as it assumes everything after the tree is the branch, but it could also contain a path
+							url = new URL(`${target}://repolink/${repoId}/branch/${rest.join('/')}`);
 							break;
 						default:
-							gkUrl = new URL(`${target}://repolink/${repoId}`);
+							url = new URL(`${target}://repolink/${repoId}`);
 							break;
 					}
 					break;
@@ -157,13 +161,27 @@ export function injectionScope(url: string) {
 				case 'vscode-insiders': {
 					switch (type) {
 						case 'commit':
-							gkUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
+							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
 							break;
+						case 'pull': {
+							const headTreeUrl =
+								document.querySelector<HTMLAnchorElement>('.commit-ref.head-ref a')?.href;
+							if (!headTreeUrl) {
+								url = new URL(`${target}://repolink/${repoId}`);
+							} else {
+								const [pr] = rest;
+								[, owner, repo, type, ...rest] = new URL(headTreeUrl).pathname.split('/');
+								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
+								url.searchParams.set('pr', pr);
+							}
+							break;
+						}
 						case 'tree':
-							gkUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
+							// TODO@eamodio this is naive as it assumes everything after the tree is the branch, but it could also contain a path
+							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
 							break;
 						default:
-							gkUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
 							break;
 					}
 					break;
@@ -174,8 +192,8 @@ export function injectionScope(url: string) {
 			remoteUrl.search = '';
 			remoteUrl.pathname = `/${owner}/${repo}.git`;
 
-			gkUrl.searchParams.set('url', remoteUrl.toString());
-			return gkUrl.toString();
+			url.searchParams.set('url', remoteUrl.toString());
+			return url.toString();
 		}
 
 		private getGitKrakenSvg(size: number, classes?: string, style?: string) {
