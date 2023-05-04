@@ -16,31 +16,24 @@ export function injectionScope(url: string) {
 			this.render();
 		}
 
-		private scheduleRender() {
-			setTimeout(() => this.render(false), 1000);
-		}
+		private render() {
+			const insertions = new Map<string, { html: string; position: InsertPosition }>();
 
-		private render(first = true) {
 			try {
-				let el;
 				let label = 'Open with GitKraken';
-				let reschedule = first;
 				const url = this.tranformUrl('gkdev');
 
 				const [, , , type] = this.uri.pathname.split('/');
 				switch (type) {
 					case 'commit':
-						el = document.querySelector('.commit > #browse-at-time-link');
-						if (el) {
-							reschedule = false;
-
-							const html = /*html*/ `<a class="btn mr-2 px-2 float-right" style="padding-top:2px !important; padding-bottom:1px !important;" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
+						insertions.set('.commit > #browse-at-time-link', {
+							html: /*html*/ `<a class="btn mr-2 px-2 float-right" style="padding-top:2px !important; padding-bottom:1px !important;" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
 								22,
 								undefined,
 								'position:relative; top:2px;',
-							)}</a>`;
-							el.insertAdjacentHTML('afterend', html);
-						}
+							)}</a>`,
+							position: 'afterend',
+						});
 
 						break;
 					case 'pull':
@@ -49,48 +42,71 @@ export function injectionScope(url: string) {
 						if (type === 'pull') {
 							label = 'Checkout with GitKraken';
 						}
-						el = document.querySelector('[data-target="get-repo.modal"] #local-panel ul li:first-child');
-						if (el) {
-							reschedule = false;
 
-							const html = /*html*/ `<li class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
-  <a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
-    ${this.getGitKrakenSvg(16, 'mr-2')}
-    ${label}
-</a></li>`;
-							el.insertAdjacentHTML('afterend', html);
-						}
+						insertions.set('[data-target="get-repo.modal"] #local-panel ul li:first-child', {
+							html: /*html*/ `<li class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
+	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
+		${this.getGitKrakenSvg(16, 'mr-2')}
+		${label}
+	</a>
+</li>`,
+							position: 'afterend',
+						});
 
 						break;
 					default: {
-						el = document.querySelector('.file-navigation get-repo');
-						if (el) {
-							reschedule = false;
-
-							const html = /*html*/ `<a class="btn mr-2 px-2 py-0" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
+						insertions.set('.file-navigation get-repo', {
+							html: /*html*/ `<a class="btn mr-2 px-2 py-0" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
 								22,
 								undefined,
 								'position:relative; top:2px;',
-							)}</a>`;
-							el.insertAdjacentHTML('beforebegin', html);
-						}
+							)}</a>`,
+							position: 'beforebegin',
+						});
 
-						el = document.querySelector('[data-target="get-repo.modal"] #local-panel ul li:first-child');
-						if (el) {
-							const html = /*html*/ `<li class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
-  <a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
-    ${this.getGitKrakenSvg(16, 'mr-2')}
-    ${label}
-</a></li>`;
-							el.insertAdjacentHTML('afterend', html);
-						}
+						insertions.set('[data-target="get-repo.modal"] #local-panel ul li:first-child', {
+							html: /*html*/ `<li class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
+	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
+		${this.getGitKrakenSvg(16, 'mr-2')}
+		${label}
+	</a>
+</li>`,
+							position: 'afterend',
+						});
 
 						break;
 					}
 				}
 
-				if (reschedule) {
-					this.scheduleRender();
+				if (insertions.size) {
+					for (const [selector, { html, position }] of insertions) {
+						const el = document.querySelector(selector);
+						if (el) {
+							insertions.delete(selector);
+							el.insertAdjacentHTML(position, html);
+						}
+					}
+
+					if (!insertions.size) return;
+
+					let timer: any;
+					const observer = new MutationObserver(() => {
+						clearTimeout(timer);
+						timer = setTimeout(() => {
+							for (const [selector, { html, position }] of insertions) {
+								const el = document.querySelector(selector);
+								if (el) {
+									insertions.delete(selector);
+									el.insertAdjacentHTML(position, html);
+								}
+							}
+
+							if (!insertions.size) {
+								observer.disconnect();
+							}
+						}, 100);
+					});
+					observer.observe(document.body, { childList: true, subtree: true });
 				}
 			} catch (ex) {
 				debugger;
