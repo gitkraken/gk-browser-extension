@@ -1,0 +1,7 @@
+.eslintcache*
+dist
+out
+node_modules
+tsconfig*.tsbuildinfo
+.DS_Store
+*.zip

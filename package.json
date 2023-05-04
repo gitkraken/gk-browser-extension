@@ -1,0 +1,55 @@
+{
+	"name": "gitkraken-browser",
+	"description": "Open in GitKraken Client or GitLens",
+	"version": "0.0.1",
+	"license": "MIT",
+	"author": {
+		"name": "Eric Amodio",
+		"email": "eric@gitkraken.com"
+	},
+	"homepage": "https://gitkraken.com",
+	"bugs": {
+		"url": "https://github.com/gitkraken/gitkraken-browser/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/gitkraken/gitkraken-browser.git"
+	},
+	"main": "dist/background.js",
+	"scripts": {
+		"build": "webpack --mode development",
+		"bundle": "yarn run clean && webpack --mode production",
+		"clean": "npx rimraf dist && yarn run clean:package",
+		"clean:package": "rimraf gitkraken.xpi",
+		"lint": "eslint \"src/**/*.ts?(x)\" --fix",
+		"package": "yarn bundle && npx bestzip gitkraken.zip dist icons manifest.json LICENSE",
+		"pretty": "prettier --config .prettierrc --loglevel warn --write .",
+		"watch": "webpack --watch --mode development"
+	},
+	"dependencies": {
+		"webextension-polyfill": "0.10.0"
+	},
+	"devDependencies": {
+		"@types/webextension-polyfill": "0.10.0",
+		"@typescript-eslint/eslint-plugin": "5.59.2",
+		"@typescript-eslint/parser": "5.59.2",
+		"clean-webpack-plugin": "4.0.0",
+		"esbuild": "0.17.18",
+		"esbuild-loader": "3.0.1",
+		"eslint": "8.39.0",
+		"eslint-cli": "1.1.1",
+		"eslint-config-prettier": "8.8.0",
+		"eslint-import-resolver-typescript": "3.5.5",
+		"eslint-plugin-anti-trojan-source": "1.1.1",
+		"eslint-plugin-import": "2.27.5",
+		"fork-ts-checker-webpack-plugin": "6.5.3",
+		"prettier": "2.8.8",
+		"sass": "1.62.1",
+		"sass-loader": "13.2.2",
+		"terser-webpack-plugin": "5.3.7",
+		"ts-loader": "9.4.2",
+		"typescript": "5.0.4",
+		"webpack": "5.81.0",
+		"webpack-cli": "5.0.2"
+	}
+}
