@@ -50,6 +50,8 @@ jobs:
         name: Publish pre-release
         needs: check
         runs-on: ubuntu-latest
+        permissions:
+            contents: write
         if: needs.check.outputs.status == 'changed'
         steps:
             - name: Checkout code
