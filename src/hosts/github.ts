@@ -118,8 +118,8 @@ export function injectionScope(url: string) {
 			let [, owner, repo, type, ...rest] = this.uri.pathname.split('/');
 
 			if (target === 'gkdev') {
-				const redirectUrl = this.tranformUrl('gitkraken');
-				// console.debug('redirectUrl', redirectUrl);
+				const redirectUrl = this.tranformUrl('vscode');
+				console.debug('redirectUrl', redirectUrl);
 				return new URL(
 					`https://redirect.gitkraken.dev/redirect/${encodeURIComponent(btoa(redirectUrl))}`,
 				).toString();
@@ -135,15 +135,30 @@ export function injectionScope(url: string) {
 							url = new URL(`${target}://repolink/${repoId}/commit/${rest.join('/')}`);
 							break;
 						case 'pull': {
+							const [prNumber] = rest;
+
 							const headTreeUrl =
 								document.querySelector<HTMLAnchorElement>('.commit-ref.head-ref a')?.href;
 							if (!headTreeUrl) {
 								url = new URL(`${target}://repolink/${repoId}`);
+								url.searchParams.set('pr', prNumber);
+								url.searchParams.set('prUrl', this.uri.toString());
 							} else {
-								const [pr] = rest;
-								[, owner, repo, type, ...rest] = new URL(headTreeUrl).pathname.split('/');
-								url = new URL(`${target}://repolink/${repoId}/branch/${rest.join('/')}`);
-								url.searchParams.set('pr', pr);
+								const [, prOwner, prRepo, , ...prBranch] = new URL(headTreeUrl).pathname.split('/');
+								url = new URL(`${target}://repolink/${repoId}/branch/${prBranch.join('/')}`);
+								url.searchParams.set('pr', prNumber);
+								url.searchParams.set('prUrl', this.uri.toString());
+
+								if (prOwner !== owner || prRepo !== repo) {
+									const prRepoUrl = new URL(this.uri.toString());
+									prRepoUrl.hash = '';
+									prRepoUrl.search = '';
+									prRepoUrl.pathname = `/${owner}/${repo}.git`;
+									url.searchParams.set('prRepoUrl', prRepoUrl.toString());
+
+									owner = prOwner;
+									repo = prRepo;
+								}
 							}
 							break;
 						}
@@ -164,15 +179,30 @@ export function injectionScope(url: string) {
 							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
 							break;
 						case 'pull': {
+							const [prNumber] = rest;
+
 							const headTreeUrl =
 								document.querySelector<HTMLAnchorElement>('.commit-ref.head-ref a')?.href;
 							if (!headTreeUrl) {
-								url = new URL(`${target}://repolink/${repoId}`);
+								url = new URL(`${target}://link/r/${repoId}`);
+								url.searchParams.set('pr', prNumber);
+								url.searchParams.set('prUrl', this.uri.toString());
 							} else {
-								const [pr] = rest;
-								[, owner, repo, type, ...rest] = new URL(headTreeUrl).pathname.split('/');
-								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
-								url.searchParams.set('pr', pr);
+								const [, prOwner, prRepo, , ...prBranch] = new URL(headTreeUrl).pathname.split('/');
+								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${prBranch.join('/')}`);
+								url.searchParams.set('pr', prNumber);
+								url.searchParams.set('prUrl', this.uri.toString());
+
+								if (prOwner !== owner || prRepo !== repo) {
+									const prRepoUrl = new URL(this.uri.toString());
+									prRepoUrl.hash = '';
+									prRepoUrl.search = '';
+									prRepoUrl.pathname = `/${owner}/${repo}.git`;
+									url.searchParams.set('prRepoUrl', prRepoUrl.toString());
+
+									owner = prOwner;
+									repo = prRepo;
+								}
 							}
 							break;
 						}
@@ -189,6 +219,7 @@ export function injectionScope(url: string) {
 			}
 
 			const remoteUrl = new URL(this.uri.toString());
+			remoteUrl.hash = '';
 			remoteUrl.search = '';
 			remoteUrl.pathname = `/${owner}/${repo}.git`;
 
