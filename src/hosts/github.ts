@@ -121,7 +121,7 @@ export function injectionScope(url: string) {
 				const redirectUrl = this.tranformUrl('vscode');
 				console.debug('redirectUrl', redirectUrl);
 				return new URL(
-					`https://redirect.gitkraken.dev/redirect/${encodeURIComponent(btoa(redirectUrl))}`,
+					`https://devredirect.gitkraken.dev/redirect/${encodeURIComponent(btoa(redirectUrl))}`,
 				).toString();
 			}
 
