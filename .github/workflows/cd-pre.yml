@@ -79,8 +79,8 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
-                  tag_name: ${{ github.ref }}
-                  name: v${{ env.PACKAGE_VERSION }}
-                  draft: true
+                  tag_name: v${{ env.PACKAGE_VERSION }}-pre
+                  name: v${{ env.PACKAGE_VERSION }}-pre
+                  draft: false
                   prerelease: true
                   files: ./${{ env.PACKAGE_NAME }}.zip
