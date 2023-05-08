@@ -2,6 +2,9 @@ import type { InjectionProvider, LinkTarget } from '../provider';
 
 export function injectionScope(url: string) {
 	class GitHubInjectionProvider implements InjectionProvider {
+		private _timer: ReturnType<typeof setTimeout> | undefined;
+		private _observer: MutationObserver | undefined;
+
 		constructor(private uri: URL) {}
 
 		inject(): void {
@@ -17,6 +20,22 @@ export function injectionScope(url: string) {
 		}
 
 		private render() {
+			// Reset pending watchers
+			if (this._timer != null) {
+				clearTimeout(this._timer);
+				this._timer = undefined;
+			}
+			if (this._observer != null) {
+				this._observer.disconnect();
+				this._observer = undefined;
+			}
+
+			// Remove all previous injected elements
+			const els = document.querySelectorAll('[data-gk]');
+			for (const el of els) {
+				el.remove();
+			}
+
 			const insertions = new Map<string, { html: string; position: InsertPosition }>();
 
 			try {
@@ -27,7 +46,7 @@ export function injectionScope(url: string) {
 				switch (type) {
 					case 'commit':
 						insertions.set('.commit > #browse-at-time-link', {
-							html: /*html*/ `<a class="btn mr-2 px-2 float-right" style="padding-top:2px !important; padding-bottom:1px !important;" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
+							html: /*html*/ `<a data-gk class="btn mr-2 px-2 float-right" style="padding-top:2px !important; padding-bottom:1px !important;" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
 								22,
 								undefined,
 								'position:relative; top:2px;',
@@ -44,7 +63,7 @@ export function injectionScope(url: string) {
 						}
 
 						insertions.set('[data-target="get-repo.modal"] #local-panel ul li:first-child', {
-							html: /*html*/ `<li class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
+							html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
 	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
 		${this.getGitKrakenSvg(16, 'mr-2')}
 		${label}
@@ -56,7 +75,7 @@ export function injectionScope(url: string) {
 						break;
 					default: {
 						insertions.set('.file-navigation get-repo', {
-							html: /*html*/ `<a class="btn mr-2 px-2 py-0" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
+							html: /*html*/ `<a data-gk class="btn mr-2 px-2 py-0" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
 								22,
 								undefined,
 								'position:relative; top:2px;',
@@ -65,7 +84,7 @@ export function injectionScope(url: string) {
 						});
 
 						insertions.set('[data-target="get-repo.modal"] #local-panel ul li:first-child', {
-							html: /*html*/ `<li class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
+							html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
 	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
 		${this.getGitKrakenSvg(16, 'mr-2')}
 		${label}
@@ -89,10 +108,12 @@ export function injectionScope(url: string) {
 
 					if (!insertions.size) return;
 
-					let timer: any;
-					const observer = new MutationObserver(() => {
-						clearTimeout(timer);
-						timer = setTimeout(() => {
+					this._observer = new MutationObserver(() => {
+						if (this._timer != null) {
+							clearTimeout(this._timer);
+						}
+
+						this._timer = setTimeout(() => {
 							for (const [selector, { html, position }] of insertions) {
 								const el = document.querySelector(selector);
 								if (el) {
@@ -102,11 +123,12 @@ export function injectionScope(url: string) {
 							}
 
 							if (!insertions.size) {
-								observer.disconnect();
+								this._observer?.disconnect();
+								this._observer = undefined;
 							}
 						}, 100);
 					});
-					observer.observe(document.body, { childList: true, subtree: true });
+					this._observer.observe(document.body, { childList: true, subtree: true });
 				}
 			} catch (ex) {
 				debugger;
