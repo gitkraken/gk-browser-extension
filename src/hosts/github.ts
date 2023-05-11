@@ -206,7 +206,7 @@ export function injectionScope(url: string) {
 							const headTreeUrl =
 								document.querySelector<HTMLAnchorElement>('.commit-ref.head-ref a')?.href;
 							if (!headTreeUrl) {
-								url = new URL(`${target}://link/r/${repoId}`);
+								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
 								url.searchParams.set('pr', prNumber);
 								url.searchParams.set('prUrl', this.uri.toString());
 							} else {
