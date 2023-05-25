@@ -147,7 +147,7 @@ export function injectionScope(url: string) {
 				).toString();
 			}
 
-			const repoId = 0;
+			const repoId = '-';
 
 			let url;
 			switch (target) {
