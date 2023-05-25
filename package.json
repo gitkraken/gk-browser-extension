@@ -17,16 +17,25 @@
 	},
 	"main": "dist/background.js",
 	"scripts": {
-		"build": "webpack --mode development",
+		"build": "yarn run ensure-manifest && webpack --mode development",
+		"build:chromium": "yarn run set-manifest:chromium:force && yarn build",
+		"build:firefox": "yarn run set-manifest:firefox:force && yarn build",
 		"bundle": "yarn run clean && webpack --mode production",
 		"clean": "npx rimraf dist && yarn run clean:package",
 		"clean:package": "cross-var rimraf \"%npm_package_name%*.zip\"",
 		"lint": "eslint \"src/**/*.ts?(x)\" --fix",
+		"ensure-manifest": "node -e \"require('./scripts/makeManifest')\"",
+		"set-manifest:firefox": "node -e \"require('./scripts/makeManifest').makeFirefoxManifest()\"",
+		"set-manifest:firefox:force": "node -e \"require('./scripts/makeManifest').makeFirefoxManifest(true)\"",
+		"set-manifest:chromium": "node -e \"require('./scripts/makeManifest').makeChromiumManifest()\"",
+		"set-manifest:chromium:force": "node -e \"require('./scripts/makeManifest').makeChromiumManifest(true)\"",
 		"package": "yarn bundle && cross-var npx bestzip \"%npm_package_name%-%npm_package_version%.zip\" dist icons manifest.json LICENSE",
-		"package-pre": "yarn run patch-pre && yarn run package",
+		"package-pre": "yarn run patch-pre && yarn run ensure-manifest && yarn run package",
 		"patch-pre": "node ./scripts/applyPreReleasePatch.js",
 		"pretty": "prettier --config .prettierrc --loglevel warn --write .",
-		"watch": "webpack --watch --mode development"
+		"watch": "yarn run ensure-manifest && webpack --watch --mode development",
+		"watch:chromium": "yarn run set-manifest:chromium:force && yarn watch",
+		"watch:firefox": "yarn run set-manifest:firefox:force && yarn watch"
 	},
 	"dependencies": {
 		"webextension-polyfill": "0.10.0"
