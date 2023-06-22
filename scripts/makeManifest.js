@@ -53,15 +53,19 @@ const getMakeManifest = (isFirefox) => (force = false) => {
   }
 }
 
-module.exports = {
-  makeChromiumManifest: getMakeManifest(false),
-  makeFirefoxManifest: getMakeManifest(true)
+const getEnsureManifest = (makeFireFoxManifest, makeChromiumManifest) => () => {
+  if (!fs.existsSync(manifestJsonPath)) {
+    console.log(`manifest.json does not exist, creating ${process.env.FIREFOX ? 'firefox' : 'chromium'} manifest`);
+    if (process.env.FIREFOX) {
+      makeFireFoxManifest();
+    } else {
+      makeChromiumManifest();
+    }
+  }
 }
 
-if (require.main === module && !fs.existsSync()) {
-  if (process.env.FIREFOX) {
-    makeFirefoxManifest();
-  } else {
-    makeChromiumManifest();
-  }
+module.exports = {
+  makeChromiumManifest: getMakeManifest(false),
+  makeFirefoxManifest: getMakeManifest(true),
+  ensureManifest: getEnsureManifest(getMakeManifest(false), getMakeManifest(true))
 }

@@ -24,7 +24,7 @@
 		"clean": "npx rimraf dist && yarn run clean:package",
 		"clean:package": "cross-var rimraf \"%npm_package_name%*.zip\"",
 		"lint": "eslint \"src/**/*.ts?(x)\" --fix",
-		"ensure-manifest": "node -e \"require('./scripts/makeManifest')\"",
+		"ensure-manifest": "node -e \"require('./scripts/makeManifest').ensureManifest()\"",
 		"set-manifest:firefox": "node -e \"require('./scripts/makeManifest').makeFirefoxManifest()\"",
 		"set-manifest:firefox:force": "node -e \"require('./scripts/makeManifest').makeFirefoxManifest(true)\"",
 		"set-manifest:chromium": "node -e \"require('./scripts/makeManifest').makeChromiumManifest()\"",
