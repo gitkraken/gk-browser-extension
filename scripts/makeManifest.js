@@ -8,21 +8,21 @@ const manifestJsonPath = path.join('manifest.json');
 const packageJson = require('../package.json')
 
 const manifestBase = {
-	"manifest_version": 3,
-	"name": packageJson["name"],
-	"description": packageJson["description"],
-	"version": packageJson["version"],
-	"icons": {
-		"16": "icons/logo-16.png",
-		"32": "icons/logo-32.png",
-		"48": "icons/logo-48.png",
-		"128": "icons/logo-128.png"
-	},
-	"permissions": [
+  "manifest_version": 3,
+  "name": packageJson["name"],
+  "description": packageJson["description"],
+  "version": packageJson["version"],
+  "icons": {
+    "16": "icons/logo-16.png",
+    "32": "icons/logo-32.png",
+    "48": "icons/logo-48.png",
+    "128": "icons/logo-128.png"
+  },
+  "permissions": [
     "scripting",
     "webNavigation"
   ],
-	"host_permissions": [
+  "host_permissions": [
     "*://*.github.com/*",
     "*://*.gitlab.com/*",
     "*://*.bitbucket.org/*"
@@ -32,13 +32,13 @@ const manifestBase = {
 const getMakeManifest = (isFirefox) => (force = false) => {
   const firefoxKeys = {
     background: {
-      scripts: [ "dist/background.js" ]
+      scripts: ["dist/background.js"]
     }
   };
 
   const chromiumKeys = {
     background: {
-      "service-worker": "dist/service-worker.js"
+      "service_worker": "dist/service-worker.js"
     }
   };
 
@@ -59,7 +59,7 @@ module.exports = {
 }
 
 if (require.main === module && !fs.existsSync()) {
-  if(process.env.FIREFOX) {
+  if (process.env.FIREFOX) {
     makeFirefoxManifest();
   } else {
     makeChromiumManifest();
