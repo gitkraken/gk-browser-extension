@@ -6,3 +6,6 @@ tsconfig*.tsbuildinfo
 .DS_Store
 *.zip
 manifest.json
+/test-results/
+/playwright-report/
+/playwright/.cache/

@@ -29,6 +29,7 @@
 		"set-manifest:firefox:force": "node -e \"require('./scripts/makeManifest').makeFirefoxManifest(true)\"",
 		"set-manifest:chromium": "node -e \"require('./scripts/makeManifest').makeChromiumManifest()\"",
 		"set-manifest:chromium:force": "node -e \"require('./scripts/makeManifest').makeChromiumManifest(true)\"",
+		"test": "yarn playwright test",
 		"package": "yarn bundle && cross-var npx bestzip \"%npm_package_name%-%npm_package_version%.zip\" dist icons manifest.json LICENSE",
 		"package-pre": "yarn run patch-pre && yarn run ensure-manifest && yarn run package",
 		"patch-pre": "node ./scripts/applyPreReleasePatch.js",
@@ -41,6 +42,7 @@
 		"webextension-polyfill": "0.10.0"
 	},
 	"devDependencies": {
+		"@playwright/test": "^1.35.1",
 		"@types/webextension-polyfill": "0.10.0",
 		"@typescript-eslint/eslint-plugin": "5.59.2",
 		"@typescript-eslint/parser": "5.59.2",

@@ -120,6 +120,16 @@ yarn watch:chromium
 
 To run the extension in the browser, first add your extension to the browser in `chrome://extensions/` or `edge://extensions/`. Then, turn on developer mode. Lastly, load this folder as an unpacked extension.
 
+### Testing
+
+tests are run using playwright. To run the tests, execute the following from a terminal:
+
+```
+yarn test
+```
+
+When working on a test, it might be useful to temporarily remove the browser context argument of `--headless=new` to see the browser the tests are running in.
+
 ### Bundling
 
 To generate a production bundle (without packaging) run the following from a terminal:
