@@ -122,12 +122,14 @@ To run the extension in the browser, first add your extension to the browser in 
 
 ### Testing
 
-tests are run using playwright. To run the tests, execute the following from a terminal:
+Tests are run by loading the built chromium extension into a persisten chrome browser controlled by playwright. Firefox testing is currently not supported. 
 
+To run the tests, execute the following from a terminal:
+    
 ```
+yarn build:chromium
 yarn test
 ```
-
 When working on a test, it might be useful to temporarily remove the browser context argument of `--headless=new` to see the browser the tests are running in.
 
 ### Bundling
