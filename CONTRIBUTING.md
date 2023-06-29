@@ -76,6 +76,62 @@ This project uses [ESLint](https://eslint.org/) for code linting. You can run ES
 
 To lint the code as you make changes you can install the [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) extension.
 
+### Debugging
+
+### Firefox
+
+To run and debug the project for Firefox, execute the following from a terminal:
+
+```
+yarn build:firefox
+```
+
+or
+
+```
+yarn watch:firefox
+```
+
+to run the addon in the browser, run
+
+```
+`web-ext run --browser-console`
+```
+
+> web-ext is a tool for developing WebExtensions for Firefox and can be installed with `npm install --global web-ext`
+
+or
+
+add any file this folder to the [Firefox Add-on Debugger](about:debugging#/runtime/this-firefox)
+
+### Chrome/Edge
+
+To run and debug the project for Chrome or Edge, execute the following from a terminal:
+
+```
+yarn build:chromium
+```
+
+or
+
+```
+yarn watch:chromium
+```
+
+To run the extension in the browser, first add your extension to the browser in `chrome://extensions/` or `edge://extensions/`. Then, turn on developer mode. Lastly, load this folder as an unpacked extension.
+
+### Testing
+
+Tests are run by loading the built chromium extension into a persisten chrome browser controlled by playwright. Firefox testing is currently not supported. 
+
+To run the tests, execute the following from a terminal:
+    
+```
+yarn build:chromium
+yarn test
+```
+When working on a test, it might be useful to temporarily remove the browser context argument of `--headless=new` to see the browser the tests are running in.
+
 ### Bundling
 
 To generate a production bundle (without packaging) run the following from a terminal:

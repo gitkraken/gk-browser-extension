@@ -7,6 +7,7 @@ const { EsbuildPlugin } = require('esbuild-loader');
 const ForkTsCheckerPlugin = require('fork-ts-checker-webpack-plugin');
 const path = require('path');
 const TerserPlugin = require('terser-webpack-plugin');
+const webpack = require('webpack');
 
 module.exports =
 	/**
@@ -49,6 +50,9 @@ function getExtensionConfig(mode, env) {
 			typescript: {
 				configFile: path.join(__dirname, 'tsconfig.json'),
 			},
+		}),
+		new webpack.DefinePlugin({
+			'MODE': JSON.stringify(mode),
 		}),
 	];
 
@@ -103,8 +107,8 @@ function getExtensionConfig(mode, env) {
 			mode === 'production'
 				? undefined
 				: {
-						level: 'log', // enables logging required for problem matchers
-				  },
+					level: 'log', // enables logging required for problem matchers
+				},
 		stats: {
 			preset: 'errors-warnings',
 			assets: true,
