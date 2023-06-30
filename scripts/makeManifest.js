@@ -33,6 +33,12 @@ const getMakeManifest = (isFirefox) => (force = false) => {
   const firefoxKeys = {
     background: {
       scripts: ["dist/background.js"]
+    },
+    "browser_specific_settings": {
+      "gecko": {
+        "id": `${packageJson["name"]}@gitkraken.com`,
+        "strict_min_version": "109.0"
+      }
     }
   };
 
