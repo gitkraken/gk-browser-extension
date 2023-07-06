@@ -134,11 +134,16 @@ When working on a test, it might be useful to temporarily remove the browser con
 
 ### Bundling
 
-To generate a production bundle (without packaging) run the following from a terminal:
+To generate a production bundle (without packaging) for a specific platform, run the following from a terminal:
 
 ```
-yarn run bundle
+yarn run bundle:chromium
 ```
+or
+```
+yarn run bundle:firefox
+```
+
 
 To generate a ZIP run the following from a terminal:
 
