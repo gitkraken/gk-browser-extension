@@ -5,7 +5,9 @@ node_modules
 tsconfig*.tsbuildinfo
 .DS_Store
 *.zip
+*.xpi
 manifest.json
+.web-extension-id
 /test-results/
 /playwright-report/
 /playwright/.cache/
