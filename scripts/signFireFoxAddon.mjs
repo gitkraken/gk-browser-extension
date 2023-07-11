@@ -16,7 +16,7 @@ const signAddonOptions = {
     // The explicit extension ID.
     // WebExtensions do not require an ID.
     // See the notes below about dealing with IDs.
-    id: `${packageJson["name"]}@gitkraken.com`,
+    id: "gitkraken-browser@gitkraken.com",
     // The release channel (listed or unlisted).
     // Ignored for new add-ons, which are always unlisted.
     // Default: most recently used channel.
@@ -46,7 +46,7 @@ const signAddonOptions = {
     apiUrlPrefix: 'https://addons.mozilla.org/api/v4',
 }
 
-console.log('signing', signAddonOptions);
+console.log('signing', filename, 'version', version);
 
 signAddon(signAddonOptions)
     .then(function (result) {

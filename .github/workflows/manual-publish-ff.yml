@@ -1,0 +1,48 @@
+name: Manual Publish FF release
+
+on:
+    workflow_dispatch:
+
+jobs:
+    publish:
+        name: Manual Publish FF release
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        env:
+          FF_API_KEY: ${{ secrets.FF_API_KEY }}
+          FF_API_SECRET: ${{ secrets.FF_API_SECRET }}
+        timeout-minutes: 10
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+            - name: Setup node
+              uses: actions/setup-node@v3
+              with:
+                  node-version: '18'
+            - name: Install
+              run: yarn
+            - name: Apply pre-release patch
+              run: yarn run patch-pre
+            - name: Setup Environment
+              run: node -e "console.log('PACKAGE_VERSION=' + require('./package.json').version + '\nPACKAGE_NAME=' + require('./package.json').name + '-' + require('./package.json').version + '\nFF_ADDON_NAME=' + 'gitkraken' +'-' + require('./package.json').version)" >> $GITHUB_ENV
+            - name: Package extension
+              run: yarn run package:firefox
+            - name: Publish firefox artifact
+              uses: actions/upload-artifact@v3
+              with:
+                  name: ${{ env.FF_ADDON_NAME }}.xpi
+                  path: ./${{ env.FF_ADDON_NAME }}.xpi
+            - name: Create GitHub release
+              id: create_release
+              uses: softprops/action-gh-release@v1
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                  tag_name: v${{ env.PACKAGE_VERSION }}-firefox-pre
+                  name: v${{ env.PACKAGE_VERSION }}-firefox-pre
+                  draft: false
+                  prerelease: true
+                  files: |
+                    ./${{ env.FF_ADDON_NAME }}.xpi
+
