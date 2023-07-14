@@ -36,7 +36,7 @@ const getMakeManifest = (isFirefox) => (force = false) => {
     },
     "browser_specific_settings": {
       "gecko": {
-        "id": `${packageJson["name"]}@gitkraken.com`,
+        "id": "gitkraken-browser@gitkraken.com",
         "strict_min_version": "109.0"
       }
     }
