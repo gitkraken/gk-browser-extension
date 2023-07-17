@@ -53,8 +53,8 @@ jobs:
         permissions:
             contents: write
         env:
-          FF_API_KEY: ${{ secrets.FF_API_KEY }}
-          FF_API_SECRET: ${{ secrets.FF_API_SECRET }}
+            FF_API_KEY: ${{ secrets.FF_API_KEY }}
+            FF_API_SECRET: ${{ secrets.FF_API_SECRET }}
         timeout-minutes: 15
         if: needs.check.outputs.status == 'changed'
         steps:
@@ -93,6 +93,5 @@ jobs:
                   draft: false
                   prerelease: true
                   files: |
-                    ./${{ env.PACKAGE_NAME }}-chromium.zip
-                    ./${{ env.FF_ADDON_NAME }}.xpi
-
+                      ./${{ env.PACKAGE_NAME }}-chromium.zip
+                      ./${{ env.FF_ADDON_NAME }}.xpi

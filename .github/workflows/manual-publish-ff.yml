@@ -10,8 +10,8 @@ jobs:
         permissions:
             contents: write
         env:
-          FF_API_KEY: ${{ secrets.FF_API_KEY }}
-          FF_API_SECRET: ${{ secrets.FF_API_SECRET }}
+            FF_API_KEY: ${{ secrets.FF_API_KEY }}
+            FF_API_SECRET: ${{ secrets.FF_API_SECRET }}
         timeout-minutes: 10
         steps:
             - name: Checkout code
@@ -44,5 +44,4 @@ jobs:
                   draft: false
                   prerelease: true
                   files: |
-                    ./${{ env.FF_ADDON_NAME }}.xpi
-
+                      ./${{ env.FF_ADDON_NAME }}.xpi

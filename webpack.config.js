@@ -52,7 +52,7 @@ function getExtensionConfig(mode, env) {
 			},
 		}),
 		new webpack.DefinePlugin({
-			'MODE': JSON.stringify(mode),
+			MODE: JSON.stringify(mode),
 		}),
 	];
 
@@ -107,8 +107,8 @@ function getExtensionConfig(mode, env) {
 			mode === 'production'
 				? undefined
 				: {
-					level: 'log', // enables logging required for problem matchers
-				},
+						level: 'log', // enables logging required for problem matchers
+				  },
 		stats: {
 			preset: 'errors-warnings',
 			assets: true,

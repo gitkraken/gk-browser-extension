@@ -20,33 +20,17 @@
 		},
 		"project": "./tsconfig.json"
 	},
-	"plugins": [
-		"anti-trojan-source",
-		"import",
-		"@typescript-eslint"
-	],
+	"plugins": ["anti-trojan-source", "import", "@typescript-eslint"],
 	"reportUnusedDisableDirectives": true,
 	"root": true,
 	"rules": {
 		"anti-trojan-source/no-bidi": "error",
-		"arrow-parens": [
-			"off"
-		],
-		"brace-style": [
-			"off",
-			"stroustrup"
-		],
+		"arrow-parens": ["off"],
+		"brace-style": ["off", "stroustrup"],
 		"consistent-return": "off",
-		"curly": [
-			"error",
-			"multi-line",
-			"consistent"
-		],
+		"curly": ["error", "multi-line", "consistent"],
 		"eol-last": "error",
-		"linebreak-style": [
-			"error",
-			"unix"
-		],
+		"linebreak-style": ["error", "unix"],
 		"new-parens": "error",
 		"no-console": "off",
 		"no-constant-condition": [
@@ -149,14 +133,8 @@
 		"no-useless-return": "error",
 		"no-var": "error",
 		"no-with": "error",
-		"object-shorthand": [
-			"error",
-			"never"
-		],
-		"one-var": [
-			"error",
-			"never"
-		],
+		"object-shorthand": ["error", "never"],
+		"one-var": ["error", "never"],
 		"prefer-arrow-callback": "error",
 		"prefer-const": [
 			"error",
@@ -185,37 +163,20 @@
 			}
 		],
 		"require-atomic-updates": "off",
-		"semi": [
-			"error",
-			"always"
-		],
-		"semi-style": [
-			"error",
-			"last"
-		],
+		"semi": ["error", "always"],
+		"semi-style": ["error", "last"],
 		"sort-imports": [
 			"error",
 			{
 				"ignoreCase": true,
 				"ignoreDeclarationSort": true,
 				"ignoreMemberSort": false,
-				"memberSyntaxSortOrder": [
-					"none",
-					"all",
-					"multiple",
-					"single"
-				]
+				"memberSyntaxSortOrder": ["none", "all", "multiple", "single"]
 			}
 		],
 		"yoda": "error",
-		"import/consistent-type-specifier-style": [
-			"error",
-			"prefer-top-level"
-		],
-		"import/extensions": [
-			"error",
-			"never"
-		],
+		"import/consistent-type-specifier-style": ["error", "prefer-top-level"],
+		"import/extensions": ["error", "never"],
 		"import/newline-after-import": "warn",
 		"import/no-absolute-path": "error",
 		"import/no-cycle": "off",
@@ -231,10 +192,7 @@
 		"import/no-unresolved": [
 			"warn",
 			{
-				"ignore": [
-					"vscode",
-					"@env"
-				]
+				"ignore": ["vscode", "@env"]
 			}
 		],
 		"import/no-useless-path-segments": "error",
@@ -246,14 +204,7 @@
 					"orderImportKind": "asc",
 					"caseInsensitive": true
 				},
-				"groups": [
-					"builtin",
-					"external",
-					"internal",
-					"parent",
-					"sibling",
-					"index"
-				],
+				"groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
 				"newlines-between": "never"
 			}
 		],
@@ -314,10 +265,7 @@
 			"error",
 			{
 				"selector": "variable",
-				"format": [
-					"camelCase",
-					"PascalCase"
-				],
+				"format": ["camelCase", "PascalCase"],
 				"leadingUnderscore": "allow",
 				"filter": {
 					"regex": "^_$",
@@ -326,9 +274,7 @@
 			},
 			{
 				"selector": "variableLike",
-				"format": [
-					"camelCase"
-				],
+				"format": ["camelCase"],
 				"leadingUnderscore": "allow",
 				"filter": {
 					"regex": "^_$",
@@ -337,42 +283,24 @@
 			},
 			{
 				"selector": "memberLike",
-				"modifiers": [
-					"private"
-				],
-				"format": [
-					"camelCase"
-				],
+				"modifiers": ["private"],
+				"format": ["camelCase"],
 				"leadingUnderscore": "allow"
 			},
 			{
 				"selector": "memberLike",
-				"modifiers": [
-					"private",
-					"readonly"
-				],
-				"format": [
-					"camelCase",
-					"PascalCase"
-				],
+				"modifiers": ["private", "readonly"],
+				"format": ["camelCase", "PascalCase"],
 				"leadingUnderscore": "allow"
 			},
 			{
 				"selector": "memberLike",
-				"modifiers": [
-					"static",
-					"readonly"
-				],
-				"format": [
-					"camelCase",
-					"PascalCase"
-				]
+				"modifiers": ["static", "readonly"],
+				"format": ["camelCase", "PascalCase"]
 			},
 			{
 				"selector": "interface",
-				"format": [
-					"PascalCase"
-				],
+				"format": ["PascalCase"],
 				"custom": {
 					"regex": "^I[A-Z]",
 					"match": false
@@ -463,10 +391,7 @@
 	},
 	"settings": {
 		"import/parsers": {
-			"@typescript-eslint/parser": [
-				".ts",
-				".tsx"
-			]
+			"@typescript-eslint/parser": [".ts", ".tsx"]
 		},
 		"import/resolver": {
 			"typescript": {
@@ -474,11 +399,5 @@
 			}
 		}
 	},
-	"ignorePatterns": [
-		"dist/*",
-		"out/*",
-		"**/@types/*",
-		"tsconfig*.tsbuildinfo",
-		"webpack.config*.js"
-	]
+	"ignorePatterns": ["dist/*", "out/*", "**/@types/*", "tsconfig*.tsbuildinfo", "webpack.config*.js"]
 }

@@ -78,7 +78,7 @@ To lint the code as you make changes you can install the [ESLint](https://market
 
 ### Debugging
 
-### Firefox
+#### Firefox
 
 To run and debug the project for Firefox, execute the following from a terminal:
 
@@ -104,7 +104,7 @@ or
 
 add any file this folder to the [Firefox Add-on Debugger](about:debugging#/runtime/this-firefox)
 
-### Chrome/Edge
+#### Chrome/Edge
 
 To run and debug the project for Chrome or Edge, execute the following from a terminal:
 
@@ -122,14 +122,15 @@ To run the extension in the browser, first add your extension to the browser in 
 
 ### Testing
 
-Tests are run by loading the built chromium extension into a persisten chrome browser controlled by playwright. Firefox testing is currently not supported. 
+Tests are run by loading the built chromium extension into a persisten chrome browser controlled by playwright. Firefox testing is currently not supported.
 
 To run the tests, execute the following from a terminal:
-    
+
 ```
 yarn build:chromium
 yarn test
 ```
+
 When working on a test, it might be useful to temporarily remove the browser context argument of `--headless=new` to see the browser the tests are running in.
 
 ### Bundling
@@ -139,11 +140,12 @@ To generate a production bundle (without packaging) for a specific platform, run
 ```
 yarn run bundle:chromium
 ```
+
 or
+
 ```
 yarn run bundle:firefox
 ```
-
 
 To generate a ZIP run the following from a terminal:
 
