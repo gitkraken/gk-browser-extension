@@ -1,5 +1,7 @@
 import type { InjectionProvider, LinkTarget } from '../provider';
 
+declare const MODE: 'production' | 'development' | 'none';
+
 export function injectionScope(url: string) {
 	class GitLabInjectionProvider implements InjectionProvider {
 		private _timer: ReturnType<typeof setTimeout> | undefined;
@@ -76,7 +78,56 @@ export function injectionScope(url: string) {
 		}
 
 		private tranformUrl(target: LinkTarget, action: 'open' | 'compare'): string {
-			return '';
+			const [, owner, repo, , type, ...rest] = this.uri.pathname.split('/');
+
+			if (target === 'gkdev') {
+				const redirectUrl = this.tranformUrl('vscode', action);
+				console.debug('redirectUrl', redirectUrl);
+				const deepLinkUrl =
+					MODE === 'production' ? 'https://gitkraken.dev/link' : 'https://dev.gitkraken.dev/link';
+				return new URL(`${deepLinkUrl}/${encodeURIComponent(btoa(redirectUrl))}`).toString();
+			}
+
+			const repoId = '-';
+
+			let url;
+			switch (target) {
+				case 'gitkraken': {
+					switch (type) {
+						case 'commit': {
+							url = new URL(`${target}://repolink/${repoId}/commit/${rest.join('/')}`);
+							break;
+						}
+						default: {
+							url = new URL(`${target}://repolink/${repoId}`);
+							break;
+						}
+					}
+					break;
+				}
+				case 'vscode':
+				case 'vscode-insiders': {
+					switch (type) {
+						case 'commit': {
+							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
+							break;
+						}
+						default: {
+							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+							break;
+						}
+					}
+					break;
+				}
+			}
+
+			const remoteUrl = new URL(this.uri.toString());
+			remoteUrl.hash = '';
+			remoteUrl.search = '';
+			remoteUrl.pathname = `/${owner}/${repo}.git`;
+
+			url.searchParams.set('url', remoteUrl.toString());
+			return url.toString();
 		}
 
 		private getGitKrakenSvg(size: number, classes?: string, style?: string) {
