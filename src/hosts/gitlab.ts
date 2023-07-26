@@ -24,7 +24,6 @@ export function injectionScope(url: string) {
 
 				switch (type) {
 					case 'commit': {
-						// TODO my hunch is this is too vague to work correctly
 						insertions.set('.page-content-header > .gl-button', {
 							html: /*html*/ `<a data-gk class="gl-button btn btn-icon btn-md btn-default gl-mr-3 has-tooltip" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
 								22,
@@ -32,6 +31,47 @@ export function injectionScope(url: string) {
 								undefined,
 							)}</a>`,
 							position: 'beforebegin',
+						});
+
+						break;
+					}
+					case 'merge_requests': {
+						const compareUrl = this.tranformUrl('gkdev', 'compare');
+
+						insertions.set('.merge-request .dropdown-menu .gl-dropdown-item:last-child', {
+							html: /*html*/ `<li class="gl-dropdown-divider">
+	<hr class="dropdown-divider">
+</li>
+<li class="gl-dropdown-section-header">
+	<header class="dropdown-header">
+		GitKraken
+	</header>
+</li>
+<li data-gk class="gl-dropdown-item">
+	<a class="dropdown-item" href="${url}" style="align-items: center !important;" target="_blank">
+		<div class="gl-dropdown-item-text-wrapper" style="display: flex; align-items: center !important;">
+			${this.getGitKrakenSvg(
+				16,
+				'mr-2 gl-icon',
+				'flex: 0 0 auto;'
+			)}
+			${label}
+		</div>
+	</a>
+</li>
+<li data-gk class="gl-dropdown-item">
+	<a class="dropdown-item" href="${compareUrl}" style="align-items: center !important;" target="_blank">
+		<div class="gl-dropdown-item-text-wrapper"" style="display: flex; align-items: center !important;">
+			${this.getGitKrakenSvg(
+				16,
+				'mr-2 gl-icon',
+				'flex: 0 0 auto;'
+			)}
+			Open Comparison with GitKraken
+		</div>
+	</a>
+</li>`,
+							position: 'afterend',
 						});
 
 						break;
@@ -78,7 +118,7 @@ export function injectionScope(url: string) {
 		}
 
 		private tranformUrl(target: LinkTarget, action: 'open' | 'compare'): string {
-			const [, owner, repo, , type, ...rest] = this.uri.pathname.split('/');
+			let [, owner, repo, , type, ...rest] = this.uri.pathname.split('/');
 
 			if (target === 'gkdev') {
 				const redirectUrl = this.tranformUrl('vscode', action);
@@ -98,6 +138,34 @@ export function injectionScope(url: string) {
 							url = new URL(`${target}://repolink/${repoId}/commit/${rest.join('/')}`);
 							break;
 						}
+						case 'merge_requests': {
+							const [prNumber] = rest;
+
+							const headTreeUrl =
+								document.querySelector<HTMLAnchorElement>('.merge-request-details .detail-page-description a.gl-font-monospace:nth-of-type(2)')?.href;
+							if (!headTreeUrl) {
+								url = new URL(`${target}://repolink/${repoId}`);
+								url.searchParams.set('pr', prNumber);
+								url.searchParams.set('prUrl', this.uri.toString());
+							} else {
+								const [, prOwner, prRepo, , , ...prBranch] = new URL(headTreeUrl).pathname.split('/');
+								url = new URL(`${target}://repolink/${repoId}/branch/${prBranch.join('/')}`);
+								url.searchParams.set('pr', prNumber);
+								url.searchParams.set('prUrl', this.uri.toString());
+
+								if (prOwner !== owner || prRepo !== repo) {
+									const prRepoUrl = new URL(this.uri.toString());
+									prRepoUrl.hash = '';
+									prRepoUrl.search = '';
+									prRepoUrl.pathname = `/${owner}/${repo}.git`;
+									url.searchParams.set('prRepoUrl', prRepoUrl.toString());
+
+									owner = prOwner;
+									repo = prRepo;
+								}
+							}
+							break;
+						}
 						default: {
 							url = new URL(`${target}://repolink/${repoId}`);
 							break;
@@ -110,6 +178,54 @@ export function injectionScope(url: string) {
 					switch (type) {
 						case 'commit': {
 							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
+							break;
+						}
+						case 'merge_requests': {
+							const [prNumber] = rest;
+
+							const headTreeUrl =
+								document.querySelector<HTMLAnchorElement>('.merge-request-details .detail-page-description a.gl-font-monospace:nth-of-type(2)')?.href;
+							if (headTreeUrl) {
+								const [, prOwner, prRepo, , , ...prBranch] = new URL(headTreeUrl).pathname.split('/');
+
+								if (action === 'compare') {
+									const baseTreeUrl =
+										document.querySelector<HTMLAnchorElement>('.merge-request-details .detail-page-description a.gl-font-monospace:nth-of-type(3)')?.href;
+									if (baseTreeUrl) {
+										const [, , , , , ...baseBranch] = new URL(baseTreeUrl).pathname.split('/');
+
+										url = new URL(
+											`${target}://eamodio.gitlens/link/r/${repoId}/compare/${baseBranch.join(
+												'/',
+											)}...${prBranch.join('/')}`,
+										);
+									}
+								}
+
+								if (url == null) {
+									url = new URL(
+										`${target}://eamodio.gitlens/link/r/${repoId}/b/${prBranch.join('/')}`,
+									);
+								}
+
+								url.searchParams.set('pr', prNumber);
+								url.searchParams.set('prUrl', this.uri.toString());
+
+								if (prOwner !== owner || prRepo !== repo) {
+									const prRepoUrl = new URL(this.uri.toString());
+									prRepoUrl.hash = '';
+									prRepoUrl.search = '';
+									prRepoUrl.pathname = `/${owner}/${repo}.git`;
+									url.searchParams.set('prRepoUrl', prRepoUrl.toString());
+
+									owner = prOwner;
+									repo = prRepo;
+								}
+							} else {
+								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+								url.searchParams.set('pr', prNumber);
+								url.searchParams.set('prUrl', this.uri.toString());
+							}
 							break;
 						}
 						default: {
