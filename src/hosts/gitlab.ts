@@ -20,7 +20,10 @@ export function injectionScope(url: string) {
 				const label = 'Open with GitKraken';
 				const url = this.tranformUrl('gkdev', 'open');
 
-				const [, , , , type, query] = this.uri.pathname.split('/');
+				const {
+					type,
+					rest,
+				} = this.parseUrl(this.uri.pathname);
 
 				switch (type) {
 					case 'commit': {
@@ -57,7 +60,7 @@ export function injectionScope(url: string) {
 					case 'merge_requests': {
 						// quit early, since the `/merge_requests` endpoint w/o a MR number opens a list of merge requests. we
 						// don't want our button there
-						if (query == undefined) {
+						if (rest.length == 0) {
 							break;
 						}
 
@@ -160,8 +163,46 @@ export function injectionScope(url: string) {
 			}
 		}
 
+		// TODO this does not support parsing of gitlab self-hosted relative URLs
+		// https://docs.gitlab.com/ee/install/relative_url.html
+		private parseUrl(url: string): { owner: string, subgroups: string[], repo: string, type: string | undefined, rest: string[] } {
+			// remove slash at the end of the pathname
+			const path = url.endsWith('/')
+				? url.substring(0, url.length - 1)
+				: url;
+
+			const split = path.split('/');
+			const separatorIndex = split.findIndex(value => value == '-');
+
+			// if we couldn't find a separator index, assume that we're on the front page of a repository
+			if (separatorIndex === -1) {
+				return {
+					owner: split[1],
+					subgroups: split.slice(2, split.length - 1),
+					repo: split[split.length - 1],
+					type: undefined,
+					rest: [],
+				};
+			}
+
+			return {
+				owner: split[1],
+				subgroups: split.slice(2, separatorIndex - 1),
+				repo: split[separatorIndex - 1],
+				type: split.at(separatorIndex + 1),
+				rest: separatorIndex + 2 < split.length
+					? split.slice(separatorIndex + 2, split.length)
+					: [],
+			};
+		}
+
 		private tranformUrl(target: LinkTarget, action: 'open' | 'compare'): string {
-			let [, owner, repo, , type, ...rest] = this.uri.pathname.split('/');
+			let {
+				owner,
+				repo,
+				type,
+				rest,
+			} = this.parseUrl(this.uri.pathname);
 
 			if (target === 'gkdev') {
 				const redirectUrl = this.tranformUrl('vscode', action);
@@ -191,7 +232,12 @@ export function injectionScope(url: string) {
 								url.searchParams.set('pr', prNumber);
 								url.searchParams.set('prUrl', this.uri.toString());
 							} else {
-								const [, prOwner, prRepo, , , ...prBranch] = new URL(headTreeUrl).pathname.split('/');
+								const {
+									owner: prOwner,
+									repo: prRepo,
+									rest: prBranch,
+								} = this.parseUrl(new URL(headTreeUrl).pathname);
+
 								url = new URL(`${target}://repolink/${repoId}/branch/${prBranch.join('/')}`);
 								url.searchParams.set('pr', prNumber);
 								url.searchParams.set('prUrl', this.uri.toString());
@@ -242,13 +288,19 @@ export function injectionScope(url: string) {
 							const headTreeUrl =
 								document.querySelector<HTMLAnchorElement>('.merge-request-details .detail-page-description a.gl-font-monospace:nth-of-type(2)')?.href;
 							if (headTreeUrl) {
-								const [, prOwner, prRepo, , , ...prBranch] = new URL(headTreeUrl).pathname.split('/');
+								const {
+									owner: prOwner,
+									repo: prRepo,
+									rest: prBranch,
+								} = this.parseUrl(new URL(headTreeUrl).pathname);
 
 								if (action === 'compare') {
 									const baseTreeUrl =
 										document.querySelector<HTMLAnchorElement>('.merge-request-details .detail-page-description a.gl-font-monospace:nth-of-type(3)')?.href;
 									if (baseTreeUrl) {
-										const [, , , , , ...baseBranch] = new URL(baseTreeUrl).pathname.split('/');
+										const {
+											rest: baseBranch,
+										} = this.parseUrl(new URL(baseTreeUrl).pathname);
 
 										url = new URL(
 											`${target}://eamodio.gitlens/link/r/${repoId}/compare/${baseBranch.join(
