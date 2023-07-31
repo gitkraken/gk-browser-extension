@@ -95,6 +95,24 @@ export function injectionScope(url: string) {
 
 						break;
 					}
+					case 'tree':
+					case undefined: {
+						insertions.set('.dropdown-menu .gl-dropdown-item:last-child .dropdown-item:last-child', {
+							html: /*html*/ `<a data-gk class="dropdown-item open-with-link" href="${url}" style="align-items: center !important;" target="_blank">
+	<div class="gl-dropdown-item-text-wrapper" style="display: flex; align-items: center !important;">
+		${this.getGitKrakenSvg(
+			16,
+			'mr-2 gl-icon',
+			'flex: 0 0 auto;'
+		)}
+		<span>${label}</span>
+	</div>
+</a>`,
+							position: 'afterend',
+						});
+
+						break;
+					}
 				}
 			} catch (ex) {
 				debugger;
@@ -185,6 +203,15 @@ export function injectionScope(url: string) {
 							}
 							break;
 						}
+						case 'tree': {
+							// TODO sometimes a sha can be passed into this, which the `branch` deeplink path doesn't work with. i don't
+							// know how we could fix this unless we modify the deeplink spec, since differentiating a sha from a branch
+							// and selecting the correct deeplink route to use (/branch/... for branches, /c/... for commits) is an
+							// unsolveable problem. yes, full length shas are pretty easy to differentiate from branch names, but GitLab
+							// supports shortened shas which screws up everything
+							url = new URL(`${target}://repolink/${repoId}/branch/${rest.join('/')}`);
+							break;
+						}
 						default: {
 							url = new URL(`${target}://repolink/${repoId}`);
 							break;
@@ -249,6 +276,15 @@ export function injectionScope(url: string) {
 								url.searchParams.set('pr', prNumber);
 								url.searchParams.set('prUrl', this.uri.toString());
 							}
+							break;
+						}
+						case 'tree': {
+							// TODO sometimes a sha can be passed into this, which the `branch` deeplink path doesn't work with. i don't
+							// know how we could fix this unless we modify the deeplink spec, since differentiating a sha from a branch
+							// and selecting the correct deeplink route to use (/branch/... for branches, /c/... for commits) is an
+							// unsolveable problem. yes, full length shas are pretty easy to differentiate from branch names, but GitLab
+							// supports shortened shas which screws up everything
+							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
 							break;
 						}
 						default: {
