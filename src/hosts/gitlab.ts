@@ -66,6 +66,11 @@ export function injectionScope(url: string) {
 
 						const compareUrl = this.tranformUrl('gkdev', 'compare');
 
+						const container = document.querySelector<HTMLElement>('.merge-request .dropdown-menu .gl-dropdown-inner');
+						if (container) {
+							container.style.maxHeight = '400px';
+						}
+
 						insertions.set('.merge-request .dropdown-menu .gl-dropdown-item:last-child', {
 							html: /*html*/ `<li class="gl-dropdown-divider">
 	<hr class="dropdown-divider">
