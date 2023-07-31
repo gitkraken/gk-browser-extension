@@ -25,12 +25,31 @@ export function injectionScope(url: string) {
 				switch (type) {
 					case 'commit': {
 						insertions.set('.page-content-header > .gl-button', {
-							html: /*html*/ `<a data-gk class="gl-button btn btn-icon btn-md btn-default gl-mr-3 has-tooltip" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
-								22,
-								's16 gl-icon gl-button-icon',
-								undefined,
-							)}</a>`,
+							html: /*html*/ `<a data-gk class="gl-button btn btn-icon btn-md btn-default gl-mr-3 has-tooltip" href="${url}" target="_blank" title="${label}" aria-label="${label}">
+	${this.getGitKrakenSvg(
+		22,
+		's16 gl-icon gl-button-icon',
+		undefined,
+	)}
+</a>`,
 							position: 'beforebegin',
+						});
+
+						break;
+					}
+					case 'compare': {
+						insertions.set('form.js-requires-input .gl-display-flex:last-child .btn-confirm', {
+							html: /*html*/ `<a data-gk type="button" class="gl-button btn btn-defualt btn-md" href="${url}" target="_blank">
+	<span class="gl-button-text">
+		${this.getGitKrakenSvg(
+			22,
+			's16 gl-icon gl-button-icon',
+			undefined,
+		)}
+		Compare with GitKraken
+	</span>
+</a>`,
+							position: 'afterend',
 						});
 
 						break;
@@ -178,6 +197,10 @@ export function injectionScope(url: string) {
 					switch (type) {
 						case 'commit': {
 							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
+							break;
+						}
+						case 'compare': {
+							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/compare/${rest.join('/')}`);
 							break;
 						}
 						case 'merge_requests': {
