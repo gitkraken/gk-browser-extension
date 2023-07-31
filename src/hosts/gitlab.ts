@@ -106,7 +106,7 @@ export function injectionScope(url: string) {
 					}
 					case 'tree':
 					case undefined: {
-						insertions.set('.dropdown-menu .gl-dropdown-item:last-child .dropdown-item:last-child', {
+						insertions.set('.project-clone-holder .dropdown-menu .gl-dropdown-item:last-child .dropdown-item:last-child', {
 							html: /*html*/ `<a data-gk class="dropdown-item open-with-link" href="${url}" style="align-items: center !important;" target="_blank">
 	<div class="gl-dropdown-item-text-wrapper" style="display: flex; align-items: center !important;">
 		${this.getGitKrakenSvg(
