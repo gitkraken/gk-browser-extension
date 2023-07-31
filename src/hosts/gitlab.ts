@@ -20,7 +20,7 @@ export function injectionScope(url: string) {
 				const label = 'Open with GitKraken';
 				const url = this.tranformUrl('gkdev', 'open');
 
-				const [, , , , type] = this.uri.pathname.split('/');
+				const [, , , , type, query] = this.uri.pathname.split('/');
 
 				switch (type) {
 					case 'commit': {
@@ -55,6 +55,12 @@ export function injectionScope(url: string) {
 						break;
 					}
 					case 'merge_requests': {
+						// quit early, since the `/merge_requests` endpoint w/o a MR number opens a list of merge requests. we
+						// don't want our button there
+						if (query == undefined) {
+							break;
+						}
+
 						const compareUrl = this.tranformUrl('gkdev', 'compare');
 
 						insertions.set('.merge-request .dropdown-menu .gl-dropdown-item:last-child', {
