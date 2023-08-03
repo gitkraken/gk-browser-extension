@@ -20,20 +20,13 @@ export function injectionScope(url: string) {
 				const label = 'Open with GitKraken';
 				const url = this.tranformUrl('gkdev', 'open');
 
-				const {
-					type,
-					rest,
-				} = this.parseUrl(this.uri.pathname);
+				const { type, rest } = this.parseUrl(this.uri.pathname);
 
 				switch (type) {
 					case 'commit': {
 						insertions.set('.page-content-header > .gl-button', {
 							html: /*html*/ `<a data-gk class="gl-button btn btn-icon btn-md btn-default gl-mr-3 has-tooltip" href="${url}" target="_blank" title="${label}" aria-label="${label}">
-	${this.getGitKrakenSvg(
-		22,
-		's16 gl-icon gl-button-icon',
-		undefined,
-	)}
+	${this.getGitKrakenSvg(22, 's16 gl-icon gl-button-icon', undefined)}
 </a>`,
 							position: 'beforebegin',
 						});
@@ -44,11 +37,7 @@ export function injectionScope(url: string) {
 						insertions.set('form.js-requires-input .gl-display-flex:last-child .btn-confirm', {
 							html: /*html*/ `<a data-gk type="button" class="gl-button btn btn-defualt btn-md" href="${url}" target="_blank">
 	<span class="gl-button-text">
-		${this.getGitKrakenSvg(
-			22,
-			's16 gl-icon gl-button-icon',
-			undefined,
-		)}
+		${this.getGitKrakenSvg(22, 's16 gl-icon gl-button-icon', undefined)}
 		Compare with GitKraken
 	</span>
 </a>`,
@@ -66,7 +55,9 @@ export function injectionScope(url: string) {
 
 						const compareUrl = this.tranformUrl('gkdev', 'compare');
 
-						const container = document.querySelector<HTMLElement>('.merge-request .dropdown-menu .gl-dropdown-inner');
+						const container = document.querySelector<HTMLElement>(
+							'.merge-request .dropdown-menu .gl-dropdown-inner',
+						);
 						if (container) {
 							container.style.maxHeight = '400px';
 						}
@@ -83,11 +74,7 @@ export function injectionScope(url: string) {
 <li data-gk class="gl-dropdown-item">
 	<a class="dropdown-item" href="${url}" style="align-items: center !important;" target="_blank">
 		<div class="gl-dropdown-item-text-wrapper" style="display: flex; align-items: center !important;">
-			${this.getGitKrakenSvg(
-				16,
-				'mr-2 gl-icon',
-				'flex: 0 0 auto;'
-			)}
+			${this.getGitKrakenSvg(16, 'mr-2 gl-icon', 'flex: 0 0 auto;')}
 			${label}
 		</div>
 	</a>
@@ -95,11 +82,7 @@ export function injectionScope(url: string) {
 <li data-gk class="gl-dropdown-item">
 	<a class="dropdown-item" href="${compareUrl}" style="align-items: center !important;" target="_blank">
 		<div class="gl-dropdown-item-text-wrapper"" style="display: flex; align-items: center !important;">
-			${this.getGitKrakenSvg(
-				16,
-				'mr-2 gl-icon',
-				'flex: 0 0 auto;'
-			)}
+			${this.getGitKrakenSvg(16, 'mr-2 gl-icon', 'flex: 0 0 auto;')}
 			Open Comparison with GitKraken
 		</div>
 	</a>
@@ -111,19 +94,18 @@ export function injectionScope(url: string) {
 					}
 					case 'tree':
 					case undefined: {
-						insertions.set('.project-clone-holder .dropdown-menu .gl-dropdown-item:last-child .dropdown-item:last-child', {
-							html: /*html*/ `<a data-gk class="dropdown-item open-with-link" href="${url}" style="align-items: center !important;" target="_blank">
+						insertions.set(
+							'.project-clone-holder .dropdown-menu .gl-dropdown-item:last-child .dropdown-item:last-child',
+							{
+								html: /*html*/ `<a data-gk class="dropdown-item open-with-link" href="${url}" style="align-items: center !important;" target="_blank">
 	<div class="gl-dropdown-item-text-wrapper" style="display: flex; align-items: center !important;">
-		${this.getGitKrakenSvg(
-			16,
-			'mr-2 gl-icon',
-			'flex: 0 0 auto;'
-		)}
+		${this.getGitKrakenSvg(16, 'mr-2 gl-icon', 'flex: 0 0 auto;')}
 		<span>${label}</span>
 	</div>
 </a>`,
-							position: 'afterend',
-						});
+								position: 'afterend',
+							},
+						);
 
 						break;
 					}
@@ -170,11 +152,15 @@ export function injectionScope(url: string) {
 
 		// TODO this does not support parsing of gitlab self-hosted relative URLs
 		// https://docs.gitlab.com/ee/install/relative_url.html
-		private parseUrl(url: string): { owner: string, subgroups: string[], repo: string, type: string | undefined, rest: string[] } {
+		private parseUrl(url: string): {
+			owner: string;
+			subgroups: string[];
+			repo: string;
+			type: string | undefined;
+			rest: string[];
+		} {
 			// remove slash at the end of the pathname
-			const path = url.endsWith('/')
-				? url.substring(0, url.length - 1)
-				: url;
+			const path = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
 
 			const split = path.split('/');
 			const separatorIndex = split.findIndex(value => value == '-');
@@ -195,19 +181,12 @@ export function injectionScope(url: string) {
 				subgroups: split.slice(2, separatorIndex - 1),
 				repo: split[separatorIndex - 1],
 				type: split.at(separatorIndex + 1),
-				rest: separatorIndex + 2 < split.length
-					? split.slice(separatorIndex + 2, split.length)
-					: [],
+				rest: separatorIndex + 2 < split.length ? split.slice(separatorIndex + 2, split.length) : [],
 			};
 		}
 
 		private tranformUrl(target: LinkTarget, action: 'open' | 'compare'): string {
-			let {
-				owner,
-				repo,
-				type,
-				rest,
-			} = this.parseUrl(this.uri.pathname);
+			let { owner, repo, type, rest } = this.parseUrl(this.uri.pathname);
 
 			if (target === 'gkdev') {
 				const redirectUrl = this.tranformUrl('vscode', action);
@@ -230,8 +209,9 @@ export function injectionScope(url: string) {
 						case 'merge_requests': {
 							const [prNumber] = rest;
 
-							const headTreeUrl =
-								document.querySelector<HTMLAnchorElement>('.merge-request-details .detail-page-description a.gl-font-monospace:nth-of-type(2)')?.href;
+							const headTreeUrl = document.querySelector<HTMLAnchorElement>(
+								'.merge-request-details .detail-page-description a.gl-font-monospace:nth-of-type(2)',
+							)?.href;
 							if (!headTreeUrl) {
 								url = new URL(`${target}://repolink/${repoId}`);
 								url.searchParams.set('pr', prNumber);
@@ -290,8 +270,9 @@ export function injectionScope(url: string) {
 						case 'merge_requests': {
 							const [prNumber] = rest;
 
-							const headTreeUrl =
-								document.querySelector<HTMLAnchorElement>('.merge-request-details .detail-page-description a.gl-font-monospace:nth-of-type(2)')?.href;
+							const headTreeUrl = document.querySelector<HTMLAnchorElement>(
+								'.merge-request-details .detail-page-description a.gl-font-monospace:nth-of-type(2)',
+							)?.href;
 							if (headTreeUrl) {
 								const {
 									owner: prOwner,
@@ -300,12 +281,11 @@ export function injectionScope(url: string) {
 								} = this.parseUrl(new URL(headTreeUrl).pathname);
 
 								if (action === 'compare') {
-									const baseTreeUrl =
-										document.querySelector<HTMLAnchorElement>('.merge-request-details .detail-page-description a.gl-font-monospace:nth-of-type(3)')?.href;
+									const baseTreeUrl = document.querySelector<HTMLAnchorElement>(
+										'.merge-request-details .detail-page-description a.gl-font-monospace:nth-of-type(3)',
+									)?.href;
 									if (baseTreeUrl) {
-										const {
-											rest: baseBranch,
-										} = this.parseUrl(new URL(baseTreeUrl).pathname);
+										const { rest: baseBranch } = this.parseUrl(new URL(baseTreeUrl).pathname);
 
 										url = new URL(
 											`${target}://eamodio.gitlens/link/r/${repoId}/compare/${baseBranch.join(
