@@ -8,7 +8,7 @@ test('should create a link to open a repository in the repo page', async ({ page
 	// open up the Code tab
 	await page.locator('#repo-content-pjax-container').getByText('Code', { exact: true }).click();
 
-	const gkLinkElement = await page.getByRole('link', { name: 'Open with GitKraken' });
+	const gkLinkElement = page.getByRole('link', { name: 'Open with GitKraken' });
 	const gkLink = await gkLinkElement.getAttribute('href');
 	expect(gkLink).toBe(
 		'https://dev.gitkraken.dev/link/dnNjb2RlOi8vZWFtb2Rpby5naXRsZW5zL2xpbmsvci8tP3VybD1odHRwcyUzQSUyRiUyRmdpdGh1Yi5jb20lMkZtaWNyb3NvZnQlMkZ2c2NvZGUuZ2l0',
@@ -27,7 +27,7 @@ test.skip('should create a link to open a branch for a PR', async ({ page }) => 
 	await page.getByText('Checkout with GitKraken', { exact: true }).click();
 
 	await page.getByRole('link', { name: 'Checkout with GitKraken' }).click();
-	const gkLinkElement = await page.getByRole('link', { name: 'Open with GitKraken' });
+	const gkLinkElement = page.getByRole('link', { name: 'Open with GitKraken' });
 	const gkLink = await gkLinkElement.getAttribute('href');
 	expect(gkLink).toBe(
 		// todo: get the correct link
@@ -41,7 +41,7 @@ test('should create a link to open a commit', async ({ page }) => {
 
 	// open up the Code tab
 
-	const gkLinkElement = await page.getByLabel('Open with GitKraken', { exact: true });
+	const gkLinkElement = page.getByLabel('Open with GitKraken', { exact: true });
 	const gkLink = await gkLinkElement.getAttribute('href');
 	expect(gkLink).toBe(
 		'https://dev.gitkraken.dev/link/dnNjb2RlOi8vZWFtb2Rpby5naXRsZW5zL2xpbmsvci8tL2MvYmViNTAzYWU4MTMwM2Q2M2FiYjgyMWYyYjBjNjZlNDE2MzNiNDcwNT91cmw9aHR0cHMlM0ElMkYlMkZnaXRodWIuY29tJTJGZ2l0a3Jha2VuJTJGdnNjb2RlLWdpdGxlbnMuZ2l0',
