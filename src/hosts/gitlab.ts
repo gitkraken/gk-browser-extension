@@ -18,7 +18,7 @@ export function injectionScope(url: string) {
 
 			try {
 				const label = 'Open with GitKraken';
-				const url = this.tranformUrl('gkdev', 'open');
+				const url = this.transformUrl('gkdev', 'open');
 
 				const { type, rest } = this.parseUrl(this.uri.pathname);
 
@@ -53,7 +53,7 @@ export function injectionScope(url: string) {
 							break;
 						}
 
-						const compareUrl = this.tranformUrl('gkdev', 'compare');
+						const compareUrl = this.transformUrl('gkdev', 'compare');
 
 						const container = document.querySelector<HTMLElement>(
 							'.merge-request .dropdown-menu .gl-dropdown-inner',
@@ -185,11 +185,11 @@ export function injectionScope(url: string) {
 			};
 		}
 
-		private tranformUrl(target: LinkTarget, action: 'open' | 'compare'): string {
+		private transformUrl(target: LinkTarget, action: 'open' | 'compare'): string {
 			let { owner, repo, type, rest } = this.parseUrl(this.uri.pathname);
 
 			if (target === 'gkdev') {
-				const redirectUrl = this.tranformUrl('vscode', action);
+				const redirectUrl = this.transformUrl('vscode', action);
 				console.debug('redirectUrl', redirectUrl);
 				const deepLinkUrl =
 					MODE === 'production' ? 'https://gitkraken.dev/link' : 'https://dev.gitkraken.dev/link';
