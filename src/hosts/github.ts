@@ -218,10 +218,18 @@ export function injectionScope(url: string) {
 							}
 							break;
 						}
-						case 'tree':
-							// TODO@eamodio this is naive as it assumes everything after the tree is the branch, but it could also contain a path
-							url = new URL(`${target}://repolink/${repoId}/branch/${rest.join('/')}`);
+						case 'tree': {
+							// TODO@eamodio this is naive as it assumes everything after the tree is the branch or commit, but it could also contain a path
+							const prButtonForBranchPage = document.querySelector(
+								'.btn-link.no-underline.color-fg-muted',
+							);
+							if (prButtonForBranchPage && prButtonForBranchPage.textContent?.includes('Contribute')) {
+								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
+							} else {
+								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
+							}
 							break;
+						}
 						default:
 							url = new URL(`${target}://repolink/${repoId}`);
 							break;
@@ -293,10 +301,18 @@ export function injectionScope(url: string) {
 							}
 							break;
 						}
-						case 'tree':
+						case 'tree': {
 							// TODO@eamodio this is naive as it assumes everything after the tree is the branch, but it could also contain a path
-							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
+							const prButtonForBranchPage = document.querySelector(
+								'.btn-link.no-underline.color-fg-muted',
+							);
+							if (prButtonForBranchPage && prButtonForBranchPage.textContent?.includes('Contribute')) {
+								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
+							} else {
+								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
+							}
 							break;
+						}
 						default:
 							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
 							break;

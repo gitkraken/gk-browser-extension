@@ -251,6 +251,8 @@ export function injectionScope(url: string) {
 							// and selecting the correct deeplink route to use (/branch/... for branches, /c/... for commits) is an
 							// unsolveable problem. yes, full length shas are pretty easy to differentiate from branch names, but GitLab
 							// supports shortened shas which screws up everything
+							// the below line would be a good check, but isn't loaded with the initial page load, so we can't use it
+							// document.querySelector('[title="Copy commit SHA"]')?.getAttribute('data-clipboard-text') === rest.join('/')
 							url = new URL(`${target}://repolink/${repoId}/branch/${rest.join('/')}`);
 							break;
 						}
@@ -342,6 +344,8 @@ export function injectionScope(url: string) {
 							// and selecting the correct deeplink route to use (/branch/... for branches, /c/... for commits) is an
 							// unsolveable problem. yes, full length shas are pretty easy to differentiate from branch names, but GitLab
 							// supports shortened shas which screws up everything
+							// the below line would be a good check, but isn't loaded with the initial page load, so we can't use it
+							// document.querySelector('[title="Copy commit SHA"]')?.getAttribute('data-clipboard-text') === rest.join('/')
 							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
 							break;
 						}
