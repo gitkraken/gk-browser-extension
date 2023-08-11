@@ -290,12 +290,22 @@ export function injectionScope(url: string) {
 										'.merge-request-details .detail-page-description a.gl-font-monospace:nth-of-type(3)',
 									)?.href;
 									if (baseTreeUrl) {
-										const { rest: baseBranch } = this.parseUrl(new URL(baseTreeUrl).pathname);
+										const {
+											owner: baseOwner,
+											repo: baseRepo,
+											rest: baseBranch,
+										} = this.parseUrl(new URL(baseTreeUrl).pathname);
+
+										let baseBranchString = baseBranch.join('/');
+										let prBranchString = prBranch.join('/');
+
+										if (prOwner === baseOwner && prRepo === baseRepo) {
+											baseBranchString = `origin/${baseBranchString}`;
+											prBranchString = `origin/${prBranchString}`;
+										}
 
 										url = new URL(
-											`${target}://eamodio.gitlens/link/r/${repoId}/compare/${baseBranch.join(
-												'/',
-											)}...${prBranch.join('/')}`,
+											`${target}://eamodio.gitlens/link/r/${repoId}/compare/${baseBranchString}...${prBranchString}`,
 										);
 									}
 								}

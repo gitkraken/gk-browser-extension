@@ -249,12 +249,20 @@ export function injectionScope(url: string) {
 									const baseTreeUrl =
 										document.querySelector<HTMLAnchorElement>('.commit-ref.base-ref a')?.href;
 									if (baseTreeUrl) {
-										const [, , , , ...baseBranch] = new URL(baseTreeUrl).pathname.split('/');
+										const [, baseOwner, baseRepo, , ...baseBranch] = new URL(
+											baseTreeUrl,
+										).pathname.split('/');
+
+										let baseBranchString = baseBranch.join('/');
+										let prBranchString = prBranch.join('/');
+
+										if (prOwner === baseOwner && prRepo === baseRepo) {
+											baseBranchString = `origin/${baseBranchString}`;
+											prBranchString = `origin/${prBranchString}`;
+										}
 
 										url = new URL(
-											`${target}://eamodio.gitlens/link/r/${repoId}/compare/${baseBranch.join(
-												'/',
-											)}...${prBranch.join('/')}`,
+											`${target}://eamodio.gitlens/link/r/${repoId}/compare/${baseBranchString}...${prBranchString}`,
 										);
 									}
 								}
