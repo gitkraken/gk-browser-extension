@@ -242,9 +242,16 @@ export function injectionScope(url: string) {
 						case 'commit':
 							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
 							break;
-						case 'compare':
-							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/compare/${rest.join('/')}`);
+						case 'compare': {
+							let comparisonTarget = rest.join('/');
+							const sameOrigin = !comparisonTarget.includes(':');
+							if (sameOrigin) {
+								const branches = comparisonTarget.split('...').map(branch => `origin/${branch}`);
+								comparisonTarget = branches.join('...');
+							}
+							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/compare/${comparisonTarget}`);
 							break;
+						}
 						case 'pull': {
 							const [prNumber] = rest;
 

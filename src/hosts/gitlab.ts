@@ -34,15 +34,18 @@ export function injectionScope(url: string) {
 						break;
 					}
 					case 'compare': {
-						insertions.set('form.js-requires-input .gl-display-flex:last-child .btn-confirm', {
-							html: /*html*/ `<a data-gk type="button" class="gl-button btn btn-defualt btn-md" href="${url}" target="_blank">
-	<span class="gl-button-text">
-		${this.getGitKrakenSvg(22, 's16 gl-icon gl-button-icon', undefined)}
-		Compare with GitKraken
-	</span>
-</a>`,
-							position: 'afterend',
-						});
+						if (rest.length) {
+							// only insert if we know what we're comparing
+							insertions.set('form.js-requires-input .gl-display-flex:last-child .btn-confirm', {
+								html: /*html*/ `<a data-gk type="button" class="gl-button btn btn-defualt btn-md" href="${url}" target="_blank">
+		<span class="gl-button-text">
+			${this.getGitKrakenSvg(22, 's16 gl-icon gl-button-icon', undefined)}
+			Compare with GitKraken
+		</span>
+	</a>`,
+								position: 'afterend',
+							});
+						}
 
 						break;
 					}
@@ -271,7 +274,20 @@ export function injectionScope(url: string) {
 							break;
 						}
 						case 'compare': {
-							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/compare/${rest.join('/')}`);
+							// get the comparison target if not already provided
+							let comparisonTarget = rest.join('/');
+							if (!comparisonTarget) {
+								// TODO get the current state of the comparison pickers
+								// currently defaulting to a linkn to the repo
+								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+								break;
+							}
+							const sameOrigin = !comparisonTarget.includes(':');
+							if (sameOrigin) {
+								const branches = comparisonTarget.split('...').map(branch => `origin/${branch}`);
+								comparisonTarget = branches.join('...');
+							}
+							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/compare/${comparisonTarget}`);
 							break;
 						}
 						case 'merge_requests': {
