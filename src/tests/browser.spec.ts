@@ -11,7 +11,7 @@ test('should create a link to open a repository in the repo page', async ({ page
 	const gkLinkElement = page.getByRole('link', { name: 'Open with GitKraken' });
 	const gkLink = await gkLinkElement.getAttribute('href');
 	expect(gkLink).toBe(
-		'https://dev.gitkraken.dev/link/dnNjb2RlOi8vZWFtb2Rpby5naXRsZW5zL2xpbmsvci8tP3VybD1odHRwcyUzQSUyRiUyRmdpdGh1Yi5jb20lMkZtaWNyb3NvZnQlMkZ2c2NvZGUuZ2l0',
+		'https://dev.gitkraken.dev/link/dnNjb2RlOi8vZWFtb2Rpby5naXRsZW5zL2xpbmsvci8tP3VybD1odHRwcyUzQSUyRiUyRmdpdGh1Yi5jb20lMkZtaWNyb3NvZnQlMkZ2c2NvZGUuZ2l0?referrer=extension',
 	);
 });
 
@@ -31,7 +31,7 @@ test.skip('should create a link to open a branch for a PR', async ({ page }) => 
 	const gkLink = await gkLinkElement.getAttribute('href');
 	expect(gkLink).toBe(
 		// todo: get the correct link
-		'dev.gitkraken.dev/link/dnNjb2RlOi8vZWFtb2Rpby5naXRsZW5zL2xpbmsvci8tP3VybD1odHRwcyUzQSUyRiUyRmdpdGh1Yi5jb20lMkZtaWNyb3NvZnQlMkZ2c2NvZGUuZ2l0',
+		'dev.gitkraken.dev/link/dnNjb2RlOi8vZWFtb2Rpby5naXRsZW5zL2xpbmsvci8tP3VybD1odHRwcyUzQSUyRiUyRmdpdGh1Yi5jb20lMkZtaWNyb3NvZnQlMkZ2c2NvZGUuZ2l0?referrer=extension',
 	);
 });
 
@@ -44,6 +44,6 @@ test('should create a link to open a commit', async ({ page }) => {
 	const gkLinkElement = page.getByLabel('Open with GitKraken', { exact: true });
 	const gkLink = await gkLinkElement.getAttribute('href');
 	expect(gkLink).toBe(
-		'https://dev.gitkraken.dev/link/dnNjb2RlOi8vZWFtb2Rpby5naXRsZW5zL2xpbmsvci8tL2MvYmViNTAzYWU4MTMwM2Q2M2FiYjgyMWYyYjBjNjZlNDE2MzNiNDcwNT91cmw9aHR0cHMlM0ElMkYlMkZnaXRodWIuY29tJTJGZ2l0a3Jha2VuJTJGdnNjb2RlLWdpdGxlbnMuZ2l0',
+		'https://dev.gitkraken.dev/link/dnNjb2RlOi8vZWFtb2Rpby5naXRsZW5zL2xpbmsvci8tL2MvYmViNTAzYWU4MTMwM2Q2M2FiYjgyMWYyYjBjNjZlNDE2MzNiNDcwNT91cmw9aHR0cHMlM0ElMkYlMkZnaXRodWIuY29tJTJGZ2l0a3Jha2VuJTJGdnNjb2RlLWdpdGxlbnMuZ2l0?referrer=extension',
 	);
 });
