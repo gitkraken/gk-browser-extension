@@ -278,7 +278,7 @@ export function injectionScope(url: string) {
 							let comparisonTarget = rest.join('/');
 							if (!comparisonTarget) {
 								// TODO get the current state of the comparison pickers
-								// currently defaulting to a linkn to the repo
+								// currently defaulting to a link to the repo
 								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
 								break;
 							}

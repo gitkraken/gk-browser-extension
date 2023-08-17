@@ -244,6 +244,10 @@ export function injectionScope(url: string) {
 							break;
 						case 'compare': {
 							let comparisonTarget = rest.join('/');
+							if (!comparisonTarget) {
+								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+								break;
+							}
 							const sameOrigin = !comparisonTarget.includes(':');
 							if (sameOrigin) {
 								const branches = comparisonTarget.split('...').map(branch => `origin/${branch}`);
