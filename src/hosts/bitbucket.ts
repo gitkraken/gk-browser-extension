@@ -21,7 +21,7 @@ export function injectionScope(url: string) {
 				const url = this.transformUrl('gkdev', 'open');
 
 				const [, , , type] = this.uri.pathname.split('/');
-
+				console.log(`%cGitKraken for BitBucket: %c${type}`);
 				switch (type) {
 					case 'compare': {
 						insertions.set('#compare-toolbar .aui-buttons', {
@@ -36,13 +36,33 @@ export function injectionScope(url: string) {
 						});
 						break;
 					}
+					case 'pull-requests': {
+						insertions.set('.css-1oy5iav', {
+							html: /*html*/ `<a data-gk class="css-w97uih" href="${url}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+								20,
+								undefined,
+								'position:relative; top:4px; left:-5px;',
+							)}Open with GitKraken</a>
+							<a data-gk class="css-w97uih" href="${url}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+								20,
+								undefined,
+								'position:relative; top:4px; left:-5px;',
+							)}Open Comparison with GitKraken</a>`,
+							position: 'afterbegin',
+						});
+						break;
+					}
+					case 'branch':
 					case 'commits':
-					case 'pull-requests':
 					case 'src':
 					case undefined: {
-						insertions.set('[role="menu"][aria-label=""]', {
-							html: /*html*/ `<a data-gk class="Item-z6qfkt-1 ibegpx" href="${url}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">Open with GitKraken</a>`,
-							position: 'afterend',
+						insertions.set('.css-1oy5iav', {
+							html: /*html*/ `<a data-gk class="css-w97uih" href="${url}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+								20,
+								undefined,
+								'position:relative; top:4px; left:-5px;',
+							)}Open with GitKraken</a>`,
+							position: 'afterbegin',
 						});
 
 						break;
