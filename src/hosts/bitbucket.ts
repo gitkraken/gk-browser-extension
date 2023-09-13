@@ -21,11 +21,11 @@ export function injectionScope(url: string) {
 				const url = this.transformUrl('gkdev', 'open');
 
 				const [, , , type] = this.uri.pathname.split('/');
-				console.log(`%cGitKraken for BitBucket: %c${type}`);
 				switch (type) {
 					case 'compare': {
+						const compareUrl = this.transformUrl('gkdev', 'compare');
 						insertions.set('#compare-toolbar .aui-buttons', {
-							html: /*html*/ `<a data-gk class="aui-button" style="padding-top:2px !important; padding-bottom:1px !important;" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
+							html: /*html*/ `<a data-gk class="aui-button" style="padding-top:2px !important; padding-bottom:1px !important;" href="${compareUrl}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
 								22,
 								undefined,
 								'position:relative; top:3px;',
@@ -37,13 +37,14 @@ export function injectionScope(url: string) {
 						break;
 					}
 					case 'pull-requests': {
+						const compareUrl = this.transformUrl('gkdev', 'compare');
 						insertions.set('.css-1oy5iav', {
 							html: /*html*/ `<a data-gk class="css-w97uih" href="${url}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
 								20,
 								undefined,
 								'position:relative; top:4px; left:-5px;',
 							)}Open with GitKraken</a>
-							<a data-gk class="css-w97uih" href="${url}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+							<a data-gk class="css-w97uih" href="${compareUrl}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
 								20,
 								undefined,
 								'position:relative; top:4px; left:-5px;',
@@ -109,7 +110,153 @@ export function injectionScope(url: string) {
 		}
 
 		private transformUrl(target: LinkTarget, action: 'open' | 'compare'): string {
-			return 'https://gitkraken.dev';
+			let [, owner, repo, type, ...rest] = this.uri.pathname.split('/');
+			if (rest?.length) {
+				rest = rest.filter(Boolean);
+			}
+
+			if (target === 'gkdev') {
+				const redirectUrl = new URL(this.transformUrl('vscode', action));
+				console.debug('redirectUrl', redirectUrl);
+				const deepLinkUrl =
+					MODE === 'production' ? 'https://gitkraken.dev/link' : 'https://dev.gitkraken.dev/link';
+				const deepLink = new URL(`${deepLinkUrl}/${encodeURIComponent(btoa(redirectUrl.toString()))}`);
+				deepLink.searchParams.set('referrer', 'extension');
+				if (redirectUrl.searchParams.get('pr')) {
+					deepLink.searchParams.set('context', 'pr');
+				}
+				console.debug('deepLink', deepLink);
+				return deepLink.toString();
+			}
+
+			const repoId = '-';
+
+			let url;
+			switch (type) {
+				case 'commits':
+					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
+					break;
+				case 'compare': {
+					let comparisonTarget = rest.join('/');
+					if (!comparisonTarget) {
+						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+						break;
+					}
+					const sameOrigin = !comparisonTarget.includes(':');
+					if (sameOrigin) {
+						const branches = comparisonTarget.split('%0D').map(branch => `origin/${branch}`);
+
+						comparisonTarget = branches.join('...');
+					}
+					url = new URL(
+						`${target}://eamodio.gitlens/link/r/${repoId}/compare/${comparisonTarget.replace(
+							/%0D/g,
+							'...',
+						)}`,
+					);
+					break;
+				}
+				case 'pull-requests': {
+					const [prNumber] = rest;
+					const [prBranchElement, baseBranchElement, ..._] =
+						document.querySelectorAll<HTMLAnchorElement>('.css-1ul4m4g.evx2nil0');
+					const pr = prBranchElement?.innerText;
+					const base = baseBranchElement?.innerText;
+
+					if (pr && base) {
+						const splitPr = pr.split('/');
+						const splitBase = base.split('/');
+						let prBranch;
+						let prOwner;
+						let prRepo;
+						let baseOwner;
+						let baseRepo;
+						if (splitPr.length === 1) {
+							prBranch = pr;
+							prOwner = owner;
+							prRepo = repo;
+						} else {
+							prOwner = splitPr[0];
+							const splitPr2 = splitPr[1].split(':');
+							prRepo = splitPr2[0];
+							prBranch = splitPr2[1];
+						}
+						if (splitBase.length === 1) {
+							baseOwner = owner;
+							baseRepo = repo;
+						} else {
+							baseOwner = splitBase[0];
+							const splitBase2 = splitBase[1].split(':');
+							baseRepo = splitBase2[0];
+						}
+
+						if (action === 'compare') {
+							let baseBranchString;
+							let prBranchString;
+
+							if (prOwner === baseOwner && prRepo === baseRepo) {
+								baseBranchString = `origin/${baseBranchString}`;
+								prBranchString = `origin/${prBranchString}`;
+							} else {
+								baseBranchString = base;
+								prBranchString = pr;
+							}
+							url = new URL(
+								`${target}://eamodio.gitlens/link/r/${repoId}/compare/${baseBranchString}...${prBranchString}`,
+							);
+						}
+
+						if (url == null) {
+							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${prBranch}`);
+						}
+
+						url.searchParams.set('pr', prNumber);
+						url.searchParams.set('prUrl', this.uri.toString());
+
+						if (prOwner !== owner || prRepo !== repo) {
+							const prRepoUrl = new URL(this.uri.toString());
+							prRepoUrl.hash = '';
+							prRepoUrl.search = '';
+							prRepoUrl.pathname = `/${owner}/${repo}.git`;
+							url.searchParams.set('prRepoUrl', prRepoUrl.toString());
+
+							owner = prOwner;
+							repo = prRepo;
+						}
+					} else {
+						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+						url.searchParams.set('pr', prNumber);
+						url.searchParams.set('prUrl', this.uri.toString());
+					}
+					break;
+				}
+				case 'branch': {
+					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
+					break;
+				}
+				case 'src': {
+					// TODO@miggy-e this is a pretty naive check, please update if you find a better way
+					// this is currently broken when branches have 40 characters or if you use the short sha of a commit
+					if (rest.length === 1 && rest[0].length === 40) {
+						// commit sha's are 40 characters long
+						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
+					} else {
+						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
+					}
+					break;
+				}
+				default:
+					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+					break;
+			}
+
+			const remoteUrl = new URL(this.uri.toString());
+			remoteUrl.hash = '';
+			remoteUrl.search = '';
+			remoteUrl.pathname = `/${owner}/${repo}.git`;
+
+			url.searchParams.set('url', remoteUrl.toString());
+			return url.toString();
 		}
 
 		private getGitKrakenSvg(size: number, classes?: string, style?: string) {
