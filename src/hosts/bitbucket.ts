@@ -211,8 +211,10 @@ export function injectionScope(url: string) {
 							let prBranchString;
 
 							if (prOwner === baseOwner && prRepo === baseRepo) {
-								baseBranchString = `origin/${baseBranchString}`;
-								prBranchString = `origin/${prBranchString}`;
+								const baseBranch = base;
+								const prBranch = pr;
+								baseBranchString = `${baseOwner}/${baseRepo}:${baseBranch}`;
+								prBranchString = `${prOwner}/${prRepo}:${prBranch}`;
 							} else {
 								baseBranchString = base;
 								prBranchString = pr;
