@@ -53,6 +53,17 @@ export function injectionScope(url: string) {
 						});
 						break;
 					}
+					case 'branches': {
+						insertions.set('.css-1bvc4cc', {
+							html: /*html*/ `<a data-gk class="css-w97uih" style="margin-right:4px !important;" href="${url}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+								20,
+								undefined,
+								'position:relative; top:4px; left:-5px;',
+							)}Open with GitKraken</a>`,
+							position: 'afterbegin',
+						});
+						break;
+					}
 					case 'branch':
 					case 'commits':
 					case 'src':
@@ -117,7 +128,6 @@ export function injectionScope(url: string) {
 
 			if (target === 'gkdev') {
 				const redirectUrl = new URL(this.transformUrl('vscode', action));
-				console.debug('redirectUrl', redirectUrl);
 				const deepLinkUrl =
 					MODE === 'production' ? 'https://gitkraken.dev/link' : 'https://dev.gitkraken.dev/link';
 				const deepLink = new URL(`${deepLinkUrl}/${encodeURIComponent(btoa(redirectUrl.toString()))}`);
@@ -125,7 +135,6 @@ export function injectionScope(url: string) {
 				if (redirectUrl.searchParams.get('pr')) {
 					deepLink.searchParams.set('context', 'pr');
 				}
-				console.debug('deepLink', deepLink);
 				return deepLink.toString();
 			}
 
@@ -133,9 +142,15 @@ export function injectionScope(url: string) {
 
 			let url;
 			switch (type) {
-				case 'commits':
-					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
+				case 'commits': {
+					const target = rest.join('/');
+					if (!target) {
+						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+						break;
+					}
+					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${target}`);
 					break;
+				}
 				case 'compare': {
 					let comparisonTarget = rest.join('/');
 					if (!comparisonTarget) {
@@ -230,8 +245,14 @@ export function injectionScope(url: string) {
 					}
 					break;
 				}
+				case 'branches':
 				case 'branch': {
-					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
+					const target = rest.join('/');
+					if (!target) {
+						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+						break;
+					}
+					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${target}`);
 					break;
 				}
 				case 'src': {
