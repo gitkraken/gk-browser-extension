@@ -25,10 +25,10 @@ export function injectionScope(url: string) {
 					case 'compare': {
 						const compareUrl = this.transformUrl('gkdev', 'compare');
 						insertions.set('#compare-toolbar .aui-buttons', {
-							html: /*html*/ `<a data-gk class="aui-button" style="padding-top:2px !important; padding-bottom:1px !important;" href="${compareUrl}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
+							html: /*html*/ `<a data-gk class="aui-button" style="padding-top:0px !important; padding-bottom:0px !important;" href="${compareUrl}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
 								22,
 								undefined,
-								'position:relative; top:3px;',
+								'position:relative; top:5px;',
 							)}
 							Open Comparison with GitKraken
 							</a>`,
