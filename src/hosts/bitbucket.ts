@@ -23,6 +23,7 @@ export function injectionScope(url: string) {
 				const [, , , type] = this.uri.pathname.split('/');
 				switch (type) {
 					case 'compare': {
+						// TODO update the url when the dropdown changes/url changes
 						const compareUrl = this.transformUrl('gkdev', 'compare');
 						insertions.set('#compare-toolbar .aui-buttons', {
 							html: /*html*/ `<a data-gk class="aui-button" style="padding-top:0px !important; padding-bottom:0px !important;" href="${compareUrl}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
