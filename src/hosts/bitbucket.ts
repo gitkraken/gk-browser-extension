@@ -18,7 +18,6 @@ export function injectionScope(url: string) {
 			this.insertHTML(insertions);
 			chrome.runtime.onMessage.addListener(request => {
 				if (request.message === 'onHistoryStateUpdated') {
-					console.log('onHistoryStateUpdated', request.details.url);
 					const newUri = new URL(request.details.url);
 					const newInsertions = this.getInsertions(newUri.pathname);
 					this.insertHTML(newInsertions);
@@ -87,12 +86,14 @@ export function injectionScope(url: string) {
 					case 'src':
 					case undefined: {
 						insertions.set('.css-1oy5iav', {
-							html: /*html*/ `<a data-gk class="css-w97uih" href="${url}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+							html: /*html*/ `<a data-gk class="gk-insert css-w97uih" href="${url}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
 								20,
 								undefined,
 								'position:relative; top:4px; left:-5px;',
 							)}Open with GitKraken</a>`,
 							position: 'afterbegin',
+							replaceSelector: '.gk-insert',
+							replaceHref: url,
 						});
 
 						break;
@@ -305,6 +306,8 @@ export function injectionScope(url: string) {
 					if (rest.length === 1 && rest[0].length === 40) {
 						// commit sha's are 40 characters long
 						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
+					} else if (!rest.length) {
+						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
 					} else {
 						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
 					}
