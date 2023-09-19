@@ -1,4 +1,3 @@
-import { runtime } from 'webextension-polyfill';
 import type { InjectionProvider, LinkTarget } from '../provider';
 
 declare const MODE: 'production' | 'development' | 'none';
@@ -17,8 +16,9 @@ export function injectionScope(url: string) {
 		private render() {
 			const insertions = this.getInsertions(this.uri.pathname);
 			this.insertHTML(insertions);
-			runtime.onMessage.addListener(request => {
+			chrome.runtime.onMessage.addListener(request => {
 				if (request.message === 'onHistoryStateUpdated') {
+					console.log('onHistoryStateUpdated', request.details.url);
 					const newUri = new URL(request.details.url);
 					const newInsertions = this.getInsertions(newUri.pathname);
 					this.insertHTML(newInsertions);
