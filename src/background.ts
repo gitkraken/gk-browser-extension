@@ -11,10 +11,13 @@ webNavigation.onDOMContentLoaded.addListener(injectScript, {
 webNavigation.onHistoryStateUpdated.addListener(details => {
 	// used to detect when the user navigates to a different page in the same tab
 	// is currently needed to handle bitbucket navigation
-	tabs.sendMessage(details.tabId, {
-		message: 'onHistoryStateUpdated',
-		details: details,
-	}).catch(console.error);
+	const url = new URL(details.url);
+	if (url.host === 'bitbucket.org') {
+		tabs.sendMessage(details.tabId, {
+			message: 'onHistoryStateUpdated',
+			details: details,
+		}).catch(console.error);
+	}
 });
 
 function injectScript(details: WebNavigation.OnDOMContentLoadedDetailsType) {
