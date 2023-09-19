@@ -2,6 +2,11 @@ import type { InjectionProvider, LinkTarget } from '../provider';
 
 declare const MODE: 'production' | 'development' | 'none';
 
+interface ReplaceSelector {
+	selector: string;
+	href: string;
+}
+
 export function injectionScope(url: string) {
 	class AzureDevopsInjectionProvider implements InjectionProvider {
 		private _timer: ReturnType<typeof setTimeout> | undefined;
@@ -28,7 +33,7 @@ export function injectionScope(url: string) {
 		private getInsertions(pathname: string, search: URLSearchParams) {
 			const insertions = new Map<
 				string,
-				{ html: string; position: InsertPosition; replaceSelector?: string; replaceHref?: string }
+				{ html: string; position: InsertPosition; replaceSelectorList?: ReplaceSelector[] }
 			>();
 			try {
 				const label = 'Open with GitKraken';
@@ -45,25 +50,28 @@ export function injectionScope(url: string) {
 								'position:relative; margin-right:4px;',
 							)}Open Comparison with GitKraken</a>`,
 							position: 'afterbegin',
-							replaceSelector: '.gk-insert-compare',
-							replaceHref: compareUrl,
+							replaceSelectorList: [{ selector: '.gk-insert-compare', href: compareUrl }],
 						});
 						break;
 					}
 					case 'pullrequest': {
 						const compareUrl = this.transformUrl('gkdev', 'compare', pathname, search);
 						insertions.set('.repos-pr-title-row', {
-							html: /*html*/ `<a data-gk class="gk-insert-commit bolt-header-command-item-button bolt-button" href="${url}" style="text-decoration:none !important" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+							html: /*html*/ `<a data-gk class="gk-insert-pr bolt-header-command-item-button bolt-button" href="${url}" style="text-decoration:none !important" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
 								20,
 								undefined,
 								'position:relative; margin-right:4px;',
 							)}Open with GitKraken</a>
-							<a data-gk class="gk-insert-commit bolt-header-command-item-button bolt-button" href="${compareUrl}" style="text-decoration:none !important" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+							<a data-gk class="gk-insert-compare bolt-header-command-item-button bolt-button" href="${compareUrl}" style="text-decoration:none !important" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
 								20,
 								undefined,
 								'position:relative; margin-right:4px;',
 							)}Open Comparison with GitKraken</a>`,
 							position: 'afterend',
+							replaceSelectorList: [
+								{ selector: '.gk-insert-compare', href: compareUrl },
+								{ selector: '.gk-insert-pr', href: url },
+							],
 						});
 						break;
 					}
@@ -75,22 +83,20 @@ export function injectionScope(url: string) {
 								'position:relative; margin-right:4px;',
 							)}Open with GitKraken</a>`,
 							position: 'afterbegin',
-							replaceSelector: '.gk-insert-commit',
-							replaceHref: url,
+							replaceSelectorList: [{ selector: '.gk-insert-commit', href: url }],
 						});
 
 						break;
 					}
 					case undefined: {
 						insertions.set('.repos-files-header-commandbar ', {
-							html: /*html*/ `<a data-gk class="gk-insert-repo bolt-header-command-item-button bolt-button" href="${url}" style="text-decoration:none !important" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+							html: /*html*/ `<a data-gk class="gk-insert bolt-header-command-item-button bolt-button" href="${url}" style="text-decoration:none !important" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
 								20,
 								undefined,
 								'position:relative; margin-right:4px;',
 							)}Open with GitKraken</a>`,
 							position: 'afterbegin',
-							replaceSelector: '.gk-insert-repo',
-							replaceHref: url,
+							replaceSelectorList: [{ selector: '.gk-insert', href: url }],
 						});
 
 						break;
@@ -106,18 +112,22 @@ export function injectionScope(url: string) {
 		private insertHTML(
 			insertions: Map<
 				string,
-				{ html: string; position: InsertPosition; replaceSelector?: string; replaceHref?: string }
+				{ html: string; position: InsertPosition; replaceSelectorList?: ReplaceSelector[] }
 			>,
 		) {
 			if (insertions.size) {
-				for (const [selector, { html, position, replaceSelector, replaceHref }] of insertions) {
-					if (replaceSelector && replaceHref) {
-						const el = document.querySelector<HTMLLinkElement>(replaceSelector);
-						if (el) {
-							insertions.delete(selector);
-							el.href = replaceHref;
-							continue;
+				for (const [selector, { html, position, replaceSelectorList }] of insertions) {
+					if (replaceSelectorList?.length) {
+						let found = false;
+						for (const { selector: replaceSelector, href: replaceHref } of replaceSelectorList) {
+							const el = document.querySelector<HTMLLinkElement>(replaceSelector);
+							if (el) {
+								insertions.delete(selector);
+								el.href = replaceHref;
+								found = true;
+							}
 						}
+						if (found) continue;
 					}
 					const el = document.querySelector(selector);
 					if (el) {
@@ -134,14 +144,18 @@ export function injectionScope(url: string) {
 					}
 
 					this._timer = setTimeout(() => {
-						for (const [selector, { html, position, replaceSelector, replaceHref }] of insertions) {
-							if (replaceSelector && replaceHref) {
-								const el = document.querySelector<HTMLLinkElement>(replaceSelector);
-								if (el) {
-									insertions.delete(selector);
-									el.href = replaceHref;
-									continue;
+						for (const [selector, { html, position, replaceSelectorList }] of insertions) {
+							if (replaceSelectorList?.length) {
+								let found = false;
+								for (const { selector: replaceSelector, href: replaceHref } of replaceSelectorList) {
+									const el = document.querySelector<HTMLLinkElement>(replaceSelector);
+									if (el) {
+										insertions.delete(selector);
+										el.href = replaceHref;
+										found = true;
+									}
 								}
+								if (found) continue;
 							}
 							const el = document.querySelector(selector);
 							if (el) {
