@@ -14,13 +14,24 @@ export function injectionScope(url: string) {
 		}
 
 		private render() {
-			const insertions = new Map<string, { html: string; position: InsertPosition }>();
+			const insertions = this.getInsertions(this.uri.pathname);
+			this.insertHTML(insertions);
+			chrome.runtime.onMessage.addListener(request => {
+				if (request.message === 'onHistoryStateUpdated') {
+					const newUri = new URL(request.details.url);
+					const newInsertions = this.getInsertions(newUri.pathname);
+					this.insertHTML(newInsertions);
+				}
+			});
+		}
 
+		private getInsertions(pathname: string) {
+			const insertions = new Map<string, { html: string; position: InsertPosition }>();
 			try {
 				const label = 'Open with GitKraken';
 				const url = this.transformUrl('gkdev', 'open');
 
-				const [, , , type] = this.uri.pathname.split('/');
+				const [, , , type] = pathname.split('/');
 				switch (type) {
 					case 'compare': {
 						// TODO update the url when the dropdown changes/url changes
@@ -85,7 +96,10 @@ export function injectionScope(url: string) {
 				debugger;
 				console.error(ex);
 			}
+			return insertions;
+		}
 
+		private insertHTML(insertions: Map<string, { html: string; position: InsertPosition }>) {
 			if (insertions.size) {
 				for (const [selector, { html, position }] of insertions) {
 					const el = document.querySelector(selector);
@@ -115,7 +129,7 @@ export function injectionScope(url: string) {
 							this._observer?.disconnect();
 							this._observer = undefined;
 						}
-					}, 100);
+					}, 300);
 				});
 				this._observer.observe(document.body, { childList: true, subtree: true });
 			}
