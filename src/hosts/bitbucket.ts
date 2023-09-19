@@ -185,12 +185,12 @@ export function injectionScope(url: string) {
 			let url;
 			switch (type) {
 				case 'commits': {
-					const target = rest.join('/');
-					if (!target) {
+					const urlTarget = rest.join('/');
+					if (!urlTarget) {
 						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
 						break;
 					}
-					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${target}`);
+					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${urlTarget}`);
 					break;
 				}
 				case 'compare': {
@@ -291,12 +291,12 @@ export function injectionScope(url: string) {
 				}
 				case 'branches':
 				case 'branch': {
-					const target = rest.join('/');
-					if (!target) {
+					const urlTarget = rest.join('/');
+					if (!urlTarget) {
 						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
 						break;
 					}
-					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${target}`);
+					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${urlTarget}`);
 					break;
 				}
 				case 'src': {
