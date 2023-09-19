@@ -2,6 +2,11 @@ import type { InjectionProvider, LinkTarget } from '../provider';
 
 declare const MODE: 'production' | 'development' | 'none';
 
+interface ReplaceSelector {
+	selector: string;
+	href: string;
+}
+
 export function injectionScope(url: string) {
 	class BitBucketInjectionProvider implements InjectionProvider {
 		private _timer: ReturnType<typeof setTimeout> | undefined;
@@ -18,9 +23,14 @@ export function injectionScope(url: string) {
 			this.insertHTML(insertions);
 			chrome.runtime.onMessage.addListener(request => {
 				if (request.message === 'onHistoryStateUpdated') {
-					const newUri = new URL(request.details.url);
-					const newInsertions = this.getInsertions(newUri.pathname);
-					this.insertHTML(newInsertions);
+					setTimeout(
+						() => {
+							const newUri = new URL(request.details.url);
+							const newInsertions = this.getInsertions(newUri.pathname);
+							this.insertHTML(newInsertions);
+						},
+						request.details.url.includes('pull-requests') ? 1000 : 0,
+					);
 				}
 			});
 		}
@@ -28,7 +38,7 @@ export function injectionScope(url: string) {
 		private getInsertions(pathname: string) {
 			const insertions = new Map<
 				string,
-				{ html: string; position: InsertPosition; replaceSelector?: string; replaceHref?: string }
+				{ html: string; position: InsertPosition; replaceSelectorList?: ReplaceSelector[] }
 			>();
 			try {
 				const label = 'Open with GitKraken';
@@ -48,25 +58,28 @@ export function injectionScope(url: string) {
 							Open Comparison with GitKraken
 							</a>`,
 							position: 'afterbegin',
-							replaceSelector: '.gk-insert-compare',
-							replaceHref: compareUrl,
+							replaceSelectorList: [{ selector: '.gk-insert-compare', href: compareUrl }],
 						});
 						break;
 					}
 					case 'pull-requests': {
 						const compareUrl = this.transformUrl('gkdev', 'compare', pathname);
 						insertions.set('.css-1oy5iav', {
-							html: /*html*/ `<a data-gk class="css-w97uih" href="${url}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+							html: /*html*/ `<a data-gk class="gk-insert-pr css-w97uih" href="${url}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
 								20,
 								undefined,
 								'position:relative; top:4px; left:-5px;',
 							)}Open with GitKraken</a>
-							<a data-gk class="css-w97uih" href="${compareUrl}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+							<a data-gk class="gk-insert-comparison css-w97uih" href="${compareUrl}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
 								20,
 								undefined,
 								'position:relative; top:4px; left:-5px;',
 							)}Open Comparison with GitKraken</a>`,
 							position: 'afterbegin',
+							replaceSelectorList: [
+								{ selector: '.gk-insert-pr', href: url },
+								{ selector: '.gk-insert-comparison', href: compareUrl },
+							],
 						});
 						break;
 					}
@@ -92,8 +105,7 @@ export function injectionScope(url: string) {
 								'position:relative; top:4px; left:-5px;',
 							)}Open with GitKraken</a>`,
 							position: 'afterbegin',
-							replaceSelector: '.gk-insert',
-							replaceHref: url,
+							replaceSelectorList: [{ selector: '.gk-insert', href: url }],
 						});
 
 						break;
@@ -109,18 +121,22 @@ export function injectionScope(url: string) {
 		private insertHTML(
 			insertions: Map<
 				string,
-				{ html: string; position: InsertPosition; replaceSelector?: string; replaceHref?: string }
+				{ html: string; position: InsertPosition; replaceSelectorList?: ReplaceSelector[] }
 			>,
 		) {
 			if (insertions.size) {
-				for (const [selector, { html, position, replaceSelector, replaceHref }] of insertions) {
-					if (replaceSelector && replaceHref) {
-						const el = document.querySelector<HTMLLinkElement>(replaceSelector);
-						if (el) {
-							insertions.delete(selector);
-							el.href = replaceHref;
-							continue;
+				for (const [selector, { html, position, replaceSelectorList }] of insertions) {
+					if (replaceSelectorList?.length) {
+						let found = false;
+						for (const { selector: replaceSelector, href: replaceHref } of replaceSelectorList) {
+							const el = document.querySelector<HTMLLinkElement>(replaceSelector);
+							if (el) {
+								insertions.delete(selector);
+								el.href = replaceHref;
+								found = true;
+							}
 						}
+						if (found) continue;
 					}
 					const el = document.querySelector(selector);
 					if (el) {
@@ -137,14 +153,18 @@ export function injectionScope(url: string) {
 					}
 
 					this._timer = setTimeout(() => {
-						for (const [selector, { html, position, replaceSelector, replaceHref }] of insertions) {
-							if (replaceSelector && replaceHref) {
-								const el = document.querySelector<HTMLLinkElement>(replaceSelector);
-								if (el) {
-									insertions.delete(selector);
-									el.href = replaceHref;
-									continue;
+						for (const [selector, { html, position, replaceSelectorList }] of insertions) {
+							if (replaceSelectorList?.length) {
+								let found = false;
+								for (const { selector: replaceSelector, href: replaceHref } of replaceSelectorList) {
+									const el = document.querySelector<HTMLLinkElement>(replaceSelector);
+									if (el) {
+										insertions.delete(selector);
+										el.href = replaceHref;
+										found = true;
+									}
 								}
+								if (found) continue;
 							}
 							const el = document.querySelector(selector);
 							if (el) {
@@ -288,6 +308,7 @@ export function injectionScope(url: string) {
 						url.searchParams.set('pr', prNumber);
 						url.searchParams.set('prUrl', this.uri.toString());
 					}
+					console.log('transform', url.toString(), action);
 					break;
 				}
 				case 'branches':
