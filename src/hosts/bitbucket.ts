@@ -1,3 +1,4 @@
+import { runtime } from 'webextension-polyfill';
 import type { InjectionProvider, LinkTarget } from '../provider';
 
 declare const MODE: 'production' | 'development' | 'none';
@@ -16,7 +17,7 @@ export function injectionScope(url: string) {
 		private render() {
 			const insertions = this.getInsertions(this.uri.pathname);
 			this.insertHTML(insertions);
-			chrome.runtime.onMessage.addListener(request => {
+			runtime.onMessage.addListener(request => {
 				if (request.message === 'onHistoryStateUpdated') {
 					const newUri = new URL(request.details.url);
 					const newInsertions = this.getInsertions(newUri.pathname);
@@ -26,18 +27,21 @@ export function injectionScope(url: string) {
 		}
 
 		private getInsertions(pathname: string) {
-			const insertions = new Map<string, { html: string; position: InsertPosition }>();
+			const insertions = new Map<
+				string,
+				{ html: string; position: InsertPosition; replaceSelector?: string; replaceHref?: string }
+			>();
 			try {
 				const label = 'Open with GitKraken';
-				const url = this.transformUrl('gkdev', 'open');
+				const url = this.transformUrl('gkdev', 'open', pathname);
 
 				const [, , , type] = pathname.split('/');
 				switch (type) {
 					case 'compare': {
 						// TODO update the url when the dropdown changes/url changes
-						const compareUrl = this.transformUrl('gkdev', 'compare');
+						const compareUrl = this.transformUrl('gkdev', 'compare', pathname);
 						insertions.set('#compare-toolbar .aui-buttons', {
-							html: /*html*/ `<a data-gk class="aui-button" style="padding-top:0px !important; padding-bottom:0px !important;" href="${compareUrl}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
+							html: /*html*/ `<a data-gk class="aui-button gk-insert-compare" style="padding-top:0px !important; padding-bottom:0px !important;" href="${compareUrl}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
 								22,
 								undefined,
 								'position:relative; top:5px;',
@@ -45,11 +49,13 @@ export function injectionScope(url: string) {
 							Open Comparison with GitKraken
 							</a>`,
 							position: 'afterbegin',
+							replaceSelector: '.gk-insert-compare',
+							replaceHref: compareUrl,
 						});
 						break;
 					}
 					case 'pull-requests': {
-						const compareUrl = this.transformUrl('gkdev', 'compare');
+						const compareUrl = this.transformUrl('gkdev', 'compare', pathname);
 						insertions.set('.css-1oy5iav', {
 							html: /*html*/ `<a data-gk class="css-w97uih" href="${url}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
 								20,
@@ -99,9 +105,22 @@ export function injectionScope(url: string) {
 			return insertions;
 		}
 
-		private insertHTML(insertions: Map<string, { html: string; position: InsertPosition }>) {
+		private insertHTML(
+			insertions: Map<
+				string,
+				{ html: string; position: InsertPosition; replaceSelector?: string; replaceHref?: string }
+			>,
+		) {
 			if (insertions.size) {
-				for (const [selector, { html, position }] of insertions) {
+				for (const [selector, { html, position, replaceSelector, replaceHref }] of insertions) {
+					if (replaceSelector && replaceHref) {
+						const el = document.querySelector<HTMLLinkElement>(replaceSelector);
+						if (el) {
+							insertions.delete(selector);
+							el.href = replaceHref;
+							continue;
+						}
+					}
 					const el = document.querySelector(selector);
 					if (el) {
 						insertions.delete(selector);
@@ -117,7 +136,15 @@ export function injectionScope(url: string) {
 					}
 
 					this._timer = setTimeout(() => {
-						for (const [selector, { html, position }] of insertions) {
+						for (const [selector, { html, position, replaceSelector, replaceHref }] of insertions) {
+							if (replaceSelector && replaceHref) {
+								const el = document.querySelector<HTMLLinkElement>(replaceSelector);
+								if (el) {
+									insertions.delete(selector);
+									el.href = replaceHref;
+									continue;
+								}
+							}
 							const el = document.querySelector(selector);
 							if (el) {
 								insertions.delete(selector);
@@ -135,14 +162,14 @@ export function injectionScope(url: string) {
 			}
 		}
 
-		private transformUrl(target: LinkTarget, action: 'open' | 'compare'): string {
-			let [, owner, repo, type, ...rest] = this.uri.pathname.split('/');
+		private transformUrl(target: LinkTarget, action: 'open' | 'compare', pathname: string): string {
+			let [, owner, repo, type, ...rest] = pathname.split('/');
 			if (rest?.length) {
 				rest = rest.filter(Boolean);
 			}
 
 			if (target === 'gkdev') {
-				const redirectUrl = new URL(this.transformUrl('vscode', action));
+				const redirectUrl = new URL(this.transformUrl('vscode', action, pathname));
 				const deepLinkUrl =
 					MODE === 'production' ? 'https://gitkraken.dev/link' : 'https://dev.gitkraken.dev/link';
 				const deepLink = new URL(`${deepLinkUrl}/${encodeURIComponent(btoa(redirectUrl.toString()))}`);
@@ -174,7 +201,7 @@ export function injectionScope(url: string) {
 					}
 					const sameOrigin = !comparisonTarget.includes(':');
 					if (sameOrigin) {
-						const branches = comparisonTarget.split('%0D').map(branch => `origin/${branch}`);
+						const branches = comparisonTarget.split('%0D').map(branch => `${owner}/${repo}:${branch}`);
 
 						comparisonTarget = branches.join('...');
 					}
