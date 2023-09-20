@@ -187,151 +187,91 @@ export function injectionScope(url: string) {
 			const repoId = '-';
 
 			let url = new URL(MODE === 'production' ? 'https://gitkraken.dev' : 'https://dev.gitkraken.dev');
-			switch (target) {
-				case 'gitkraken': {
-					switch (type) {
-						case 'commit':
-							url = new URL(`${target}://repolink/${repoId}/commit/${rest.join('/')}`);
-							break;
-						case 'pull': {
-							const [prNumber] = rest;
+			switch (type) {
+				case 'commit':
+					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
+					break;
+				case 'compare': {
+					let comparisonTarget = rest.join('/');
+					if (!comparisonTarget) {
+						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+						break;
+					}
+					const sameOrigin = !comparisonTarget.includes(':');
+					if (sameOrigin) {
+						const branches = comparisonTarget.split('...').map(branch => `origin/${branch}`);
+						comparisonTarget = branches.join('...');
+					}
+					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/compare/${comparisonTarget}`);
+					break;
+				}
+				case 'pull': {
+					const [prNumber] = rest;
 
-							const headTreeUrl =
-								document.querySelector<HTMLAnchorElement>('.commit-ref.head-ref a')?.href;
-							if (!headTreeUrl) {
-								url = new URL(`${target}://repolink/${repoId}`);
-								url.searchParams.set('pr', prNumber);
-								url.searchParams.set('prUrl', this.uri.toString());
-							} else {
-								const [, prOwner, prRepo, , ...prBranch] = new URL(headTreeUrl).pathname.split('/');
-								url = new URL(`${target}://repolink/${repoId}/branch/${prBranch.join('/')}`);
-								url.searchParams.set('pr', prNumber);
-								url.searchParams.set('prUrl', this.uri.toString());
+					const headTreeUrl = document.querySelector<HTMLAnchorElement>('.commit-ref.head-ref a')?.href;
+					if (headTreeUrl) {
+						const [, prOwner, prRepo, , ...prBranch] = new URL(headTreeUrl).pathname.split('/');
 
-								if (prOwner !== owner || prRepo !== repo) {
-									const prRepoUrl = new URL(this.uri.toString());
-									prRepoUrl.hash = '';
-									prRepoUrl.search = '';
-									prRepoUrl.pathname = `/${owner}/${repo}.git`;
-									url.searchParams.set('prRepoUrl', prRepoUrl.toString());
+						if (action === 'compare') {
+							const baseTreeUrl =
+								document.querySelector<HTMLAnchorElement>('.commit-ref.base-ref a')?.href;
+							if (baseTreeUrl) {
+								const [, baseOwner, baseRepo, , ...baseBranch] = new URL(baseTreeUrl).pathname.split(
+									'/',
+								);
 
-									owner = prOwner;
-									repo = prRepo;
+								let baseBranchString = baseBranch.join('/');
+								let prBranchString = prBranch.join('/');
+
+								if (prOwner === baseOwner && prRepo === baseRepo) {
+									baseBranchString = `origin/${baseBranchString}`;
+									prBranchString = `origin/${prBranchString}`;
 								}
+
+								url = new URL(
+									`${target}://eamodio.gitlens/link/r/${repoId}/compare/${baseBranchString}...${prBranchString}`,
+								);
 							}
-							break;
 						}
-						case 'tree': {
-							// TODO@eamodio this is naive as it assumes everything after the tree is the branch or commit, but it could also contain a path
-							const prButtonForBranchPage = document.querySelector(
-								'.btn-link.no-underline.color-fg-muted',
-							);
-							if (prButtonForBranchPage && prButtonForBranchPage.textContent?.includes('Contribute')) {
-								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
-							} else {
-								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
-							}
-							break;
+
+						if (url == null) {
+							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${prBranch.join('/')}`);
 						}
-						default:
-							url = new URL(`${target}://repolink/${repoId}`);
-							break;
+
+						url.searchParams.set('pr', prNumber);
+						url.searchParams.set('prUrl', this.uri.toString());
+
+						if (prOwner !== owner || prRepo !== repo) {
+							const prRepoUrl = new URL(this.uri.toString());
+							prRepoUrl.hash = '';
+							prRepoUrl.search = '';
+							prRepoUrl.pathname = `/${owner}/${repo}.git`;
+							url.searchParams.set('prRepoUrl', prRepoUrl.toString());
+
+							owner = prOwner;
+							repo = prRepo;
+						}
+					} else {
+						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+						url.searchParams.set('pr', prNumber);
+						url.searchParams.set('prUrl', this.uri.toString());
 					}
 					break;
 				}
-				case 'vscode':
-				case 'vscode-insiders': {
-					switch (type) {
-						case 'commit':
-							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
-							break;
-						case 'compare': {
-							let comparisonTarget = rest.join('/');
-							if (!comparisonTarget) {
-								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
-								break;
-							}
-							const sameOrigin = !comparisonTarget.includes(':');
-							if (sameOrigin) {
-								const branches = comparisonTarget.split('...').map(branch => `origin/${branch}`);
-								comparisonTarget = branches.join('...');
-							}
-							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/compare/${comparisonTarget}`);
-							break;
-						}
-						case 'pull': {
-							const [prNumber] = rest;
-
-							const headTreeUrl =
-								document.querySelector<HTMLAnchorElement>('.commit-ref.head-ref a')?.href;
-							if (headTreeUrl) {
-								const [, prOwner, prRepo, , ...prBranch] = new URL(headTreeUrl).pathname.split('/');
-
-								if (action === 'compare') {
-									const baseTreeUrl =
-										document.querySelector<HTMLAnchorElement>('.commit-ref.base-ref a')?.href;
-									if (baseTreeUrl) {
-										const [, baseOwner, baseRepo, , ...baseBranch] = new URL(
-											baseTreeUrl,
-										).pathname.split('/');
-
-										let baseBranchString = baseBranch.join('/');
-										let prBranchString = prBranch.join('/');
-
-										if (prOwner === baseOwner && prRepo === baseRepo) {
-											baseBranchString = `origin/${baseBranchString}`;
-											prBranchString = `origin/${prBranchString}`;
-										}
-
-										url = new URL(
-											`${target}://eamodio.gitlens/link/r/${repoId}/compare/${baseBranchString}...${prBranchString}`,
-										);
-									}
-								}
-
-								if (url == null) {
-									url = new URL(
-										`${target}://eamodio.gitlens/link/r/${repoId}/b/${prBranch.join('/')}`,
-									);
-								}
-
-								url.searchParams.set('pr', prNumber);
-								url.searchParams.set('prUrl', this.uri.toString());
-
-								if (prOwner !== owner || prRepo !== repo) {
-									const prRepoUrl = new URL(this.uri.toString());
-									prRepoUrl.hash = '';
-									prRepoUrl.search = '';
-									prRepoUrl.pathname = `/${owner}/${repo}.git`;
-									url.searchParams.set('prRepoUrl', prRepoUrl.toString());
-
-									owner = prOwner;
-									repo = prRepo;
-								}
-							} else {
-								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
-								url.searchParams.set('pr', prNumber);
-								url.searchParams.set('prUrl', this.uri.toString());
-							}
-							break;
-						}
-						case 'tree': {
-							// TODO@miggy-e this is a pretty naive check, please update if you find a better way
-							// this is currently broken when branches have 40 characters or if you use the short sha of a commit
-							if (rest.length === 1 && rest[0].length === 40) {
-								// commit sha's are 40 characters long
-								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
-							} else {
-								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
-							}
-							break;
-						}
-						default:
-							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
-							break;
+				case 'tree': {
+					// TODO@miggy-e this is a pretty naive check, please update if you find a better way
+					// this is currently broken when branches have 40 characters or if you use the short sha of a commit
+					if (rest.length === 1 && rest[0].length === 40) {
+						// commit sha's are 40 characters long
+						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
+					} else {
+						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
 					}
 					break;
 				}
+				default:
+					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+					break;
 			}
 
 			const remoteUrl = new URL(this.uri.toString());

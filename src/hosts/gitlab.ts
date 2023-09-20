@@ -207,169 +207,103 @@ export function injectionScope(url: string) {
 			const repoId = '-';
 
 			let url = new URL(MODE === 'production' ? 'https://gitkraken.dev' : 'https://dev.gitkraken.dev');
-			switch (target) {
-				case 'gitkraken': {
-					switch (type) {
-						case 'commit': {
-							url = new URL(`${target}://repolink/${repoId}/commit/${rest.join('/')}`);
-							break;
-						}
-						case 'merge_requests': {
-							const [prNumber] = rest;
+			switch (type) {
+				case 'commit': {
+					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
+					break;
+				}
+				case 'compare': {
+					// get the comparison target if not already provided
+					let comparisonTarget = rest.join('/');
+					if (!comparisonTarget) {
+						// TODO get the current state of the comparison pickers
+						// currently defaulting to a link to the repo
+						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+						break;
+					}
+					const sameOrigin = !comparisonTarget.includes(':');
+					if (sameOrigin) {
+						const branches = comparisonTarget.split('...').map(branch => `origin/${branch}`);
+						comparisonTarget = branches.join('...');
+					}
+					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/compare/${comparisonTarget}`);
+					break;
+				}
+				case 'merge_requests': {
+					const [prNumber] = rest;
 
-							const headTreeUrl = document.querySelector<HTMLAnchorElement>(
-								'.merge-request-details .detail-page-description a.gl-font-monospace:nth-of-type(2)',
+					const headTreeUrl = document.querySelector<HTMLAnchorElement>(
+						'.merge-request-details .detail-page-description a.gl-font-monospace:nth-of-type(2)',
+					)?.href;
+					if (headTreeUrl) {
+						const {
+							owner: prOwner,
+							repo: prRepo,
+							rest: prBranch,
+						} = this.parseUrl(new URL(headTreeUrl).pathname);
+
+						if (action === 'compare') {
+							const baseTreeUrl = document.querySelector<HTMLAnchorElement>(
+								'.merge-request-details .detail-page-description a.gl-font-monospace:nth-of-type(3)',
 							)?.href;
-							if (!headTreeUrl) {
-								url = new URL(`${target}://repolink/${repoId}`);
-								url.searchParams.set('pr', prNumber);
-								url.searchParams.set('prUrl', this.uri.toString());
-							} else {
+							if (baseTreeUrl) {
 								const {
-									owner: prOwner,
-									repo: prRepo,
-									rest: prBranch,
-								} = this.parseUrl(new URL(headTreeUrl).pathname);
+									owner: baseOwner,
+									repo: baseRepo,
+									rest: baseBranch,
+								} = this.parseUrl(new URL(baseTreeUrl).pathname);
 
-								url = new URL(`${target}://repolink/${repoId}/branch/${prBranch.join('/')}`);
-								url.searchParams.set('pr', prNumber);
-								url.searchParams.set('prUrl', this.uri.toString());
+								let baseBranchString = baseBranch.join('/');
+								let prBranchString = prBranch.join('/');
 
-								if (prOwner !== owner || prRepo !== repo) {
-									const prRepoUrl = new URL(this.uri.toString());
-									prRepoUrl.hash = '';
-									prRepoUrl.search = '';
-									prRepoUrl.pathname = `/${owner}/${repo}.git`;
-									url.searchParams.set('prRepoUrl', prRepoUrl.toString());
-
-									owner = prOwner;
-									repo = prRepo;
+								if (prOwner === baseOwner && prRepo === baseRepo) {
+									baseBranchString = `origin/${baseBranchString}`;
+									prBranchString = `origin/${prBranchString}`;
 								}
+
+								url = new URL(
+									`${target}://eamodio.gitlens/link/r/${repoId}/compare/${baseBranchString}...${prBranchString}`,
+								);
 							}
-							break;
 						}
-						case 'tree': {
-							// TODO sometimes a sha can be passed into this, which the `branch` deeplink path doesn't work with. i don't
-							// know how we could fix this unless we modify the deeplink spec, since differentiating a sha from a branch
-							// and selecting the correct deeplink route to use (/branch/... for branches, /c/... for commits) is an
-							// unsolveable problem. yes, full length shas are pretty easy to differentiate from branch names, but GitLab
-							// supports shortened shas which screws up everything
-							// the below line would be a good check, but isn't loaded with the initial page load, so we can't use it
-							// document.querySelector('[title="Copy commit SHA"]')?.getAttribute('data-clipboard-text') === rest.join('/')
-							url = new URL(`${target}://repolink/${repoId}/branch/${rest.join('/')}`);
-							break;
+
+						if (url == null) {
+							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${prBranch.join('/')}`);
 						}
-						default: {
-							url = new URL(`${target}://repolink/${repoId}`);
-							break;
+
+						url.searchParams.set('pr', prNumber);
+						url.searchParams.set('prUrl', this.uri.toString());
+
+						if (prOwner !== owner || prRepo !== repo) {
+							const prRepoUrl = new URL(this.uri.toString());
+							prRepoUrl.hash = '';
+							prRepoUrl.search = '';
+							prRepoUrl.pathname = `/${owner}/${repo}.git`;
+							url.searchParams.set('prRepoUrl', prRepoUrl.toString());
+
+							owner = prOwner;
+							repo = prRepo;
 						}
+					} else {
+						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+						url.searchParams.set('pr', prNumber);
+						url.searchParams.set('prUrl', this.uri.toString());
 					}
 					break;
 				}
-				case 'vscode':
-				case 'vscode-insiders': {
-					switch (type) {
-						case 'commit': {
-							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
-							break;
-						}
-						case 'compare': {
-							// get the comparison target if not already provided
-							let comparisonTarget = rest.join('/');
-							if (!comparisonTarget) {
-								// TODO get the current state of the comparison pickers
-								// currently defaulting to a link to the repo
-								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
-								break;
-							}
-							const sameOrigin = !comparisonTarget.includes(':');
-							if (sameOrigin) {
-								const branches = comparisonTarget.split('...').map(branch => `origin/${branch}`);
-								comparisonTarget = branches.join('...');
-							}
-							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/compare/${comparisonTarget}`);
-							break;
-						}
-						case 'merge_requests': {
-							const [prNumber] = rest;
-
-							const headTreeUrl = document.querySelector<HTMLAnchorElement>(
-								'.merge-request-details .detail-page-description a.gl-font-monospace:nth-of-type(2)',
-							)?.href;
-							if (headTreeUrl) {
-								const {
-									owner: prOwner,
-									repo: prRepo,
-									rest: prBranch,
-								} = this.parseUrl(new URL(headTreeUrl).pathname);
-
-								if (action === 'compare') {
-									const baseTreeUrl = document.querySelector<HTMLAnchorElement>(
-										'.merge-request-details .detail-page-description a.gl-font-monospace:nth-of-type(3)',
-									)?.href;
-									if (baseTreeUrl) {
-										const {
-											owner: baseOwner,
-											repo: baseRepo,
-											rest: baseBranch,
-										} = this.parseUrl(new URL(baseTreeUrl).pathname);
-
-										let baseBranchString = baseBranch.join('/');
-										let prBranchString = prBranch.join('/');
-
-										if (prOwner === baseOwner && prRepo === baseRepo) {
-											baseBranchString = `origin/${baseBranchString}`;
-											prBranchString = `origin/${prBranchString}`;
-										}
-
-										url = new URL(
-											`${target}://eamodio.gitlens/link/r/${repoId}/compare/${baseBranchString}...${prBranchString}`,
-										);
-									}
-								}
-
-								if (url == null) {
-									url = new URL(
-										`${target}://eamodio.gitlens/link/r/${repoId}/b/${prBranch.join('/')}`,
-									);
-								}
-
-								url.searchParams.set('pr', prNumber);
-								url.searchParams.set('prUrl', this.uri.toString());
-
-								if (prOwner !== owner || prRepo !== repo) {
-									const prRepoUrl = new URL(this.uri.toString());
-									prRepoUrl.hash = '';
-									prRepoUrl.search = '';
-									prRepoUrl.pathname = `/${owner}/${repo}.git`;
-									url.searchParams.set('prRepoUrl', prRepoUrl.toString());
-
-									owner = prOwner;
-									repo = prRepo;
-								}
-							} else {
-								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
-								url.searchParams.set('pr', prNumber);
-								url.searchParams.set('prUrl', this.uri.toString());
-							}
-							break;
-						}
-						case 'tree': {
-							// TODO@miggy-e this is a pretty naive check, please update if you find a better way
-							// this is currently broken when branches have 40 characters or if you use the short sha of a commit
-							if (rest.length === 1 && rest[0].length === 40) {
-								// commit sha's are 40 characters long
-								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
-							} else {
-								url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
-							}
-							break;
-						}
-						default: {
-							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
-							break;
-						}
+				case 'tree': {
+					// TODO@miggy-e this is a pretty naive check, please update if you find a better way
+					// this is currently broken when branches have 40 characters or if you use the short sha of a commit
+					if (rest.length === 1 && rest[0].length === 40) {
+						// commit sha's are 40 characters long
+						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
+					} else {
+						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
 					}
+					break;
+				}
+				default: {
+					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
 					break;
 				}
 			}
