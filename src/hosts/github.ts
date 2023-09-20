@@ -207,7 +207,7 @@ export function injectionScope(url: string) {
 					}
 					const sameOrigin = !comparisonTarget.includes(':');
 					if (sameOrigin) {
-						const branches = comparisonTarget.split('...').map(branch => `origin/${branch}`);
+						const branches = comparisonTarget.split('...').map(branch => `${owner}/${repo}:${branch}`);
 						comparisonTarget = branches.join('...');
 					}
 					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/compare/${comparisonTarget}`);
@@ -228,13 +228,8 @@ export function injectionScope(url: string) {
 									'/',
 								);
 
-								let baseBranchString = baseBranch.join('/');
-								let prBranchString = prBranch.join('/');
-
-								if (prOwner === baseOwner && prRepo === baseRepo) {
-									baseBranchString = `origin/${baseBranchString}`;
-									prBranchString = `origin/${prBranchString}`;
-								}
+								const baseBranchString = `${baseOwner}/${baseRepo}:${baseBranch.join('/')}`;
+								const prBranchString = `${prOwner}/${prRepo}:${prBranch.join('/')}`;
 
 								url = new URL(
 									`${target}://eamodio.gitlens/link/r/${repoId}/compare/${baseBranchString}...${prBranchString}`,
