@@ -214,7 +214,7 @@ export function injectionScope(url: string) {
 
 			const repoId = '-';
 
-			let url = new URL(MODE === 'production' ? 'https://gitkraken.dev' : 'https://dev.gitkraken.dev');
+			let url;
 			switch (type) {
 				case 'commit': {
 					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
