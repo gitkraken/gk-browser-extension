@@ -14,6 +14,11 @@ export function injectionScope(url: string) {
 		}
 
 		private render() {
+			const insertions = this.getInsertions();
+			this.insertHTML(insertions);
+		}
+
+		private getInsertions(): Map<string, { html: string; position: InsertPosition }> {
 			const insertions = new Map<string, { html: string; position: InsertPosition }>();
 
 			try {
@@ -117,7 +122,10 @@ export function injectionScope(url: string) {
 				debugger;
 				console.error(ex);
 			}
+			return insertions;
+		}
 
+		private insertHTML(insertions: Map<string, { html: string; position: InsertPosition }>) {
 			if (insertions.size) {
 				for (const [selector, { html, position }] of insertions) {
 					const el = document.querySelector(selector);

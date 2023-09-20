@@ -38,41 +38,50 @@ export function injectionScope(url: string) {
 				el.remove();
 			}
 
+			try {
+				const insertions = this.getInsertions();
+				this.insertHTML(insertions);
+			} catch (ex) {
+				debugger;
+				console.error(ex);
+			}
+		}
+
+		private getInsertions(): Map<string, { html: string; position: InsertPosition }> {
 			const insertions = new Map<string, { html: string; position: InsertPosition }>();
 
-			try {
-				const label = 'Open with GitKraken';
-				const url = this.transformUrl('gkdev', 'open');
+			const label = 'Open with GitKraken';
+			const url = this.transformUrl('gkdev', 'open');
 
-				const [, , , type] = this.uri.pathname.split('/');
-				switch (type) {
-					case 'commit':
-						insertions.set('.commit > #browse-at-time-link', {
-							html: /*html*/ `<a data-gk class="btn mr-2 px-2 float-right" style="padding-top:2px !important; padding-bottom:1px !important;" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
-								22,
-								undefined,
-								'position:relative; top:2px;',
-							)}</a>`,
-							position: 'afterend',
-						});
+			const [, , , type] = this.uri.pathname.split('/');
+			switch (type) {
+				case 'commit':
+					insertions.set('.commit > #browse-at-time-link', {
+						html: /*html*/ `<a data-gk class="btn mr-2 px-2 float-right" style="padding-top:2px !important; padding-bottom:1px !important;" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
+							22,
+							undefined,
+							'position:relative; top:2px;',
+						)}</a>`,
+						position: 'afterend',
+					});
 
-						break;
-					case 'compare':
-						insertions.set('.js-range-editor', {
-							html: /*html*/ `<a data-gk class="btn mr-2 px-2 float-right" style="padding-top:2px !important; padding-bottom:1px !important;" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
-								22,
-								undefined,
-								'position:relative; top:2px;',
-							)}</a>`,
-							position: 'afterbegin',
-						});
+					break;
+				case 'compare':
+					insertions.set('.js-range-editor', {
+						html: /*html*/ `<a data-gk class="btn mr-2 px-2 float-right" style="padding-top:2px !important; padding-bottom:1px !important;" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
+							22,
+							undefined,
+							'position:relative; top:2px;',
+						)}</a>`,
+						position: 'afterbegin',
+					});
 
-						break;
-					case 'pull': {
-						const compareUrl = this.transformUrl('gkdev', 'compare');
+					break;
+				case 'pull': {
+					const compareUrl = this.transformUrl('gkdev', 'compare');
 
-						insertions.set('[data-target="get-repo.modal"] #local-panel ul li:first-child', {
-							html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
+					insertions.set('[data-target="get-repo.modal"] #local-panel ul li:first-child', {
+						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
 	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
 		${this.getGitKrakenSvg(16, 'mr-2')}
 		${label}
@@ -84,84 +93,83 @@ export function injectionScope(url: string) {
 		Open Comparison with GitKraken
 	</a>
 </li>`,
-							position: 'afterend',
-						});
-
-						break;
-					}
-					case 'tree':
-					case undefined:
-						insertions.set('[data-target="get-repo.modal"] #local-panel ul li:first-child', {
-							html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
-	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
-		${this.getGitKrakenSvg(16, 'mr-2')}
-		${label}
-	</a>
-</li>`,
-							position: 'afterend',
-						});
-
-						break;
-					default: {
-						insertions.set('.file-navigation get-repo', {
-							html: /*html*/ `<a data-gk class="btn mr-2 px-2 py-0" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
-								22,
-								undefined,
-								'position:relative; top:2px;',
-							)}</a>`,
-							position: 'beforebegin',
-						});
-
-						insertions.set('[data-target="get-repo.modal"] #local-panel ul li:first-child', {
-							html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
-	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
-		${this.getGitKrakenSvg(16, 'mr-2')}
-		${label}
-	</a>
-</li>`,
-							position: 'afterend',
-						});
-
-						break;
-					}
-				}
-
-				if (insertions.size) {
-					for (const [selector, { html, position }] of insertions) {
-						const el = document.querySelector(selector);
-						if (el) {
-							insertions.delete(selector);
-							el.insertAdjacentHTML(position, html);
-						}
-					}
-
-					if (!insertions.size) return;
-
-					this._observer = new MutationObserver(() => {
-						if (this._timer != null) {
-							clearTimeout(this._timer);
-						}
-
-						this._timer = setTimeout(() => {
-							for (const [selector, { html, position }] of insertions) {
-								const el = document.querySelector(selector);
-								if (el) {
-									insertions.delete(selector);
-									el.insertAdjacentHTML(position, html);
-								}
-							}
-
-							if (!insertions.size) {
-								this._observer?.disconnect();
-								this._observer = undefined;
-							}
-						}, 100);
+						position: 'afterend',
 					});
-					this._observer.observe(document.body, { childList: true, subtree: true });
+
+					break;
 				}
-			} catch (ex) {
-				debugger;
-				console.error(ex);
+				case 'tree':
+				case undefined:
+					insertions.set('[data-target="get-repo.modal"] #local-panel ul li:first-child', {
+						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
+	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
+		${this.getGitKrakenSvg(16, 'mr-2')}
+		${label}
+	</a>
+</li>`,
+						position: 'afterend',
+					});
+
+					break;
+				default: {
+					insertions.set('.file-navigation get-repo', {
+						html: /*html*/ `<a data-gk class="btn mr-2 px-2 py-0" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
+							22,
+							undefined,
+							'position:relative; top:2px;',
+						)}</a>`,
+						position: 'beforebegin',
+					});
+
+					insertions.set('[data-target="get-repo.modal"] #local-panel ul li:first-child', {
+						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
+	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
+		${this.getGitKrakenSvg(16, 'mr-2')}
+		${label}
+	</a>
+</li>`,
+						position: 'afterend',
+					});
+
+					break;
+				}
+			}
+			return insertions;
+		}
+
+		private insertHTML(insertions: Map<string, { html: string; position: InsertPosition }>) {
+			if (insertions.size) {
+				for (const [selector, { html, position }] of insertions) {
+					const el = document.querySelector(selector);
+					if (el) {
+						insertions.delete(selector);
+						el.insertAdjacentHTML(position, html);
+					}
+				}
+
+				if (!insertions.size) return;
+
+				this._observer = new MutationObserver(() => {
+					if (this._timer != null) {
+						clearTimeout(this._timer);
+					}
+
+					this._timer = setTimeout(() => {
+						for (const [selector, { html, position }] of insertions) {
+							const el = document.querySelector(selector);
+							if (el) {
+								insertions.delete(selector);
+								el.insertAdjacentHTML(position, html);
+							}
+						}
+
+						if (!insertions.size) {
+							this._observer?.disconnect();
+							this._observer = undefined;
+						}
+					}, 100);
+				});
+				this._observer.observe(document.body, { childList: true, subtree: true });
 			}
 		}
 
