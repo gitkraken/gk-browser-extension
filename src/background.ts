@@ -1,18 +1,23 @@
 import type { WebNavigation } from 'webextension-polyfill';
 import { scripting, tabs, webNavigation } from 'webextension-polyfill';
+import { injectionScope as inject_azureDevops } from './hosts/azureDevops';
 import { injectionScope as inject_bitbucket } from './hosts/bitbucket';
 import { injectionScope as inject_github } from './hosts/github';
 import { injectionScope as inject_gitlab } from './hosts/gitlab';
 
 webNavigation.onDOMContentLoaded.addListener(injectScript, {
-	url: [{ hostContains: 'github.com' }, { hostContains: 'gitlab.com' }, { hostContains: 'bitbucket.org' }],
+	url: [
+		{ hostContains: 'github.com' },
+		{ hostContains: 'gitlab.com' },
+		{ hostContains: 'bitbucket.org' },
+		{ hostContains: 'dev.azure.com' },
+	],
 });
 
 webNavigation.onHistoryStateUpdated.addListener(details => {
 	// used to detect when the user navigates to a different page in the same tab
-	// is currently needed to handle bitbucket navigation
 	const url = new URL(details.url);
-	if (url.host === 'bitbucket.org') {
+	if (url.host === 'bitbucket.org' || url.host === 'dev.azure.com') {
 		tabs.sendMessage(details.tabId, {
 			message: 'onHistoryStateUpdated',
 			details: details,
@@ -41,6 +46,10 @@ function getInjectionFn(url: string): (url: string) => void {
 
 	if (uri.hostname.endsWith('bitbucket.org')) {
 		return inject_bitbucket;
+	}
+
+	if (uri.hostname.endsWith('dev.azure.com')) {
+		return inject_azureDevops;
 	}
 
 	console.error('Unsupported host');

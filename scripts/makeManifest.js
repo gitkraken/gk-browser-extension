@@ -19,7 +19,7 @@ const manifestBase = {
 		128: 'icons/logo-128.png',
 	},
 	permissions: ['scripting', 'webNavigation'],
-	host_permissions: ['*://*.github.com/*', '*://*.gitlab.com/*', '*://*.bitbucket.org/*'],
+	host_permissions: ['*://*.github.com/*', '*://*.gitlab.com/*', '*://*.bitbucket.org/*', '*://*.dev.azure.com/*'],
 };
 
 const getMakeManifest =
