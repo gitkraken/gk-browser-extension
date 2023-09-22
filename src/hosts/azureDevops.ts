@@ -23,9 +23,14 @@ export function injectionScope(url: string) {
 			this.insertHTML(insertions);
 			chrome.runtime.onMessage.addListener(request => {
 				if (request.message === 'onHistoryStateUpdated') {
-					const newUri = new URL(request.details.url);
-					const newInsertions = this.getInsertions(newUri.pathname, newUri.searchParams);
-					this.insertHTML(newInsertions);
+					setTimeout(
+						() => {
+							const newUri = new URL(request.details.url);
+							const newInsertions = this.getInsertions(newUri.pathname, newUri.searchParams);
+							this.insertHTML(newInsertions);
+						},
+						request.details.url.includes('pullrequest') ? 300 : 0,
+					);
 				}
 			});
 		}
