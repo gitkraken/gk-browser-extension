@@ -118,6 +118,71 @@ export function injectionScope(url: string) {
 			return insertions;
 		}
 
+		private handleInsertions(
+			insertions: Map<
+				string,
+				{ html: string; position: InsertPosition; replaceSelectorList?: ReplaceSelector[] }
+			>,
+		) {
+			const localInsertions = insertions;
+			for (const [selector, { html, position, replaceSelectorList }] of localInsertions) {
+				if (replaceSelectorList?.length) {
+					let found = false;
+					for (const { selector: replaceSelector, href: replaceHref } of replaceSelectorList) {
+						const el = document.querySelector<HTMLLinkElement>(replaceSelector);
+						if (el) {
+							localInsertions.delete(selector);
+							el.href = replaceHref;
+							found = true;
+						}
+					}
+					if (found) continue;
+				}
+				const el = document.querySelector<HTMLElement>(selector);
+				if (el) {
+					localInsertions.delete(selector);
+					this.insertElement(el, html, position);
+				}
+			}
+			return localInsertions;
+		}
+
+		private htmlToElements(html: string) {
+			const template = document.createElement('template');
+			template.innerHTML = html;
+			return template.content.childNodes;
+		}
+
+		private insertElement(el: HTMLElement, html: string, position: InsertPosition) {
+			const elements = this.htmlToElements(html);
+			switch (position) {
+				case 'beforebegin': {
+					elements.forEach(insertedElement => {
+						el.parentNode?.insertBefore(insertedElement, el.previousSibling);
+					});
+					break;
+				}
+				case 'afterbegin': {
+					elements.forEach(insertedElement => {
+						el.insertBefore(insertedElement, el.firstChild);
+					});
+					break;
+				}
+				case 'beforeend': {
+					elements.forEach(insertedElement => {
+						el.appendChild(insertedElement);
+					});
+					break;
+				}
+				case 'afterend': {
+					elements.forEach(insertedElement => {
+						el.parentNode?.insertBefore(insertedElement, el.nextSibling);
+					});
+					break;
+				}
+			}
+		}
+
 		private insertHTML(
 			insertions: Map<
 				string,
@@ -125,27 +190,9 @@ export function injectionScope(url: string) {
 			>,
 		) {
 			if (insertions.size) {
-				for (const [selector, { html, position, replaceSelectorList }] of insertions) {
-					if (replaceSelectorList?.length) {
-						let found = false;
-						for (const { selector: replaceSelector, href: replaceHref } of replaceSelectorList) {
-							const el = document.querySelector<HTMLLinkElement>(replaceSelector);
-							if (el) {
-								insertions.delete(selector);
-								el.href = replaceHref;
-								found = true;
-							}
-						}
-						if (found) continue;
-					}
-					const el = document.querySelector(selector);
-					if (el) {
-						insertions.delete(selector);
-						el.insertAdjacentHTML(position, html);
-					}
-				}
+				const localInsertions = this.handleInsertions(insertions);
 
-				if (!insertions.size) return;
+				if (!localInsertions.size) return;
 
 				this._observer = new MutationObserver(() => {
 					if (this._timer != null) {
@@ -153,27 +200,9 @@ export function injectionScope(url: string) {
 					}
 
 					this._timer = setTimeout(() => {
-						for (const [selector, { html, position, replaceSelectorList }] of insertions) {
-							if (replaceSelectorList?.length) {
-								let found = false;
-								for (const { selector: replaceSelector, href: replaceHref } of replaceSelectorList) {
-									const el = document.querySelector<HTMLLinkElement>(replaceSelector);
-									if (el) {
-										insertions.delete(selector);
-										el.href = replaceHref;
-										found = true;
-									}
-								}
-								if (found) continue;
-							}
-							const el = document.querySelector(selector);
-							if (el) {
-								insertions.delete(selector);
-								el.insertAdjacentHTML(position, html);
-							}
-						}
+						const timerInsertions = this.handleInsertions(localInsertions);
 
-						if (!insertions.size) {
+						if (!timerInsertions.size) {
 							this._observer?.disconnect();
 							this._observer = undefined;
 						}
@@ -308,7 +337,6 @@ export function injectionScope(url: string) {
 						url.searchParams.set('pr', prNumber);
 						url.searchParams.set('prUrl', this.uri.toString());
 					}
-					console.log('transform', url.toString(), action);
 					break;
 				}
 				case 'branches':

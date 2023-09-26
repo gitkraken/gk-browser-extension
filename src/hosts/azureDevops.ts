@@ -41,7 +41,7 @@ export function injectionScope(url: string) {
 				{ html: string; position: InsertPosition; replaceSelectorList?: ReplaceSelector[] }
 			>();
 			try {
-				const label = 'Open with GitKraken';
+				const label = 'Open with GitKraken 2';
 				const url = this.transformUrl('gkdev', 'open', pathname, search);
 
 				const [, , , , , type] = pathname.split('/');
@@ -99,7 +99,7 @@ export function injectionScope(url: string) {
 								20,
 								undefined,
 								'position:relative; margin-right:4px;',
-							)}Open with GitKraken</a>`,
+							)}Open with GitKraken 2</a>`,
 							position: 'afterbegin',
 							replaceSelectorList: [{ selector: '.gk-insert', href: url }],
 						});
@@ -114,6 +114,71 @@ export function injectionScope(url: string) {
 			return insertions;
 		}
 
+		private handleInsertions(
+			insertions: Map<
+				string,
+				{ html: string; position: InsertPosition; replaceSelectorList?: ReplaceSelector[] }
+			>,
+		) {
+			const localInsertions = insertions;
+			for (const [selector, { html, position, replaceSelectorList }] of localInsertions) {
+				if (replaceSelectorList?.length) {
+					let found = false;
+					for (const { selector: replaceSelector, href: replaceHref } of replaceSelectorList) {
+						const el = document.querySelector<HTMLLinkElement>(replaceSelector);
+						if (el) {
+							localInsertions.delete(selector);
+							el.href = replaceHref;
+							found = true;
+						}
+					}
+					if (found) continue;
+				}
+				const el = document.querySelector<HTMLElement>(selector);
+				if (el) {
+					localInsertions.delete(selector);
+					this.insertElement(el, html, position);
+				}
+			}
+			return localInsertions;
+		}
+
+		private htmlToElements(html: string) {
+			const template = document.createElement('template');
+			template.innerHTML = html;
+			return template.content.childNodes;
+		}
+
+		private insertElement(el: HTMLElement, html: string, position: InsertPosition) {
+			const elements = this.htmlToElements(html);
+			switch (position) {
+				case 'beforebegin': {
+					elements.forEach(insertedElement => {
+						el.parentNode?.insertBefore(insertedElement, el.previousSibling);
+					});
+					break;
+				}
+				case 'afterbegin': {
+					elements.forEach(insertedElement => {
+						el.insertBefore(insertedElement, el.firstChild);
+					});
+					break;
+				}
+				case 'beforeend': {
+					elements.forEach(insertedElement => {
+						el.appendChild(insertedElement);
+					});
+					break;
+				}
+				case 'afterend': {
+					elements.forEach(insertedElement => {
+						el.parentNode?.insertBefore(insertedElement, el.nextSibling);
+					});
+					break;
+				}
+			}
+		}
+
 		private insertHTML(
 			insertions: Map<
 				string,
@@ -121,27 +186,9 @@ export function injectionScope(url: string) {
 			>,
 		) {
 			if (insertions.size) {
-				for (const [selector, { html, position, replaceSelectorList }] of insertions) {
-					if (replaceSelectorList?.length) {
-						let found = false;
-						for (const { selector: replaceSelector, href: replaceHref } of replaceSelectorList) {
-							const el = document.querySelector<HTMLLinkElement>(replaceSelector);
-							if (el) {
-								insertions.delete(selector);
-								el.href = replaceHref;
-								found = true;
-							}
-						}
-						if (found) continue;
-					}
-					const el = document.querySelector(selector);
-					if (el) {
-						insertions.delete(selector);
-						el.insertAdjacentHTML(position, html);
-					}
-				}
+				const localInsertions = this.handleInsertions(insertions);
 
-				if (!insertions.size) return;
+				if (!localInsertions.size) return;
 
 				this._observer = new MutationObserver(() => {
 					if (this._timer != null) {
@@ -149,27 +196,9 @@ export function injectionScope(url: string) {
 					}
 
 					this._timer = setTimeout(() => {
-						for (const [selector, { html, position, replaceSelectorList }] of insertions) {
-							if (replaceSelectorList?.length) {
-								let found = false;
-								for (const { selector: replaceSelector, href: replaceHref } of replaceSelectorList) {
-									const el = document.querySelector<HTMLLinkElement>(replaceSelector);
-									if (el) {
-										insertions.delete(selector);
-										el.href = replaceHref;
-										found = true;
-									}
-								}
-								if (found) continue;
-							}
-							const el = document.querySelector(selector);
-							if (el) {
-								insertions.delete(selector);
-								el.insertAdjacentHTML(position, html);
-							}
-						}
+						const localInsertions = this.handleInsertions(insertions);
 
-						if (!insertions.size) {
+						if (!localInsertions.size) {
 							this._observer?.disconnect();
 							this._observer = undefined;
 						}
