@@ -1,6 +1,6 @@
 {
 	"name": "GitKraken",
-	"description": "The GitKraken Browser Extension bridges your GitHub or GitLab repositories to GitKraken Client and with GitLens in VS Code.",
+	"description": "The GitKraken Browser Extension bridges your GitHub, GitLab, Bitbucket, or AzureDevOps  repositories to GitKraken Client and with GitLens in VS Code.",
 	"version": "0.0.1",
 	"license": "MIT",
 	"author": {
