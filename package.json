@@ -38,7 +38,7 @@
 		"test": "yarn playwright test",
 		"package": "yarn run package:chromium && yarn run package:firefox",
 		"package:chromium": "yarn run bundle:chromium && cross-var npx bestzip \"%npm_package_name%-%npm_package_version%-chromium.zip\" dist icons manifest.json LICENSE",
-		"package:firefox": "yarn run bundle:firefox && cross-var npx bestzip \"%npm_package_name%-%npm_package_version%-firefox.zip\" dist icons manifest.json LICENSE",
+		"package:firefox": "yarn run bundle:firefox && cross-var npx bestzip \"%npm_package_name%-%npm_package_version%-firefox.zip\" dist icons manifest.json LICENSE && yarn run sign:firefox",
 		"package-pre": "yarn run patch-pre && yarn run package",
 		"patch-pre": "node ./scripts/applyPreReleasePatch.js",
 		"pretty": "prettier --config .prettierrc --loglevel warn --write .",
