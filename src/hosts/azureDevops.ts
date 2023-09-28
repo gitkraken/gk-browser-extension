@@ -185,10 +185,7 @@ export function injectionScope(url: string) {
 			pathname: string,
 			search: URLSearchParams,
 		): string {
-			let [, org, project, , repo, type, urlTarget] = pathname.split('/');
-			// if (rest?.length) {
-			// 	rest = rest.filter(Boolean);
-			// }
+			let { org, project, repo, type, urlTarget } = this.parsePathname(pathname);
 
 			if (target === 'gkdev') {
 				const redirectUrl = new URL(this.transformUrl('vscode', action, pathname, search));
@@ -283,9 +280,35 @@ export function injectionScope(url: string) {
 			}
 
 			const remoteUrl = `https://${org}@dev.azure.com/${org}/${project}/_git/${repo}`;
+			console.log('remoteUrl', remoteUrl);
 
 			url.searchParams.set('url', remoteUrl.toString());
 			return url.toString();
+		}
+
+		private parsePathname(pathname: string): {
+			org: string;
+			project: string;
+			repo: string;
+			type: string | undefined;
+			urlTarget: string;
+		} {
+			// the default repo of a project has the same name and has a url that is formatted
+			// slightly differently than a repo that doesn't share the same name as the project
+			let project = '';
+			let repo = '';
+			let type = '';
+			let urlTarget = '';
+
+			const [, org, ...rest] = pathname.split('/');
+			if (rest[0] === '_git') {
+				[, project, type, urlTarget] = rest;
+				repo = project;
+			} else {
+				[project, , repo, type, urlTarget] = rest;
+			}
+
+			return { org: org, project: project, repo: repo, type: type, urlTarget: urlTarget };
 		}
 
 		private getGitKrakenSvg(size: number, classes?: string, style?: string) {
