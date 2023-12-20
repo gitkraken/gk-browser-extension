@@ -6,6 +6,8 @@ export function injectionScope(url: string) {
 	class GitHubInjectionProvider implements InjectionProvider {
 		private _timer: ReturnType<typeof setTimeout> | undefined;
 		private _observer: MutationObserver | undefined;
+		private _domTimer: ReturnType<typeof setTimeout> | undefined;
+		private _domObserver: MutationObserver | undefined;
 
 		constructor(private uri: URL) {}
 
@@ -18,6 +20,22 @@ export function injectionScope(url: string) {
 				this.uri = new URL(window.location.href);
 				this.render();
 			});
+
+			this._domObserver = new MutationObserver((e: MutationRecord[]) => {
+				const portalchange = e.find(e => e.target && (e.target as HTMLElement).id === '__primerPortalRoot__');
+				if (portalchange) {
+					if (this._domTimer != null) {
+						return;
+					}
+
+					this._domTimer = setTimeout(() => {
+						this._domTimer = undefined;
+						this.render();
+					}, 100);
+				}
+			});
+			this._domObserver.observe(document.body, { childList: true, subtree: true });
+
 			this.render();
 		}
 
@@ -96,11 +114,37 @@ export function injectionScope(url: string) {
 						position: 'afterend',
 					});
 
+					insertions.set('#__primerPortalRoot__ > div > div > div > ul > div > ul > li:first-child', {
+						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
+	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
+		${this.getGitKrakenSvg(16, 'mr-2')}
+		${label}
+	</a>
+</li>
+<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
+	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${compareUrl}" target="_blank" title="Open Comparison with GitKraken" aria-label="Open Comparison with GitKraken">
+		${this.getGitKrakenSvg(16, 'mr-2')}
+		Open Comparison with GitKraken
+	</a>
+</li>`,
+						position: 'afterend',
+					});
+
 					break;
 				}
 				case 'tree':
 				case undefined:
 					insertions.set('[data-target="get-repo.modal"] #local-panel ul li:first-child', {
+						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
+	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
+		${this.getGitKrakenSvg(16, 'mr-2')}
+		${label}
+	</a>
+</li>`,
+						position: 'afterend',
+					});
+
+					insertions.set('#__primerPortalRoot__ > div > div > div > ul > div > ul > li:first-child', {
 						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
 	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
 		${this.getGitKrakenSvg(16, 'mr-2')}
@@ -120,8 +164,17 @@ export function injectionScope(url: string) {
 						)}</a>`,
 						position: 'beforebegin',
 					});
-
 					insertions.set('[data-target="get-repo.modal"] #local-panel ul li:first-child', {
+						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
+	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
+		${this.getGitKrakenSvg(16, 'mr-2')}
+		${label}
+	</a>
+</li>`,
+						position: 'afterend',
+					});
+
+					insertions.set('#__primerPortalRoot__ > div > div > div > ul > div > ul > li:first-child', {
 						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
 	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
 		${this.getGitKrakenSvg(16, 'mr-2')}
