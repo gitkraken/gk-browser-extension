@@ -20,21 +20,26 @@ const sha256 = async (text: string) => {
   return hashHex;
 };
 
-const fetchUser = async () => {
+const getAccessToken = async () => {
   // Attempt to get the access token cookie from GitKraken.dev
   const cookie = await cookies.get({
     url: 'https://gitkraken.dev',
     name: 'accessToken'
   });
 
-  if (!cookie) {
+  return cookie?.value;
+};
+
+const fetchUser = async () => {
+  const token = await getAccessToken();
+  if (!token) {
     // The user is not logged in.
     return;
   }
 
   const res = await fetch('https://api.gitkraken.dev/user', {
     headers: {
-      Authorization: `Bearer ${cookie.value}`
+      Authorization: `Bearer ${token}`
     }
   });
 
@@ -45,6 +50,32 @@ const fetchUser = async () => {
 
   const user = await res.json();
   return user as User;
+};
+
+const logout = async () => {
+  const token = await getAccessToken();
+  if (!token) {
+    // The user is not logged in.
+    return;
+  }
+
+  const res = await fetch('https://api.gitkraken.dev/user/logout', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+  if (!res.ok) {
+    // The access token is invalid or expired.
+    return;
+  }
+
+  // Attempt to clean up the access token cookie from GitKraken.dev
+  await cookies.remove({
+    url: 'https://gitkraken.dev',
+    name: 'accessToken'
+  });
 };
 
 const renderLoggedInContent = async (user: User) => {
@@ -77,6 +108,15 @@ const renderLoggedInContent = async (user: User) => {
   userEl.appendChild(userInfoEl);
 
   mainEl.appendChild(userEl);
+
+  const signOutBtn = document.createElement('button');
+  signOutBtn.textContent = 'Sign out';
+  signOutBtn.classList.add('btn');
+  signOutBtn.addEventListener('click', async () => {
+    await logout();
+    window.close();
+  });
+  mainEl.appendChild(signOutBtn);
 };
 
 const renderLoggedOutContent = () => {

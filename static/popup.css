@@ -11,10 +11,23 @@
   font-size: 12px;
 }
 
+#main-content > *:not(:last-child) {
+  margin-bottom: 4px;
+}
+
 a.btn {
   color: black;
   text-decoration: none;
   display: block;
+  padding: 5px;
+}
+button.btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  text-align: start;
   padding: 5px;
 }
 
