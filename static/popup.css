@@ -30,6 +30,9 @@ button.btn {
   text-align: start;
   padding: 5px;
 }
+a.btn .icon, button.btn .icon {
+  margin-right: 8px;
+}
 
 img.avatar {
   border-radius: 50%;
@@ -44,7 +47,8 @@ img.avatar {
   padding: 8px;
 }
 .user-info {
-  margin-left: 8px;
+  margin: 0 8px;
+  flex: 1 1 0%;
 }
 .user-info .user-name {
   font-weight: bold;

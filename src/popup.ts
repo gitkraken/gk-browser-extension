@@ -78,11 +78,18 @@ const logout = async () => {
   });
 };
 
+const makeIcon = (faIcon: string) => {
+  const icon = document.createElement('i');
+  icon.classList.add('fa-regular', faIcon, 'icon');
+  return icon;
+};
+
 const renderLoggedInContent = async (user: User) => {
   const emailHash = await sha256(user.email);
 
   const mainEl = document.getElementById('main-content')!;
 
+  /* User Info element */
   const userEl = document.createElement('div');
   userEl.classList.add('user');
 
@@ -107,8 +114,16 @@ const renderLoggedInContent = async (user: User) => {
 
   userEl.appendChild(userInfoEl);
 
+  const siteLink = document.createElement('a');
+  siteLink.href = 'https://gitkraken.dev';
+  siteLink.target = '_blank';
+  const siteIcon = makeIcon('fa-arrow-up-right-from-square');
+  siteLink.appendChild(siteIcon);
+  userEl.appendChild(siteLink);
+
   mainEl.appendChild(userEl);
 
+  /* Sign out butto */
   const signOutBtn = document.createElement('button');
   signOutBtn.textContent = 'Sign out';
   signOutBtn.classList.add('btn');
@@ -116,6 +131,10 @@ const renderLoggedInContent = async (user: User) => {
     await logout();
     window.close();
   });
+
+  const signOutIcon = makeIcon('fa-right-from-bracket');
+  signOutBtn.prepend(signOutIcon);
+
   mainEl.appendChild(signOutBtn);
 };
 
@@ -124,9 +143,12 @@ const renderLoggedOutContent = () => {
 
   const signInLink = document.createElement('a');
   signInLink.href = 'https://gitkraken.dev/login';
-  signInLink.target = '_blank';
   signInLink.textContent = 'Sign in GitKraken account';
+  signInLink.target = '_blank';
   signInLink.classList.add('btn');
+
+  const signInIcon = makeIcon('fa-right-from-bracket');
+  signInLink.prepend(signInIcon);
 
   mainEl.appendChild(signInLink);
 };
@@ -138,6 +160,9 @@ const main = async () => {
   } else {
     renderLoggedOutContent();
   }
+
+  const loadingIcon = document.getElementById('loading-icon');
+  loadingIcon?.remove();
 };
 
 void main();
