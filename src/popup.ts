@@ -8,6 +8,18 @@ interface User {
   username: string;
 }
 
+// Source: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest#basic_example
+const sha256 = async (text: string) => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hash));
+  const hashHex = hashArray
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+  return hashHex;
+};
+
 const fetchUser = async () => {
   // Attempt to get the access token cookie from GitKraken.dev
   const cookie = await cookies.get({
@@ -35,7 +47,36 @@ const fetchUser = async () => {
   return user as User;
 };
 
-const renderLoggedInContent = (user: User) => {
+const renderLoggedInContent = async (user: User) => {
+  const emailHash = await sha256(user.email);
+
+  const mainEl = document.getElementById('main-content')!;
+
+  const userEl = document.createElement('div');
+  userEl.classList.add('user');
+
+  const gravatarEl = document.createElement('img');
+  gravatarEl.src = `https://www.gravatar.com/avatar/${emailHash}?s=30&d=retro`;
+  gravatarEl.alt = user.name || user.username;
+  gravatarEl.classList.add('avatar');
+  userEl.appendChild(gravatarEl);
+
+  const userInfoEl = document.createElement('div');
+  userInfoEl.classList.add('user-info');
+
+  const userNameEl = document.createElement('div');
+  userNameEl.textContent = user.name || user.username;
+  userNameEl.classList.add('user-name');
+  userInfoEl.appendChild(userNameEl);
+
+  const userEmailEl = document.createElement('div');
+  userEmailEl.textContent = user.email;
+  userEmailEl.classList.add('user-email');
+  userInfoEl.appendChild(userEmailEl);
+
+  userEl.appendChild(userInfoEl);
+
+  mainEl.appendChild(userEl);
 };
 
 const renderLoggedOutContent = () => {
@@ -53,7 +94,7 @@ const renderLoggedOutContent = () => {
 const main = async () => {
   const user = await fetchUser();
   if (user) {
-    renderLoggedInContent(user);
+    void renderLoggedInContent(user);
   } else {
     renderLoggedOutContent();
   }
