@@ -35,9 +35,28 @@ const fetchUser = async () => {
   return user as User;
 };
 
+const renderLoggedInContent = (user: User) => {
+};
+
+const renderLoggedOutContent = () => {
+  const mainEl = document.getElementById('main-content')!;
+
+  const signInLink = document.createElement('a');
+  signInLink.href = 'https://gitkraken.dev/login';
+  signInLink.target = '_blank';
+  signInLink.textContent = 'Sign in GitKraken account';
+  signInLink.classList.add('btn');
+
+  mainEl.appendChild(signInLink);
+};
+
 const main = async () => {
   const user = await fetchUser();
-  console.log(user);
+  if (user) {
+    renderLoggedInContent(user);
+  } else {
+    renderLoggedOutContent();
+  }
 };
 
 void main();
