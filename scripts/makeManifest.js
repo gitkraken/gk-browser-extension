@@ -18,8 +18,17 @@ const manifestBase = {
 		48: 'icons/logo-48.png',
 		128: 'icons/logo-128.png',
 	},
-	permissions: ['scripting', 'webNavigation'],
-	host_permissions: ['*://*.github.com/*', '*://*.gitlab.com/*', '*://*.bitbucket.org/*', '*://*.dev.azure.com/*'],
+	permissions: ['scripting', 'webNavigation', 'cookies'],
+	host_permissions: [
+		'*://*.github.com/*',
+		'*://*.gitlab.com/*',
+		'*://*.bitbucket.org/*',
+		'*://*.dev.azure.com/*',
+		'*://*.gitkraken.dev/*',
+	],
+	action: {
+		default_popup: 'static/popup.html',
+	}
 };
 
 const getMakeManifest =

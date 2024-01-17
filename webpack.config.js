@@ -61,6 +61,7 @@ function getExtensionConfig(mode, env) {
 		entry: {
 			background: './src/background.ts',
 			'service-worker': './src/service-worker.ts',
+			popup: './src/popup.ts',
 		},
 		mode: mode,
 		target: 'web',

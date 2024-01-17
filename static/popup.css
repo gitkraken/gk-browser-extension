@@ -1,0 +1,54 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+}
+
+#main-content {
+  width: 287px;
+  padding: 8px;
+  font-size: 12px;
+}
+
+#main-content > *:not(:last-child) {
+  margin-bottom: 4px;
+}
+
+a.btn {
+  color: black;
+  text-decoration: none;
+  display: block;
+  padding: 5px;
+}
+button.btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  text-align: start;
+  padding: 5px;
+}
+
+img.avatar {
+  border-radius: 50%;
+  border: 2px solid #7D868F;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  border: 1px solid #D7D8DB;
+  border-radius: 6px;
+  padding: 8px;
+}
+.user-info {
+  margin-left: 8px;
+}
+.user-info .user-name {
+  font-weight: bold;
+}
+.user-info .user-email {
+  font-size: 10px;
+}
