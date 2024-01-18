@@ -151,6 +151,17 @@ const renderLoggedOutContent = () => {
   signInLink.prepend(signInIcon);
 
   mainEl.appendChild(signInLink);
+
+  const supportLink = document.createElement('a');
+  supportLink.href = 'https://help.gitkraken.com/browser-extension/gitkraken-browser-extension';
+  supportLink.textContent = 'Support';
+  supportLink.target = '_blank';
+  supportLink.classList.add('btn');
+
+  const supportIcon = makeIcon('fa-question-circle');
+  supportLink.prepend(supportIcon);
+
+  mainEl.appendChild(supportLink);
 };
 
 const main = async () => {
