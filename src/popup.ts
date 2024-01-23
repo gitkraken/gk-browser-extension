@@ -1,32 +1,8 @@
 // Note: This code runs every time the extension popup is opened.
 
-import { action, cookies } from 'webextension-polyfill';
-
-interface User {
-  email: string;
-  name?: string;
-  proAccessState?: {
-    trial?: {
-      end?: string;
-    }
-  };
-  username: string;
-}
-
-const IconPaths = {
-  Grey: {
-    16: '/icons/gk-grey-16.png',
-    32: '/icons/gk-grey-32.png',
-    48: '/icons/gk-grey-48.png',
-    128: '/icons/gk-grey-128.png',
-  },
-  Green: {
-    16: '/icons/gk-green-16.png',
-    32: '/icons/gk-green-32.png',
-    48: '/icons/gk-green-48.png',
-    128: '/icons/gk-green-128.png',
-  },
-};
+import { cookies } from 'webextension-polyfill';
+import { fetchUser, getAccessToken, updateExtensionIcon } from './shared';
+import type { User } from './types';
 
 // Source: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest#basic_example
 const sha256 = async (text: string) => {
@@ -56,38 +32,6 @@ const getUserTrialDaysLeft = (user: User) => {
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 };
 
-const getAccessToken = async () => {
-  // Attempt to get the access token cookie from GitKraken.dev
-  const cookie = await cookies.get({
-    url: 'https://gitkraken.dev',
-    name: 'accessToken'
-  });
-
-  return cookie?.value;
-};
-
-const fetchUser = async () => {
-  const token = await getAccessToken();
-  if (!token) {
-    // The user is not logged in.
-    return;
-  }
-
-  const res = await fetch('https://api.gitkraken.dev/user', {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  });
-
-  if (!res.ok) {
-    // The access token is invalid or expired.
-    return;
-  }
-
-  const user = await res.json();
-  return user as User;
-};
-
 const logout = async () => {
   const token = await getAccessToken();
   if (!token) {
@@ -113,7 +57,7 @@ const logout = async () => {
     name: 'accessToken'
   });
 
-  void action.setIcon({ path: IconPaths.Grey });
+  await updateExtensionIcon(false);
 };
 
 const makeIcon = (faIcon: string) => {
@@ -256,10 +200,10 @@ const main = async () => {
   const user = await fetchUser();
   if (user) {
     void renderLoggedInContent(user);
-    void action.setIcon({ path: IconPaths.Green });
+    void updateExtensionIcon(true);
   } else {
     renderLoggedOutContent();
-    void action.setIcon({ path: IconPaths.Grey });
+    void updateExtensionIcon(false);
   }
 
   const loadingIcon = document.getElementById('loading-icon');
