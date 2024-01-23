@@ -18,7 +18,11 @@ const manifestBase = {
 		48: 'icons/logo-48.png',
 		128: 'icons/logo-128.png',
 	},
-	permissions: ['scripting', 'webNavigation', 'cookies'],
+	permissions: [
+		'cookies',
+		'scripting',
+		'webNavigation',
+	],
 	host_permissions: [
 		'*://*.github.com/*',
 		'*://*.gitlab.com/*',

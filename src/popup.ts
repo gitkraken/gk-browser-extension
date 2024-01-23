@@ -126,7 +126,7 @@ const renderLoggedInContent = async (user: User) => {
   /* Sign out butto */
   const signOutBtn = document.createElement('button');
   signOutBtn.textContent = 'Sign out';
-  signOutBtn.classList.add('btn');
+  signOutBtn.classList.add('menu-row-btn');
   signOutBtn.addEventListener('click', async () => {
     await logout();
     window.close();
@@ -143,9 +143,9 @@ const renderLoggedOutContent = () => {
 
   const signInLink = document.createElement('a');
   signInLink.href = 'https://gitkraken.dev/login';
-  signInLink.textContent = 'Sign in GitKraken account';
+  signInLink.textContent = 'Sign in to your GitKraken account';
   signInLink.target = '_blank';
-  signInLink.classList.add('btn');
+  signInLink.classList.add('menu-row-btn');
 
   const signInIcon = makeIcon('fa-right-from-bracket');
   signInLink.prepend(signInIcon);
@@ -156,12 +156,38 @@ const renderLoggedOutContent = () => {
   supportLink.href = 'https://help.gitkraken.com/browser-extension/gitkraken-browser-extension';
   supportLink.textContent = 'Support';
   supportLink.target = '_blank';
-  supportLink.classList.add('btn');
+  supportLink.classList.add('menu-row-btn');
 
   const supportIcon = makeIcon('fa-question-circle');
   supportLink.prepend(supportIcon);
 
   mainEl.appendChild(supportLink);
+
+  const signUpEl = document.createElement('div');
+  signUpEl.classList.add('promo');
+  const sparklesIcon = makeIcon('fa-sparkles');
+  signUpEl.appendChild(sparklesIcon);
+
+  const signUpMainContent = document.createElement('div');
+  const signUpMessage = document.createElement('span');
+  signUpMessage.textContent = `Get access to the world's most powerful suite of Git tools`;
+  signUpMainContent.appendChild(signUpMessage);
+
+  const actionsEl = document.createElement('div');
+  actionsEl.classList.add('actions');
+
+  const signUpBtn = document.createElement('a');
+  signUpBtn.href = 'https://gitkraken.dev/register';
+  signUpBtn.target = '_blank';
+  signUpBtn.textContent = 'Sign up for free';
+  signUpBtn.classList.add('btn');
+  actionsEl.appendChild(signUpBtn);
+
+  signUpMainContent.appendChild(actionsEl);
+
+  signUpEl.appendChild(signUpMainContent);
+
+  mainEl.appendChild(signUpEl);
 };
 
 const main = async () => {
