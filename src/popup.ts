@@ -1,6 +1,6 @@
 // Note: This code runs every time the extension popup is opened.
 
-import { cookies } from 'webextension-polyfill';
+import { action, cookies } from 'webextension-polyfill';
 
 interface User {
   email: string;
@@ -12,6 +12,21 @@ interface User {
   };
   username: string;
 }
+
+const IconPaths = {
+  Grey: {
+    16: '/icons/gk-grey-16.png',
+    32: '/icons/gk-grey-32.png',
+    48: '/icons/gk-grey-48.png',
+    128: '/icons/gk-grey-128.png',
+  },
+  Green: {
+    16: '/icons/gk-green-16.png',
+    32: '/icons/gk-green-32.png',
+    48: '/icons/gk-green-48.png',
+    128: '/icons/gk-green-128.png',
+  },
+};
 
 // Source: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest#basic_example
 const sha256 = async (text: string) => {
@@ -97,6 +112,8 @@ const logout = async () => {
     url: 'https://gitkraken.dev',
     name: 'accessToken'
   });
+
+  void action.setIcon({ path: IconPaths.Grey });
 };
 
 const makeIcon = (faIcon: string) => {
@@ -239,8 +256,10 @@ const main = async () => {
   const user = await fetchUser();
   if (user) {
     void renderLoggedInContent(user);
+    void action.setIcon({ path: IconPaths.Green });
   } else {
     renderLoggedOutContent();
+    void action.setIcon({ path: IconPaths.Grey });
   }
 
   const loadingIcon = document.getElementById('loading-icon');
