@@ -5,6 +5,11 @@ import { cookies } from 'webextension-polyfill';
 interface User {
   email: string;
   name?: string;
+  proAccessState?: {
+    trial?: {
+      end?: string;
+    }
+  };
   username: string;
 }
 
@@ -18,6 +23,22 @@ const sha256 = async (text: string) => {
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
   return hashHex;
+};
+
+const getUserTrialDaysLeft = (user: User) => {
+  const trialEnd = user.proAccessState?.trial?.end;
+  if (!trialEnd) {
+    return 0;
+  }
+
+  const trialEndDate = new Date(trialEnd);
+  const now = new Date();
+  const diff = trialEndDate.getTime() - now.getTime();
+  if (diff < 0) {
+    return 0;
+  }
+
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
 };
 
 const getAccessToken = async () => {
@@ -84,6 +105,34 @@ const makeIcon = (faIcon: string) => {
   return icon;
 };
 
+const makePromoBanner = (promoMessage: string, callToAction: { text: string; url: string }) => {
+  const promoEl = document.createElement('div');
+  promoEl.classList.add('promo');
+  const sparklesIcon = makeIcon('fa-sparkles');
+  promoEl.appendChild(sparklesIcon);
+
+  const contentEl = document.createElement('div');
+  const messageEl = document.createElement('span');
+  messageEl.textContent = promoMessage;
+  contentEl.appendChild(messageEl);
+
+  const actionsEl = document.createElement('div');
+  actionsEl.classList.add('actions');
+
+  const ctaBtn = document.createElement('a');
+  ctaBtn.textContent = callToAction.text;
+  ctaBtn.href = callToAction.url;
+  ctaBtn.target = '_blank';
+  ctaBtn.classList.add('btn');
+  actionsEl.appendChild(ctaBtn);
+
+  contentEl.appendChild(actionsEl);
+
+  promoEl.appendChild(contentEl);
+
+  return promoEl;
+};
+
 const renderLoggedInContent = async (user: User) => {
   const emailHash = await sha256(user.email);
 
@@ -123,10 +172,10 @@ const renderLoggedInContent = async (user: User) => {
 
   mainEl.appendChild(userEl);
 
-  /* Sign out butto */
+  /* Sign out button */
   const signOutBtn = document.createElement('button');
   signOutBtn.textContent = 'Sign out';
-  signOutBtn.classList.add('btn');
+  signOutBtn.classList.add('menu-row-btn');
   signOutBtn.addEventListener('click', async () => {
     await logout();
     window.close();
@@ -136,6 +185,18 @@ const renderLoggedInContent = async (user: User) => {
   signOutBtn.prepend(signOutIcon);
 
   mainEl.appendChild(signOutBtn);
+
+  const trialDaysLeft = getUserTrialDaysLeft(user);
+  if (trialDaysLeft > 0) {
+    const upgradePromo = makePromoBanner(
+      `You have ${trialDaysLeft} days left in your free trial`,
+      {
+        text: 'Upgrade now',
+        url: 'https://app.gitkraken.com/create-organization'
+      }
+    );
+    mainEl.appendChild(upgradePromo);
+  }
 };
 
 const renderLoggedOutContent = () => {
@@ -143,9 +204,9 @@ const renderLoggedOutContent = () => {
 
   const signInLink = document.createElement('a');
   signInLink.href = 'https://gitkraken.dev/login';
-  signInLink.textContent = 'Sign in GitKraken account';
+  signInLink.textContent = 'Sign in to your GitKraken account';
   signInLink.target = '_blank';
-  signInLink.classList.add('btn');
+  signInLink.classList.add('menu-row-btn');
 
   const signInIcon = makeIcon('fa-right-from-bracket');
   signInLink.prepend(signInIcon);
@@ -156,12 +217,22 @@ const renderLoggedOutContent = () => {
   supportLink.href = 'https://help.gitkraken.com/browser-extension/gitkraken-browser-extension';
   supportLink.textContent = 'Support';
   supportLink.target = '_blank';
-  supportLink.classList.add('btn');
+  supportLink.classList.add('menu-row-btn');
 
   const supportIcon = makeIcon('fa-question-circle');
   supportLink.prepend(supportIcon);
 
   mainEl.appendChild(supportLink);
+
+  const signUpPromo = makePromoBanner(
+    `Get access to the world's most powerful suite of Git tools`,
+    {
+      text: 'Sign up for free',
+      url: 'https://gitkraken.dev/register'
+    }
+  );
+
+  mainEl.appendChild(signUpPromo);
 };
 
 const main = async () => {
