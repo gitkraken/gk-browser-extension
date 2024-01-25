@@ -49,6 +49,7 @@ img.avatar {
 .user-info {
   margin: 0 8px;
   flex: 1 1 0%;
+  overflow: hidden;
 }
 .user-info .user-name {
   font-weight: bold;
@@ -100,4 +101,10 @@ img.avatar {
 
 .promo .actions > *:not(:last-child) {
   margin-right: 8px;
+}
+
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

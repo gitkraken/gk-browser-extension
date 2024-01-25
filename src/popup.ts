@@ -153,12 +153,12 @@ const renderLoggedInContent = async (user: User) => {
 
   const userNameEl = document.createElement('div');
   userNameEl.textContent = user.name || user.username;
-  userNameEl.classList.add('user-name');
+  userNameEl.classList.add('user-name', 'truncate');
   userInfoEl.appendChild(userNameEl);
 
   const userEmailEl = document.createElement('div');
   userEmailEl.textContent = user.email;
-  userEmailEl.classList.add('user-email');
+  userEmailEl.classList.add('user-email', 'truncate');
   userInfoEl.appendChild(userEmailEl);
 
   userEl.appendChild(userInfoEl);
