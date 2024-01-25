@@ -13,10 +13,10 @@ const manifestBase = {
 	description: packageJson['description'],
 	version: packageJson['version'],
 	icons: {
-		16: 'icons/logo-16.png',
-		32: 'icons/logo-32.png',
-		48: 'icons/logo-48.png',
-		128: 'icons/logo-128.png',
+		16: 'icons/gk-grey-16.png',
+		32: 'icons/gk-grey-32.png',
+		48: 'icons/gk-grey-48.png',
+		128: 'icons/gk-grey-128.png',
 	},
 	permissions: [
 		'cookies',

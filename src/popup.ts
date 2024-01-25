@@ -1,17 +1,8 @@
 // Note: This code runs every time the extension popup is opened.
 
 import { cookies } from 'webextension-polyfill';
-
-interface User {
-  email: string;
-  name?: string;
-  proAccessState?: {
-    trial?: {
-      end?: string;
-    }
-  };
-  username: string;
-}
+import { fetchUser, getAccessToken, updateExtensionIcon } from './shared';
+import type { User } from './types';
 
 // Source: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest#basic_example
 const sha256 = async (text: string) => {
@@ -41,38 +32,6 @@ const getUserTrialDaysLeft = (user: User) => {
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 };
 
-const getAccessToken = async () => {
-  // Attempt to get the access token cookie from GitKraken.dev
-  const cookie = await cookies.get({
-    url: 'https://gitkraken.dev',
-    name: 'accessToken'
-  });
-
-  return cookie?.value;
-};
-
-const fetchUser = async () => {
-  const token = await getAccessToken();
-  if (!token) {
-    // The user is not logged in.
-    return;
-  }
-
-  const res = await fetch('https://api.gitkraken.dev/user', {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  });
-
-  if (!res.ok) {
-    // The access token is invalid or expired.
-    return;
-  }
-
-  const user = await res.json();
-  return user as User;
-};
-
 const logout = async () => {
   const token = await getAccessToken();
   if (!token) {
@@ -97,6 +56,8 @@ const logout = async () => {
     url: 'https://gitkraken.dev',
     name: 'accessToken'
   });
+
+  await updateExtensionIcon(false);
 };
 
 const makeIcon = (faIcon: string) => {
@@ -239,8 +200,10 @@ const main = async () => {
   const user = await fetchUser();
   if (user) {
     void renderLoggedInContent(user);
+    void updateExtensionIcon(true);
   } else {
     renderLoggedOutContent();
+    void updateExtensionIcon(false);
   }
 
   const loadingIcon = document.getElementById('loading-icon');
