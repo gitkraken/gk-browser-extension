@@ -1,8 +1,7 @@
 // Note: This code runs every time the extension popup is opened.
 
-import { cookies } from 'webextension-polyfill';
 import { createAnchor, createFAIcon } from './domUtils';
-import { fetchUser, getAccessToken, updateExtensionIcon } from './shared';
+import { fetchUser, logoutUser } from './gkApi';
 import type { User } from './types';
 
 // Source: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest#basic_example
@@ -29,34 +28,6 @@ const getUserTrialDaysLeft = (user: User) => {
 	}
 
 	return Math.ceil(diff / (1000 * 60 * 60 * 24));
-};
-
-const logout = async () => {
-	const token = await getAccessToken();
-	if (!token) {
-		// The user is not logged in.
-		return;
-	}
-
-	const res = await fetch('https://api.gitkraken.dev/user/logout', {
-		method: 'POST',
-		headers: {
-			Authorization: `Bearer ${token}`,
-		},
-	});
-
-	if (!res.ok) {
-		// The access token is invalid or expired.
-		return;
-	}
-
-	// Attempt to clean up the access token cookie from GitKraken.dev
-	await cookies.remove({
-		url: 'https://gitkraken.dev',
-		name: 'accessToken',
-	});
-
-	await updateExtensionIcon(false);
 };
 
 const createPromoBanner = (promoMessage: string, callToAction: { text: string; url: string }) => {
@@ -127,7 +98,7 @@ const renderLoggedInContent = async (user: User) => {
 	signOutBtn.append(createFAIcon('fa-right-from-bracket'), 'Sign out');
 	signOutBtn.classList.add('menu-row');
 	signOutBtn.addEventListener('click', async () => {
-		await logout();
+		await logoutUser();
 		window.close();
 	});
 	mainEl.append(signOutBtn);
@@ -173,8 +144,6 @@ const main = async () => {
 	} else {
 		renderLoggedOutContent();
 	}
-
-	void updateExtensionIcon(Boolean(user));
 
 	const loadingIcon = document.getElementById('loading-icon');
 	loadingIcon?.remove();

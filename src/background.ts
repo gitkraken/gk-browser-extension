@@ -1,10 +1,10 @@
 import type { WebNavigation } from 'webextension-polyfill';
 import { scripting, tabs, webNavigation } from 'webextension-polyfill';
+import { fetchUser } from './gkApi';
 import { injectionScope as inject_azureDevops } from './hosts/azureDevops';
 import { injectionScope as inject_bitbucket } from './hosts/bitbucket';
 import { injectionScope as inject_github } from './hosts/github';
 import { injectionScope as inject_gitlab } from './hosts/gitlab';
-import { fetchUser, updateExtensionIcon } from './shared';
 
 webNavigation.onDOMContentLoaded.addListener(injectScript, {
 	url: [
@@ -58,9 +58,8 @@ function getInjectionFn(url: string): (url: string) => void {
 }
 
 const main = async () => {
-	// Update the extension icon based on whether the user is logged in.
-	const user = await fetchUser();
-	void updateExtensionIcon(Boolean(user));
+	// The fetchUser function also updates the extension icon if the user is logged in
+	await fetchUser();
 };
 
 void main();

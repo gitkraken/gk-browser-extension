@@ -1,5 +1,4 @@
-import { action, cookies } from 'webextension-polyfill';
-import type { User } from './types';
+import { action } from 'webextension-polyfill';
 
 const IconPaths = {
   Grey: {
@@ -17,35 +16,3 @@ const IconPaths = {
 };
 
 export const updateExtensionIcon = (isLoggedIn: boolean) => action.setIcon({ path: isLoggedIn ? IconPaths.Green : IconPaths.Grey });
-
-export const getAccessToken = async () => {
-  // Attempt to get the access token cookie from GitKraken.dev
-  const cookie = await cookies.get({
-    url: 'https://gitkraken.dev',
-    name: 'accessToken'
-  });
-
-  return cookie?.value;
-};
-
-export const fetchUser = async () => {
-  const token = await getAccessToken();
-  if (!token) {
-    // The user is not logged in.
-    return;
-  }
-
-  const res = await fetch('https://api.gitkraken.dev/user', {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  });
-
-  if (!res.ok) {
-    // The access token is invalid or expired.
-    return;
-  }
-
-  const user = await res.json();
-  return user as User;
-};
