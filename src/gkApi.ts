@@ -7,35 +7,35 @@ const gkDotDevUrl = 'https://gitkraken.dev';
 const accessTokenCookieName = 'accessToken';
 
 const getAccessToken = async () => {
-  // Attempt to get the access token cookie from GitKraken.dev
-  const cookie = await cookies.get({
-    url: gkDotDevUrl,
-    name: accessTokenCookieName,
-  });
+	// Attempt to get the access token cookie from GitKraken.dev
+	const cookie = await cookies.get({
+		url: gkDotDevUrl,
+		name: accessTokenCookieName,
+	});
 
-  return cookie?.value;
+	return cookie?.value;
 };
 
 export const fetchUser = async () => {
-  const token = await getAccessToken();
-  if (!token) {
-    return null;
-  }
+	const token = await getAccessToken();
+	if (!token) {
+		return null;
+	}
 
-  const res = await fetch(`${gkApiUrl}/user`, {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  });
+	const res = await fetch(`${gkApiUrl}/user`, {
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+	});
 
-  if (!res.ok) {
-    return null;
-  }
+	if (!res.ok) {
+		return null;
+	}
 
-  void updateExtensionIcon(true);
+	void updateExtensionIcon(true);
 
-  const user = await res.json();
-  return user as User;
+	const user = await res.json();
+	return user as User;
 };
 
 export const logoutUser = async () => {

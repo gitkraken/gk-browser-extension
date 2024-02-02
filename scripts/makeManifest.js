@@ -18,11 +18,7 @@ const manifestBase = {
 		48: 'icons/gk-grey-48.png',
 		128: 'icons/gk-grey-128.png',
 	},
-	permissions: [
-		'cookies',
-		'scripting',
-		'webNavigation',
-	],
+	permissions: ['cookies', 'scripting', 'webNavigation'],
 	host_permissions: [
 		'*://*.github.com/*',
 		'*://*.gitlab.com/*',
@@ -32,7 +28,7 @@ const manifestBase = {
 	],
 	action: {
 		default_popup: 'static/popup.html',
-	}
+	},
 };
 
 const getMakeManifest =
