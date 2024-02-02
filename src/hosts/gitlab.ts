@@ -23,7 +23,7 @@ export function injectionScope(url: string) {
 
 			try {
 				const label = 'Open with GitKraken';
-				const url = this.transformUrl('gkdev', 'open');
+				const url = this.transformUrl('open');
 
 				const { type, rest } = this.parseUrl(this.uri.pathname);
 
@@ -61,7 +61,7 @@ export function injectionScope(url: string) {
 							break;
 						}
 
-						const compareUrl = this.transformUrl('gkdev', 'compare');
+						const compareUrl = this.transformUrl('compare');
 
 						const container = document.querySelector<HTMLElement>(
 							'.merge-request .dropdown-menu .gl-dropdown-inner',
@@ -196,21 +196,20 @@ export function injectionScope(url: string) {
 			};
 		}
 
-		private transformUrl(target: LinkTarget, action: 'open' | 'compare'): string {
-			let { owner, repo, type, rest } = this.parseUrl(this.uri.pathname);
-
-			if (target === 'gkdev') {
-				const redirectUrl = new URL(this.transformUrl('vscode', action));
-				console.debug('redirectUrl', redirectUrl);
-				const deepLinkUrl =
-					MODE === 'production' ? 'https://gitkraken.dev/link' : 'https://dev.gitkraken.dev/link';
-				const deepLink = new URL(`${deepLinkUrl}/${encodeURIComponent(btoa(redirectUrl.toString()))}`);
-				deepLink.searchParams.set('referrer', 'extension');
-				if (redirectUrl.searchParams.get('pr')) {
-					deepLink.searchParams.set('context', 'pr');
-				}
-				return deepLink.toString();
+		private transformUrl(action: 'open' | 'compare'): string {
+			const redirectUrl = new URL(this.getRedirectUrl('vscode', action));
+			console.debug('redirectUrl', redirectUrl);
+			const deepLinkUrl = MODE === 'production' ? 'https://gitkraken.dev/link' : 'https://dev.gitkraken.dev/link';
+			const deepLink = new URL(`${deepLinkUrl}/${encodeURIComponent(btoa(redirectUrl.toString()))}`);
+			deepLink.searchParams.set('referrer', 'extension');
+			if (redirectUrl.searchParams.get('pr')) {
+				deepLink.searchParams.set('context', 'pr');
 			}
+			return deepLink.toString();
+		}
+
+		private getRedirectUrl(target: LinkTarget, action: 'open' | 'compare'): string {
+			let { owner, repo, type, rest } = this.parseUrl(this.uri.pathname);
 
 			const repoId = '-';
 

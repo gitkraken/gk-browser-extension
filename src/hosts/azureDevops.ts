@@ -42,12 +42,12 @@ export function injectionScope(url: string) {
 			>();
 			try {
 				const label = 'Open with GitKraken';
-				const url = this.transformUrl('gkdev', 'open', pathname, search);
+				const url = this.transformUrl('open', pathname, search);
 
 				const [, , , , , type] = pathname.split('/');
 				switch (type) {
 					case 'branchCompare': {
-						const compareUrl = this.transformUrl('gkdev', 'compare', pathname, search);
+						const compareUrl = this.transformUrl('compare', pathname, search);
 						insertions.set('.bolt-header-commandbar-button-group', {
 							html: /*html*/ `<a data-gk class="gk-insert-commit bolt-header-command-item-button bolt-button" href="${compareUrl}" style="text-decoration:none !important" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
 								20,
@@ -60,7 +60,7 @@ export function injectionScope(url: string) {
 						break;
 					}
 					case 'pullrequest': {
-						const compareUrl = this.transformUrl('gkdev', 'compare', pathname, search);
+						const compareUrl = this.transformUrl('compare', pathname, search);
 						insertions.set('.repos-pr-title-row', {
 							html: /*html*/ `<a data-gk class="gk-insert-pr bolt-header-command-item-button bolt-button" href="${url}" style="text-decoration:none !important" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
 								20,
@@ -179,25 +179,24 @@ export function injectionScope(url: string) {
 			}
 		}
 
-		private transformUrl(
+		private transformUrl(action: 'open' | 'compare', pathname: string, search: URLSearchParams): string {
+			const redirectUrl = new URL(this.getRedirectUrl('vscode', action, pathname, search));
+			const deepLinkUrl = MODE === 'production' ? 'https://gitkraken.dev/link' : 'https://dev.gitkraken.dev/link';
+			const deepLink = new URL(`${deepLinkUrl}/${encodeURIComponent(btoa(redirectUrl.toString()))}`);
+			deepLink.searchParams.set('referrer', 'extension');
+			if (redirectUrl.searchParams.get('pr')) {
+				deepLink.searchParams.set('context', 'pr');
+			}
+			return deepLink.toString();
+		}
+
+		private getRedirectUrl(
 			target: LinkTarget,
 			action: 'open' | 'compare',
 			pathname: string,
 			search: URLSearchParams,
 		): string {
 			let { org, project, repo, type, urlTarget } = this.parsePathname(pathname);
-
-			if (target === 'gkdev') {
-				const redirectUrl = new URL(this.transformUrl('vscode', action, pathname, search));
-				const deepLinkUrl =
-					MODE === 'production' ? 'https://gitkraken.dev/link' : 'https://dev.gitkraken.dev/link';
-				const deepLink = new URL(`${deepLinkUrl}/${encodeURIComponent(btoa(redirectUrl.toString()))}`);
-				deepLink.searchParams.set('referrer', 'extension');
-				if (redirectUrl.searchParams.get('pr')) {
-					deepLink.searchParams.set('context', 'pr');
-				}
-				return deepLink.toString();
-			}
 
 			const repoId = '-';
 
