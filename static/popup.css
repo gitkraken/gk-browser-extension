@@ -1,3 +1,10 @@
+:root {
+  --text-md: 12px;
+  --text-sm: 10px;
+  --color-bg: #F7F8FA;
+  --color-border: #D7D8DB;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -6,102 +13,96 @@
   color: #25292F;
 }
 
+/* Popup container */
 #main-content {
   width: 287px;
   padding: 8px;
-  font-size: 12px;
+  font-size: var(--text-md);
 }
-
 #main-content > *:not(:last-child) {
   margin-bottom: 4px;
 }
 
-a.menu-row-btn {
-  text-decoration: none;
+/* Popup menu rows */
+.menu-row {
   display: block;
   padding: 5px;
 }
-button.menu-row-btn {
+a.menu-row {
+  text-decoration: none;
+}
+button.menu-row {
   background: none;
   border: none;
-  cursor: pointer;
-  display: block;
   width: 100%;
   text-align: start;
-  padding: 5px;
 }
-a.menu-row-btn .icon, button.menu-row-btn .icon {
+.menu-row .icon {
   margin-right: 8px;
 }
 
-img.avatar {
-  border-radius: 50%;
-  border: 2px solid #7D868F;
-}
-
-.user {
-  display: flex;
-  align-items: center;
-  background-color: #F7F8FA;
-  border: 1px solid #D7D8DB;
-  border-radius: 6px;
-  padding: 8px;
-}
-.user-info {
-  margin: 0 8px;
-  flex: 1 1 0%;
-  overflow: hidden;
-}
-.user-info .user-name {
-  font-weight: bold;
-}
-.user-info .user-email {
-  font-size: 10px;
-}
-
+/* Promo banner */
 .promo {
-  background-color: #F7F8FA;
-  border: 1px solid #D7D8DB;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   padding: 12px 8px;
   display: flex;
   font-weight: 600;
 }
-
-.btn {
-  background-color: #F7F8FA;
-  border: 1px solid #D7D8DB;
-  border-radius: 4px;
-  padding: 8px;
-  cursor: pointer;
-  color: black;
-  text-decoration: none;
-}
-
-.btn-link {
-  background: none;
-  border: none;
-  color: #158EFE;
-  cursor: pointer;
-}
-
-.promo .btn, .promo .btn-link {
-  font-size: 10px;
-}
-
-.promo .fa-sparkles {
+.promo .icon {
   color: #CBC440;
   margin-top: 8px;
   margin-right: 8px;
 }
-
 .promo .actions {
   margin-top: 12px;
   display: flex;
 }
-
 .promo .actions > *:not(:last-child) {
   margin-right: 8px;
+}
+.promo .actions {
+  font-size: var(--text-sm);
+}
+
+/* User Info bar */
+.user {
+  display: flex;
+  align-items: center;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 8px;
+}
+.user > *:not(:last-child) {
+  margin-right: 8px;
+}
+.user .avatar {
+  border-radius: 50%;
+  border: 2px solid #7D868F;
+}
+.user-info {
+  flex: 1 1 0%;
+  overflow: hidden;
+}
+.user-info .user-name {
+  font-weight: 600;
+}
+.user-info .user-email {
+  font-size: var(--text-sm);
+}
+
+/* Generic */
+button {
+  cursor: pointer;
+}
+
+.btn {
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 8px;
+  text-decoration: none;
 }
 
 .truncate {
