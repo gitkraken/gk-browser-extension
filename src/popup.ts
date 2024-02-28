@@ -161,7 +161,7 @@ const renderPermissionRequest = (permissionsRequest: PermissionsRequest) => {
 		await permissions.request(permissionsRequest.request);
 		reloadPopup();
 	});
-	permissionRequestLink.classList.add('menu-row');
+	permissionRequestLink.classList.add('alert');
 	if (permissionsRequest.hasRequired) {
 		permissionRequestLink.append(createFAIcon('fa-triangle-exclamation'), 'Allow required permissions to continue');
 		mainEl.append(permissionRequestLink);
@@ -174,7 +174,7 @@ const renderPermissionRequest = (permissionsRequest: PermissionsRequest) => {
 		supportLink.classList.add('menu-row');
 		mainEl.append(supportLink);
 	} else {
-		permissionRequestLink.append(createFAIcon('fa-exclamation'), `Allow permissions for cloud providers`);
+		permissionRequestLink.append(createFAIcon('fa-exclamation'), `Allow permissions for cloud git providers`);
 		mainEl.append(permissionRequestLink);
 	}
 };
