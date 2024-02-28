@@ -1,5 +1,7 @@
 import { action } from 'webextension-polyfill';
 
+export const PopupInitMessage = 'popupInit';
+
 const IconPaths = {
 	Grey: {
 		16: '/icons/gk-grey-16.png',
@@ -15,5 +17,23 @@ const IconPaths = {
 	},
 };
 
+export const CloudProviders = [
+	'github.com',
+	'gitlab.com',
+	'bitbucket.org',
+	'dev.azure.com',
+];
+
 export const updateExtensionIcon = (isLoggedIn: boolean) =>
 	action.setIcon({ path: isLoggedIn ? IconPaths.Green : IconPaths.Grey });
+
+// Basically ramda's difference() function but it accepts undefined as empty arrays
+export function arrayDifference<T>(first: T[] | undefined, second: T[] | undefined): T[] {
+	if (!first) {
+		return [];
+	}
+	if (!second) {
+		return first;
+	}
+	return first.filter(x => !second.includes(x));
+}

@@ -9,13 +9,23 @@ const accessTokenCookieUrl = 'https://gitkraken.dev';
 const accessTokenCookieName = MODE === 'production' ? 'accessToken' : 'devAccessToken';
 
 const getAccessToken = async () => {
+	try {
 	// Attempt to get the access token cookie from GitKraken.dev
 	const cookie = await cookies.get({
 		url: accessTokenCookieUrl,
 		name: accessTokenCookieName,
 	});
 
-	return cookie?.value;
+		return cookie?.value;
+	} catch (e) {
+		if ((e as Error)?.message.includes('No host permissions for cookies at url')) {
+			// ignore as we are waiting for required permissions
+		} else {
+			// otherwise log error and continue as if logged out
+			console.error(e);
+		}
+	}
+	return undefined;
 };
 
 export const fetchUser = async () => {

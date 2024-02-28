@@ -44,12 +44,21 @@ const getMakeManifest =
 					strict_min_version: '109.0',
 				},
 			},
+			// Delete this in favor of optional_host_permissions when https://bugzilla.mozilla.org/show_bug.cgi?id=1766026
+			// is resolved
+			optional_permissions: [
+				'*://*/*'
+			]
 		};
 
 		const chromiumKeys = {
 			background: {
 				service_worker: 'dist/service-worker.js',
 			},
+			optional_host_permissions: [
+				// TODO: Move this to `manifestBase` when Firefox supports optional_host_permissions
+				'*://*/*'
+			]
 		};
 
 		const manifest = {

@@ -1,7 +1,10 @@
 // Note: This code runs every time the extension popup is opened.
 
+import { permissions, runtime } from 'webextension-polyfill';
 import { createAnchor, createFAIcon } from './domUtils';
 import { fetchUser, logoutUser } from './gkApi';
+import type { PermissionsRequest } from './permissions-helper';
+import { PopupInitMessage } from './shared';
 import type { User } from './types';
 
 declare const MODE: 'production' | 'development' | 'none';
@@ -142,7 +145,56 @@ const renderLoggedOutContent = () => {
 	mainEl.append(signUpPromo);
 };
 
-const main = async () => {
+const syncWithBackground = async () => {
+	return await runtime.sendMessage(PopupInitMessage) as PermissionsRequest | undefined;
+};
+
+function reloadPopup() {
+	// This seems to work on Firefox and Chromium but I couldn't find any docs confirming this is the correct way
+	window.location.reload();
+}
+
+const renderPermissionRequest = (permissionsRequest: PermissionsRequest) => {
+	const mainEl = document.getElementById('main-content')!;
+
+	const permissionRequestLink = createAnchor('#', undefined, async () => {
+		await permissions.request(permissionsRequest.request);
+		reloadPopup();
+	});
+	permissionRequestLink.classList.add('menu-row');
+	if (permissionsRequest.hasRequired) {
+		permissionRequestLink.append(createFAIcon('fa-triangle-exclamation'), 'Allow required permissions to continue');
+		mainEl.append(permissionRequestLink);
+
+		const supportLink = createAnchor(
+			'https://help.gitkraken.com/browser-extension/gitkraken-browser-extension',
+			'_blank',
+		);
+		supportLink.append(createFAIcon('fa-question-circle'), 'Support');
+		supportLink.classList.add('menu-row');
+		mainEl.append(supportLink);
+	} else {
+		permissionRequestLink.append(createFAIcon('fa-exclamation'), `Allow permissions for cloud providers`);
+		mainEl.append(permissionRequestLink);
+	}
+};
+
+const finishLoading = () => {
+	const loadingIcon = document.getElementById('loading-icon');
+	loadingIcon?.remove();
+};
+
+async function main() {
+	const permissionsRequest = await syncWithBackground();
+	if (permissionsRequest) {
+		renderPermissionRequest(permissionsRequest);
+		if (permissionsRequest.hasRequired) {
+			// Only required permissions blocks the UI
+			finishLoading();
+			return;
+		}
+	}
+
 	const user = await fetchUser();
 	if (user) {
 		void renderLoggedInContent(user);
@@ -150,8 +202,7 @@ const main = async () => {
 		renderLoggedOutContent();
 	}
 
-	const loadingIcon = document.getElementById('loading-icon');
-	loadingIcon?.remove();
+	finishLoading();
 };
 
 void main();

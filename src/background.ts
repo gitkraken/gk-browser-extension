@@ -1,10 +1,12 @@
 import type { WebNavigation } from 'webextension-polyfill';
-import { scripting, tabs, webNavigation } from 'webextension-polyfill';
+import { runtime, scripting , tabs, webNavigation } from 'webextension-polyfill';
 import { fetchUser } from './gkApi';
 import { injectionScope as inject_azureDevops } from './hosts/azureDevops';
 import { injectionScope as inject_bitbucket } from './hosts/bitbucket';
 import { injectionScope as inject_github } from './hosts/github';
 import { injectionScope as inject_gitlab } from './hosts/gitlab';
+import { refreshPermissions } from './permissions-helper';
+import { PopupInitMessage } from './shared';
 
 webNavigation.onDOMContentLoaded.addListener(injectScript, {
 	url: [
@@ -24,6 +26,14 @@ webNavigation.onHistoryStateUpdated.addListener(details => {
 			details: details,
 		}).catch(console.error);
 	}
+});
+
+runtime.onMessage.addListener(async (msg) => {
+	if (msg === PopupInitMessage) {
+		return refreshPermissions();
+	}
+	console.error('Recevied unknown runtime message', msg);
+	return undefined;
 });
 
 function injectScript(details: WebNavigation.OnDOMContentLoadedDetailsType) {
@@ -60,6 +70,9 @@ function getInjectionFn(url: string): (url: string) => void {
 const main = async () => {
 	// The fetchUser function also updates the extension icon if the user is logged in
 	await fetchUser();
+
+	// This removes unneded permissions
+	await refreshPermissions();
 };
 
 void main();
