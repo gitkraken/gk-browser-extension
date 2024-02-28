@@ -1,10 +1,10 @@
-import { action, storage } from 'webextension-polyfill';
+import { action } from 'webextension-polyfill';
 import { getProviderConnections } from './gkApi';
 import type { CacheContext, EnterpriseProviderConnection, ProviderConnection } from './types';
 import { Provider } from './types';
 
 export const PopupInitMessage = 'popupInit';
-export const InjectionDomainsStorageKey = 'injectionDomains';
+export const PermissionsGrantedMessage = 'permissionsGranted';
 
 const IconPaths = {
 	Grey: {
@@ -87,11 +87,3 @@ export async function getEnterpriseConnections(context: CacheContext) {
 		return enterpriseConnections;
 	});
 }
-
-export async function getKeyFromStorage(key: string): Promise<unknown> {
-	return (await storage.session.get(key))[key] as unknown;
-}
-
-export async function setKeyToStorage(key: string, value: unknown) {
-	return storage.session.set({ [key]: value });
-};

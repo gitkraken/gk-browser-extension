@@ -6,7 +6,7 @@ import { injectionScope as inject_bitbucket } from './hosts/bitbucket';
 import { injectionScope as inject_github } from './hosts/github';
 import { injectionScope as inject_gitlab } from './hosts/gitlab';
 import { refreshPermissions } from './permissions-helper';
-import { getEnterpriseConnections, getKeyFromStorage, InjectionDomainsStorageKey, PopupInitMessage, setKeyToStorage } from './shared';
+import { getEnterpriseConnections, PermissionsGrantedMessage, PopupInitMessage } from './shared';
 import type { CacheContext } from './types';
 import { Provider } from './types';
 
@@ -38,24 +38,15 @@ webNavigation.onHistoryStateUpdated.addListener(details => {
 runtime.onMessage.addListener(async (msg) => {
 	if (msg === PopupInitMessage) {
 		const context: CacheContext = {};
-		const injectionDomains = await computeInjectionDomains(context);
-		await storeInjectionDomains(injectionDomains);
-		// NOTE: This may request hosts that we may not have permissions for, which will log errors for the extension
-		// This does not cause any issues, and eliminating the errors requires more logic
-		addInjectionListener(injectionDomains);
 		return refreshPermissions(context);
+	} else if (msg === PermissionsGrantedMessage) {
+		// Reload extension to update injection listener
+		runtime.reload();
+		return undefined;
 	}
 	console.error('Recevied unknown runtime message', msg);
 	return undefined;
 });
-
-async function retrieveInjectionDomains() {
-	return await getKeyFromStorage(InjectionDomainsStorageKey) as InjectionDomains | undefined;
-}
-
-async function storeInjectionDomains(injectionDomains: InjectionDomains) {
-	await setKeyToStorage(InjectionDomainsStorageKey, injectionDomains);
-}
 
 async function computeInjectionDomains(context: CacheContext) {
 	const injectionDomains = structuredClone(DefaultInjectionDomains);
@@ -70,30 +61,22 @@ async function computeInjectionDomains(context: CacheContext) {
 	return injectionDomains;
 }
 
-function addInjectionListener(injectionDomains: InjectionDomains) {
-	// NOTE: The listener has to be a static reference so that we can re-add the listener at any point
-	if (webNavigation.onDOMContentLoaded.hasListener(injectScript)) {
-		webNavigation.onDOMContentLoaded.removeListener(injectScript);
-	} else {
-		console.debug('Adding onDOMContentLoaded injection listener for the first time');
-	}
+async function addInjectionListener(context: CacheContext) {
+	const injectionDomains = await computeInjectionDomains(context);
 	const allDomains = Object.values<string[]>(injectionDomains as any).flat();
+
+	// note: This is a closure over injectionDomains
+	const injectScript = (details: WebNavigation.OnDOMContentLoadedDetailsType) => {
+		void scripting.executeScript({
+			target: { tabId: details.tabId },
+			// injectImmediately: true,
+			func: getInjectionFn(details.url, injectionDomains),
+			args: [details.url],
+		});
+	};
+
 	webNavigation.onDOMContentLoaded.addListener(injectScript, {
 		url: allDomains.map((domain) => ({ hostContains: domain })),
-	});
-}
-
-async function injectScript(details: WebNavigation.OnDOMContentLoadedDetailsType) {
-	const injectionDomains = await retrieveInjectionDomains();
-	if (!injectionDomains) {
-		console.error('Could not find injection domains in storage');
-		return;
-	}
-	void scripting.executeScript({
-		target: { tabId: details.tabId },
-		// injectImmediately: true,
-		func: getInjectionFn(details.url, injectionDomains),
-		args: [details.url],
 	});
 }
 
@@ -130,11 +113,9 @@ async function main() {
 	const context: CacheContext = {};
 	// This removes unneded permissions
 	await refreshPermissions(context);
-	const injectionDomains = await computeInjectionDomains(context);
-	await storeInjectionDomains(injectionDomains);
 	// NOTE: This may request hosts that we may not have permissions for, which will log errors for the extension
 	// This does not cause any issues, and eliminating the errors requires more logic
-	addInjectionListener(injectionDomains);
+	await addInjectionListener(context);
 };
 
 void main();
