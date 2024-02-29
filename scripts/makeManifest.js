@@ -18,7 +18,7 @@ const manifestBase = {
 		48: 'icons/gk-grey-48.png',
 		128: 'icons/gk-grey-128.png',
 	},
-	permissions: ['cookies', 'scripting', 'webNavigation'],
+	permissions: ['cookies', 'scripting', 'storage', 'webNavigation'],
 	host_permissions: [
 		'*://*.github.com/*',
 		'*://*.gitlab.com/*',
@@ -41,7 +41,7 @@ const getMakeManifest =
 			browser_specific_settings: {
 				gecko: {
 					id: 'gitkraken-browser@gitkraken.com',
-					strict_min_version: '109.0',
+					strict_min_version: '115.0',
 				},
 			},
 			// Delete this in favor of optional_host_permissions when https://bugzilla.mozilla.org/show_bug.cgi?id=1766026
@@ -52,6 +52,7 @@ const getMakeManifest =
 		};
 
 		const chromiumKeys = {
+			minimum_chrome_version: "102",
 			background: {
 				service_worker: 'dist/service-worker.js',
 			},

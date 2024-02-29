@@ -16,7 +16,7 @@
 
 /* Popup container */
 #main-content {
-	width: 287px;
+	min-width: 287px;
 	padding: 8px;
 	font-size: var(--text-md);
 }
@@ -50,6 +50,7 @@ button.menu-row {
 	display: flex;
 	align-items: center;
 	padding: 8px;
+	white-space: nowrap;
 }
 a.alert {
 	text-decoration: none;

@@ -174,7 +174,15 @@ const renderPermissionRequest = (permissionsRequest: PermissionsRequest) => {
 		supportLink.classList.add('menu-row');
 		mainEl.append(supportLink);
 	} else {
-		permissionRequestLink.append(createFAIcon('fa-triangle-exclamation'), `Allow permissions for cloud git providers`);
+		const typesRequested: string[] = [];
+		if (permissionsRequest.hasCloud) {
+			typesRequested.push('cloud');
+		}
+		if (permissionsRequest.hasEnterprise) {
+			typesRequested.push('self-hosted');
+		}
+
+		permissionRequestLink.append(createFAIcon('fa-triangle-exclamation'), `Allow permissions for ${typesRequested.join(' & ')} git providers`);
 		mainEl.append(permissionRequestLink);
 	}
 };
