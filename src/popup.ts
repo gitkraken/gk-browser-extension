@@ -4,6 +4,11 @@ import { createAnchor, createFAIcon } from './domUtils';
 import { fetchUser, logoutUser } from './gkApi';
 import type { User } from './types';
 
+declare const MODE: 'production' | 'development' | 'none';
+
+const gkDotDevUrl = MODE === 'production' ? 'https://gitkraken.dev' : 'https://dev.gitkraken.dev';
+const gkAccountSiteUrl = MODE === 'production' ? 'https://app.gitkraken.com' : 'https://devapp.gitkraken.com';
+
 // Source: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest#basic_example
 const sha256 = async (text: string) => {
 	const encoder = new TextEncoder();
@@ -87,7 +92,7 @@ const renderLoggedInContent = async (user: User) => {
 
 	userEl.append(userInfoEl);
 
-	const siteLink = createAnchor('https://gitkraken.dev', '_blank');
+	const siteLink = createAnchor(gkDotDevUrl, '_blank');
 	siteLink.append(createFAIcon('fa-arrow-up-right-from-square'));
 	userEl.append(siteLink);
 
@@ -107,7 +112,7 @@ const renderLoggedInContent = async (user: User) => {
 	if (trialDaysLeft > 0) {
 		const upgradePromo = createPromoBanner(`You have ${trialDaysLeft} days left in your free trial`, {
 			text: 'Upgrade now',
-			url: 'https://app.gitkraken.com/create-organization',
+			url: `${gkAccountSiteUrl}/create-organization`,
 		});
 		mainEl.append(upgradePromo);
 	}
@@ -116,7 +121,7 @@ const renderLoggedInContent = async (user: User) => {
 const renderLoggedOutContent = () => {
 	const mainEl = document.getElementById('main-content')!;
 
-	const signInLink = createAnchor('https://gitkraken.dev/login', '_blank');
+	const signInLink = createAnchor(`${gkDotDevUrl}/login`, '_blank');
 	signInLink.append(createFAIcon('fa-right-from-bracket'), 'Sign in to your GitKraken account');
 	signInLink.classList.add('menu-row');
 	mainEl.append(signInLink);
@@ -131,7 +136,7 @@ const renderLoggedOutContent = () => {
 
 	const signUpPromo = createPromoBanner(`Get access to the world's most powerful suite of Git tools`, {
 		text: 'Sign up for free',
-		url: 'https://gitkraken.dev/register',
+		url: `${gkDotDevUrl}/register`,
 	});
 
 	mainEl.append(signUpPromo);
