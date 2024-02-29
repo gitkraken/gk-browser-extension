@@ -174,7 +174,7 @@ const renderPermissionRequest = (permissionsRequest: PermissionsRequest) => {
 		supportLink.classList.add('menu-row');
 		mainEl.append(supportLink);
 	} else {
-		permissionRequestLink.append(createFAIcon('fa-exclamation'), `Allow permissions for cloud git providers`);
+		permissionRequestLink.append(createFAIcon('fa-triangle-exclamation'), `Allow permissions for cloud git providers`);
 		mainEl.append(permissionRequestLink);
 	}
 };

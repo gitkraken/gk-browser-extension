@@ -44,17 +44,18 @@ button.menu-row {
 
 /* Popup alert */
 .alert {
-	background-color: #ffaeae;
+	background-color: #ffdede;
 	border: 1px solid #e09999;
 	border-radius: 6px;
-	display: block;
+	display: flex;
+	align-items: center;
 	padding: 8px;
 }
 a.alert {
 	text-decoration: none;
 }
 .alert .icon {
-	margin-top: 8px;
+	color: #ad7777;
 	margin-right: 8px;
 }
 
