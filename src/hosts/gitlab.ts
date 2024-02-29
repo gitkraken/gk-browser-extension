@@ -18,6 +18,17 @@ export function injectionScope(url: string) {
 			this.insertHTML(insertions);
 		}
 
+	  /*
+			** PLEASE READ BEFORE TOUCHING ANY INJECTIONS **
+
+			GitLab supports up to two major versions behind the current version. See:
+			https://about.gitlab.com/support/statement-of-support/#version-support
+
+			In addition, GitLab supports the previous two monthly releases of the current stable release:
+			https://docs.gitlab.com/ee/policy/maintenance.html
+
+			Please keep this in mind, as this code is also used for Self-Managed!
+		*/
 		private getInsertions(): Map<string, { html: string; position: InsertPosition }> {
 			const insertions = new Map<string, { html: string; position: InsertPosition }>();
 
@@ -102,6 +113,28 @@ export function injectionScope(url: string) {
 					}
 					case 'tree':
 					case undefined: {
+						// Cloud (as of 2024-02-29)
+						insertions.set(
+							'.git-clone-holder .code-dropdown .gl-new-dropdown-panel .gl-new-dropdown-inner .gl-new-dropdown-contents > li:last-child',
+							{
+								html: /*html*/ `<li data-gk class="gl-border-t gl-border-t-gray-200 gl-pt-2 gl-mt-2">
+	<div id="gk-code-dropdown-group" class="gl-pl-4 gl-py-2 gl-font-sm gl-font-weight-bold" aria-hidden="true">GitKraken</div>
+	<ul class="gl-mb-0 gl-pl-0 gl-list-style-none" aria-labelledby="gk-code-dropdown-group">
+		<li class="gl-new-dropdown-item" tabindex="0">
+			<a class="gl-new-dropdown-item-content" tabindex="-1" href="${url}" style="align-items: center !important;" target="_blank">
+				<div class="gl-new-dropdown-item-text-wrapper" style="display: flex; align-items: center !important;">
+					${this.getGitKrakenSvg(16, 'mr-2 gl-icon', 'flex: 0 0 auto;')}
+					<span>${label}</span>
+				</div>
+			</a>
+		</li>
+	</ul>
+</li>`,
+								position: 'afterend',
+							},
+						);
+
+						// Drop this injection when support for <= v16.7 is dropped
 						insertions.set(
 							'.project-clone-holder .dropdown-menu .gl-dropdown-item:last-child .dropdown-item:last-child',
 							{
