@@ -11,6 +11,7 @@ export interface User {
 
 export enum Provider {
 	GITHUB_ENTERPRISE = 'githubEnterprise',
+	GITLAB_SELF_HOSTED = 'gitlabSelfHosted',
 }
 
 export interface ProviderConnection {

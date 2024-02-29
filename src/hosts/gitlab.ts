@@ -14,6 +14,12 @@ export function injectionScope(url: string) {
 		}
 
 		private render() {
+			// Remove all previous injected elements
+			const els = document.querySelectorAll('[data-gk]');
+			for (const el of els) {
+				el.remove();
+			}
+
 			const insertions = this.getInsertions();
 			this.insertHTML(insertions);
 		}
@@ -129,6 +135,24 @@ export function injectionScope(url: string) {
 			</a>
 		</li>
 	</ul>
+</li>`,
+								position: 'afterend',
+							},
+						);
+
+						// v16.8
+						insertions.set(
+							'.git-clone-holder .dropdown-menu .gl-dropdown-item:last-child',
+							{
+								html: /*html*/ `<li data-gk class="divider mt-2" role="presentation"></li>
+<li data-gk class="gl-dropdown-item pt-2" role="menuitem">
+	<label class="label-bold gl-px-4">GitKraken</label>
+	<a class="dropdown-item open-with-link" href="${url}" style="align-items: center !important;" target="_blank">
+		<div class="gl-dropdown-item-text-wrapper" style="display: flex; align-items: center !important;">
+			${this.getGitKrakenSvg(16, 'mr-2 gl-icon', 'flex: 0 0 auto;')}
+			<span>${label}</span>
+		</div>
+	</a>
 </li>`,
 								position: 'afterend',
 							},
