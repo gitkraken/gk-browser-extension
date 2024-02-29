@@ -134,6 +134,17 @@ export function injectionScope(url: string) {
 				}
 				case 'tree':
 				case undefined:
+					// Enterpise v3.11.2
+					insertions.set('[data-target="get-repo.modal"] ul li:last-child', {
+						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
+	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
+		${this.getGitKrakenSvg(16, 'mr-2')}
+		${label}
+	</a>
+</li>`,
+						position: 'afterend',
+					});
+
 					insertions.set('[data-target="get-repo.modal"] #local-panel ul li:first-child', {
 						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
 	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
