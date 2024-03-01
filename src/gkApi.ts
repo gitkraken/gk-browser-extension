@@ -1,4 +1,5 @@
 import { cookies } from 'webextension-polyfill';
+import { checkOrigins } from './permissions-helper';
 import { updateExtensionIcon } from './shared';
 import type { User } from './types';
 
@@ -9,6 +10,12 @@ const accessTokenCookieUrl = 'https://gitkraken.dev';
 const accessTokenCookieName = MODE === 'production' ? 'accessToken' : 'devAccessToken';
 
 const getAccessToken = async () => {
+	// Check if the user has granted permission to GitKraken.dev
+	if (!await checkOrigins(['gitkraken.dev'])) {
+		// If not, just assume we're logged out
+		return undefined;
+	}
+
 	// Attempt to get the access token cookie from GitKraken.dev
 	const cookie = await cookies.get({
 		url: accessTokenCookieUrl,

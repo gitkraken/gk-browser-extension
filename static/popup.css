@@ -1,8 +1,8 @@
 :root {
 	--text-md: 12px;
 	--text-sm: 10px;
-	--color-bg: #f7f8fa;
-	--color-border: #d7d8db;
+	--color-normal-bg: #f7f8fa;
+	--color-normal-border: #d7d8db;
 }
 
 * {
@@ -42,10 +42,27 @@ button.menu-row {
 	margin-right: 8px;
 }
 
+/* Popup alert */
+.alert {
+	background-color: #ffdede;
+	border: 1px solid #e09999;
+	border-radius: 6px;
+	display: flex;
+	align-items: center;
+	padding: 8px;
+}
+a.alert {
+	text-decoration: none;
+}
+.alert .icon {
+	color: #ad7777;
+	margin-right: 8px;
+}
+
 /* Promo banner */
 .promo {
-	background-color: var(--color-bg);
-	border: 1px solid var(--color-border);
+	background-color: var(--color-normal-bg);
+	border: 1px solid var(--color-normal-border);
 	border-radius: 6px;
 	padding: 12px 8px;
 	display: flex;
@@ -71,8 +88,8 @@ button.menu-row {
 .user {
 	display: flex;
 	align-items: center;
-	background-color: var(--color-bg);
-	border: 1px solid var(--color-border);
+	background-color: var(--color-normal-bg);
+	border: 1px solid var(--color-normal-border);
 	border-radius: 6px;
 	padding: 8px;
 }
@@ -100,7 +117,7 @@ button {
 }
 
 .btn {
-	border: 1px solid var(--color-border);
+	border: 1px solid var(--color-normal-border);
 	border-radius: 4px;
 	padding: 8px;
 	text-decoration: none;
