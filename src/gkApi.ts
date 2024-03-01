@@ -2,14 +2,16 @@ import { cookies } from 'webextension-polyfill';
 import { updateExtensionIcon } from './shared';
 import type { User } from './types';
 
-const gkApiUrl = 'https://api.gitkraken.dev';
-const gkDotDevUrl = 'https://gitkraken.dev';
-const accessTokenCookieName = 'accessToken';
+declare const MODE: 'production' | 'development' | 'none';
+
+const gkApiUrl = MODE === 'production' ? 'https://api.gitkraken.dev' : 'https://dev-api.gitkraken.dev';
+const accessTokenCookieUrl = 'https://gitkraken.dev';
+const accessTokenCookieName = MODE === 'production' ? 'accessToken' : 'devAccessToken';
 
 const getAccessToken = async () => {
 	// Attempt to get the access token cookie from GitKraken.dev
 	const cookie = await cookies.get({
-		url: gkDotDevUrl,
+		url: accessTokenCookieUrl,
 		name: accessTokenCookieName,
 	});
 
@@ -57,7 +59,7 @@ export const logoutUser = async () => {
 
 	// Attempt to remove the access token cookie from GitKraken.dev
 	await cookies.remove({
-		url: gkDotDevUrl,
+		url: accessTokenCookieUrl,
 		name: accessTokenCookieName,
 	});
 
