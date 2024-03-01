@@ -1,6 +1,10 @@
 import { action } from 'webextension-polyfill';
+import { getProviderConnections } from './gkApi';
+import type { CacheContext, EnterpriseProviderConnection, ProviderConnection } from './types';
+import { Provider } from './types';
 
 export const PopupInitMessage = 'popupInit';
+export const PermissionsGrantedMessage = 'permissionsGranted';
 
 const IconPaths = {
 	Grey: {
@@ -36,4 +40,50 @@ export function arrayDifference<T>(first: T[] | undefined, second: T[] | undefin
 		return first;
 	}
 	return first.filter(x => !second.includes(x));
+}
+
+function ensureDomain(value: string): string {
+	// Check if value is a URL or actually a domain
+	try {
+		const url = new URL(value);
+		return url.hostname;
+	} catch (e) {
+		// Not a valid URL, so it's probably a domain
+		if (!(e instanceof TypeError)) {
+			console.error('Unexpected error constructing URL', e);
+		}
+	}
+	return value;
+}
+
+async function cacheOnContext<K extends keyof CacheContext>(cache: CacheContext, key: K, fn: () => Promise<CacheContext[K] | undefined>): ReturnType<typeof fn> {
+	if (cache[key]) {
+		return cache[key];
+	}
+	const result = await fn();
+	if (result !== undefined) {
+		cache[key] = result;
+	}
+	return result;
+}
+
+function isEnterpriseProviderConnection(connection: ProviderConnection): connection is EnterpriseProviderConnection {
+	return Boolean((connection.provider === Provider.GITHUB_ENTERPRISE) && connection.domain);
+}
+
+export async function getEnterpriseConnections(context: CacheContext) {
+	return cacheOnContext(context, 'enterpriseConnectionsCache', async () => {
+		const providerConnections = await getProviderConnections();
+		if (!providerConnections) {
+			return;
+		}
+		// note: GitLab support comes later
+		const enterpriseConnections = providerConnections
+			.filter(isEnterpriseProviderConnection)
+			.map(
+				// typing is weird here, but we need to ensure domain is actually a domain
+				(connection: EnterpriseProviderConnection): EnterpriseProviderConnection => ({ ...connection, domain: ensureDomain(connection.domain) })
+			);
+		return enterpriseConnections;
+	});
 }

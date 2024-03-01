@@ -6,16 +6,23 @@ import { injectionScope as inject_bitbucket } from './hosts/bitbucket';
 import { injectionScope as inject_github } from './hosts/github';
 import { injectionScope as inject_gitlab } from './hosts/gitlab';
 import { refreshPermissions } from './permissions-helper';
-import { PopupInitMessage } from './shared';
+import { getEnterpriseConnections, PermissionsGrantedMessage, PopupInitMessage } from './shared';
+import type { CacheContext } from './types';
+import { Provider } from './types';
 
-webNavigation.onDOMContentLoaded.addListener(injectScript, {
-	url: [
-		{ hostContains: 'github.com' },
-		{ hostContains: 'gitlab.com' },
-		{ hostContains: 'bitbucket.org' },
-		{ hostContains: 'dev.azure.com' },
-	],
-});
+interface InjectionDomains {
+	github: string[];
+	gitlab: string[];
+	bitbucket: string[];
+	azureDevops: string[];
+}
+
+const DefaultInjectionDomains: InjectionDomains = {
+	github: ['github.com'],
+	gitlab: ['gitlab.com'],
+	bitbucket: ['bitbucket.org'],
+	azureDevops: ['dev.azure.com']
+};
 
 webNavigation.onHistoryStateUpdated.addListener(details => {
 	// used to detect when the user navigates to a different page in the same tab
@@ -30,36 +37,68 @@ webNavigation.onHistoryStateUpdated.addListener(details => {
 
 runtime.onMessage.addListener(async (msg) => {
 	if (msg === PopupInitMessage) {
-		return refreshPermissions();
+		const context: CacheContext = {};
+		return refreshPermissions(context);
+	} else if (msg === PermissionsGrantedMessage) {
+		// Reload extension to update injection listener
+		runtime.reload();
+		return undefined;
 	}
 	console.error('Recevied unknown runtime message', msg);
 	return undefined;
 });
 
-function injectScript(details: WebNavigation.OnDOMContentLoadedDetailsType) {
-	void scripting.executeScript({
-		target: { tabId: details.tabId },
-		// injectImmediately: true,
-		func: getInjectionFn(details.url),
-		args: [details.url],
+async function computeInjectionDomains(context: CacheContext) {
+	const injectionDomains = structuredClone(DefaultInjectionDomains);
+	const enterpriseConnections = await getEnterpriseConnections(context);
+	if (enterpriseConnections) {
+		for (const connection of enterpriseConnections) {
+			if (connection.provider === Provider.GITHUB_ENTERPRISE) {
+				injectionDomains.github.push(connection.domain);
+			}
+		}
+	}
+	return injectionDomains;
+}
+
+async function addInjectionListener(context: CacheContext) {
+	const injectionDomains = await computeInjectionDomains(context);
+	const allDomains = Object.values<string[]>(injectionDomains as any).flat();
+
+	// note: This is a closure over injectionDomains
+	const injectScript = (details: WebNavigation.OnDOMContentLoadedDetailsType) => {
+		void scripting.executeScript({
+			target: { tabId: details.tabId },
+			// injectImmediately: true,
+			func: getInjectionFn(details.url, injectionDomains),
+			args: [details.url],
+		});
+	};
+
+	webNavigation.onDOMContentLoaded.addListener(injectScript, {
+		url: allDomains.map((domain) => ({ hostContains: domain })),
 	});
 }
 
-function getInjectionFn(url: string): (url: string) => void {
-	const uri = new URL(url);
-	if (uri.hostname.endsWith('github.com')) {
+function urlHostHasDomain(url: URL, domains: string[]): boolean {
+	return domains.some((domain) => url.hostname.endsWith(domain));
+}
+
+function getInjectionFn(rawUrl: string, injectionDomains: InjectionDomains): (url: string) => void {
+	const url = new URL(rawUrl);
+	if (urlHostHasDomain(url, injectionDomains.github)) {
 		return inject_github;
 	}
 
-	if (uri.hostname.endsWith('gitlab.com')) {
+	if (urlHostHasDomain(url, injectionDomains.gitlab)) {
 		return inject_gitlab;
 	}
 
-	if (uri.hostname.endsWith('bitbucket.org')) {
+	if (urlHostHasDomain(url, injectionDomains.bitbucket)) {
 		return inject_bitbucket;
 	}
 
-	if (uri.hostname.endsWith('dev.azure.com')) {
+	if (urlHostHasDomain(url, injectionDomains.azureDevops)) {
 		return inject_azureDevops;
 	}
 
@@ -67,12 +106,16 @@ function getInjectionFn(url: string): (url: string) => void {
 	throw new Error('Unsupported host');
 }
 
-const main = async () => {
+async function main() {
 	// The fetchUser function also updates the extension icon if the user is logged in
 	await fetchUser();
 
+	const context: CacheContext = {};
 	// This removes unneded permissions
-	await refreshPermissions();
+	await refreshPermissions(context);
+	// NOTE: This may request hosts that we may not have permissions for, which will log errors for the extension
+	// This does not cause any issues, and eliminating the errors requires more logic
+	await addInjectionListener(context);
 };
 
 void main();

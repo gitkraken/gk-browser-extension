@@ -4,7 +4,7 @@ import { permissions, runtime } from 'webextension-polyfill';
 import { createAnchor, createFAIcon } from './domUtils';
 import { fetchUser, logoutUser } from './gkApi';
 import type { PermissionsRequest } from './permissions-helper';
-import { PopupInitMessage } from './shared';
+import { PermissionsGrantedMessage, PopupInitMessage } from './shared';
 import type { User } from './types';
 
 declare const MODE: 'production' | 'development' | 'none';
@@ -149,17 +149,18 @@ const syncWithBackground = async () => {
 	return await runtime.sendMessage(PopupInitMessage) as PermissionsRequest | undefined;
 };
 
-function reloadPopup() {
-	// This seems to work on Firefox and Chromium but I couldn't find any docs confirming this is the correct way
-	window.location.reload();
-}
+const sendPermissionsGranted = async () => {
+	await runtime.sendMessage(PermissionsGrantedMessage);
+};
 
 const renderPermissionRequest = (permissionsRequest: PermissionsRequest) => {
 	const mainEl = document.getElementById('main-content')!;
 
 	const permissionRequestLink = createAnchor('#', undefined, async () => {
-		await permissions.request(permissionsRequest.request);
-		reloadPopup();
+		const granted = await permissions.request(permissionsRequest.request);
+		if (granted) {
+			await sendPermissionsGranted();
+		}
 	});
 	permissionRequestLink.classList.add('alert');
 	if (permissionsRequest.hasRequired) {
@@ -174,7 +175,15 @@ const renderPermissionRequest = (permissionsRequest: PermissionsRequest) => {
 		supportLink.classList.add('menu-row');
 		mainEl.append(supportLink);
 	} else {
-		permissionRequestLink.append(createFAIcon('fa-triangle-exclamation'), `Allow permissions for cloud git providers`);
+		const typesRequested: string[] = [];
+		if (permissionsRequest.hasCloud) {
+			typesRequested.push('cloud');
+		}
+		if (permissionsRequest.hasEnterprise) {
+			typesRequested.push('self-hosted');
+		}
+
+		permissionRequestLink.append(createFAIcon('fa-triangle-exclamation'), `Allow permissions for ${typesRequested.join(' & ')} git providers`);
 		mainEl.append(permissionRequestLink);
 	}
 };
