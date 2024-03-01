@@ -47,3 +47,9 @@ export async function refreshPermissions(): Promise<PermissionsRequest | undefin
 		}
 		: undefined;
 }
+
+export async function checkOrigins(origins: string[]): Promise<boolean> {
+	return permissions.contains({
+		origins: origins.map(domainToMatchPattern)
+	});
+}

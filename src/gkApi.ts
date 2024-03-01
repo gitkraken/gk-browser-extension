@@ -1,4 +1,5 @@
 import { cookies } from 'webextension-polyfill';
+import { checkOrigins } from './permissions-helper';
 import { updateExtensionIcon } from './shared';
 import type { User } from './types';
 
@@ -9,23 +10,19 @@ const accessTokenCookieUrl = 'https://gitkraken.dev';
 const accessTokenCookieName = MODE === 'production' ? 'accessToken' : 'devAccessToken';
 
 const getAccessToken = async () => {
-	try {
+	// Check if the user has granted permission to GitKraken.dev
+	if (!await checkOrigins(['gitkraken.dev'])) {
+		// If not, just assume we're logged out
+		return undefined;
+	}
+
 	// Attempt to get the access token cookie from GitKraken.dev
 	const cookie = await cookies.get({
 		url: accessTokenCookieUrl,
 		name: accessTokenCookieName,
 	});
 
-		return cookie?.value;
-	} catch (e) {
-		if ((e as Error)?.message.includes('No host permissions for cookies at url')) {
-			// ignore as we are waiting for required permissions
-		} else {
-			// otherwise log error and continue as if logged out
-			console.error(e);
-		}
-	}
-	return undefined;
+	return cookie?.value;
 };
 
 export const fetchUser = async () => {

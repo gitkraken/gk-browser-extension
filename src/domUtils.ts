@@ -1,11 +1,11 @@
-export const createAnchor = (href: string, target?: string, callback?: () => void) => {
+export const createAnchor = (href: string, target?: string, onclick?: () => void) => {
 	const a = document.createElement('a');
 	a.href = href;
 	if (target) {
 		a.target = target;
 	}
-	if (callback) {
-		a.addEventListener('click', callback);
+	if (onclick) {
+		a.addEventListener('click', onclick);
 	}
 
 	return a;
