@@ -101,6 +101,14 @@ const renderLoggedInContent = async (user: User) => {
 
 	mainEl.append(userEl);
 
+	const supportLink = createAnchor(
+		'https://help.gitkraken.com/browser-extension/gitkraken-browser-extension',
+		'_blank',
+	);
+	supportLink.append(createFAIcon('fa-question-circle'), 'Support');
+	supportLink.classList.add('menu-row');
+	mainEl.append(supportLink);
+
 	/* Sign out button */
 	const signOutBtn = document.createElement('button');
 	signOutBtn.append(createFAIcon('fa-right-from-bracket'), 'Sign out');
