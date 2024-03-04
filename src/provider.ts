@@ -1,4 +1,4 @@
-export type LinkTarget = 'gitkraken' | 'gkdev' | 'vscode' | 'vscode-insiders' | 'client';
+export type LinkTarget = 'vscode' | 'vscode-insiders';
 
 export interface InjectionProvider {
 	inject(): void;

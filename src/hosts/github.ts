@@ -69,7 +69,7 @@ export function injectionScope(url: string) {
 			const insertions = new Map<string, { html: string; position: InsertPosition }>();
 
 			const label = 'Open with GitKraken';
-			const url = this.transformUrl('gkdev', 'open');
+			const url = this.transformUrl('open');
 
 			const [, , , type] = this.uri.pathname.split('/');
 			switch (type) {
@@ -96,7 +96,7 @@ export function injectionScope(url: string) {
 
 					break;
 				case 'pull': {
-					const compareUrl = this.transformUrl('gkdev', 'compare');
+					const compareUrl = this.transformUrl('compare');
 
 					insertions.set('[data-target="get-repo.modal"] #local-panel ul li:first-child', {
 						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
@@ -237,23 +237,22 @@ export function injectionScope(url: string) {
 			}
 		}
 
-		private transformUrl(target: LinkTarget, action: 'open' | 'compare'): string {
+		private transformUrl(action: 'open' | 'compare'): string {
+			const redirectUrl = new URL(this.getRedirectUrl('vscode', action));
+			console.debug('redirectUrl', redirectUrl);
+			const deepLinkUrl = MODE === 'production' ? 'https://gitkraken.dev/link' : 'https://dev.gitkraken.dev/link';
+			const deepLink = new URL(`${deepLinkUrl}/${encodeURIComponent(btoa(redirectUrl.toString()))}`);
+			deepLink.searchParams.set('referrer', 'extension');
+			if (redirectUrl.searchParams.get('pr')) {
+				deepLink.searchParams.set('context', 'pr');
+			}
+			return deepLink.toString();
+		}
+
+		private getRedirectUrl(target: LinkTarget, action: 'open' | 'compare'): string {
 			let [, owner, repo, type, ...rest] = this.uri.pathname.split('/');
 			if (rest?.length) {
 				rest = rest.filter(Boolean);
-			}
-
-			if (target === 'gkdev') {
-				const redirectUrl = new URL(this.transformUrl('vscode', action));
-				console.debug('redirectUrl', redirectUrl);
-				const deepLinkUrl =
-					MODE === 'production' ? 'https://gitkraken.dev/link' : 'https://dev.gitkraken.dev/link';
-				const deepLink = new URL(`${deepLinkUrl}/${encodeURIComponent(btoa(redirectUrl.toString()))}`);
-				deepLink.searchParams.set('referrer', 'extension');
-				if (redirectUrl.searchParams.get('pr')) {
-					deepLink.searchParams.set('context', 'pr');
-				}
-				return deepLink.toString();
 			}
 
 			const repoId = '-';
