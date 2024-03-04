@@ -56,6 +56,9 @@ async function computeInjectionDomains(context: CacheContext) {
 			if (connection.provider === Provider.GITHUB_ENTERPRISE) {
 				injectionDomains.github.push(connection.domain);
 			}
+			if (connection.provider === Provider.GITLAB_SELF_HOSTED) {
+				injectionDomains.gitlab.push(connection.domain);
+			}
 		}
 	}
 	return injectionDomains;

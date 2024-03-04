@@ -68,7 +68,7 @@ async function cacheOnContext<K extends keyof CacheContext>(cache: CacheContext,
 }
 
 function isEnterpriseProviderConnection(connection: ProviderConnection): connection is EnterpriseProviderConnection {
-	return Boolean((connection.provider === Provider.GITHUB_ENTERPRISE) && connection.domain);
+	return Boolean(([Provider.GITHUB_ENTERPRISE, Provider.GITLAB_SELF_HOSTED].includes(connection.provider)) && connection.domain);
 }
 
 export async function getEnterpriseConnections(context: CacheContext) {
