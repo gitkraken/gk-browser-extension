@@ -1,11 +1,14 @@
 // Note: This code runs every time the extension popup is opened.
 
+import React from 'react';
+import { createRoot } from 'react-dom/client';
 import { permissions, runtime } from 'webextension-polyfill';
 import { fetchUser, logoutUser } from '../gkApi';
 import type { PermissionsRequest } from '../permissions-helper';
 import { PermissionsGrantedMessage, PopupInitMessage } from '../shared';
 import type { User } from '../types';
 import { createAnchor, createFAIcon } from './domUtils';
+import { Popup } from './Popup';
 
 declare const MODE: 'production' | 'development' | 'none';
 
@@ -219,7 +222,9 @@ async function main() {
 	if (user) {
 		void renderLoggedInContent(user);
 	} else {
-		renderLoggedOutContent();
+		const mainEl = document.getElementById('main-content')!;
+		const root = createRoot(mainEl);
+		root.render(<Popup />);
 	}
 
 	finishLoading();
