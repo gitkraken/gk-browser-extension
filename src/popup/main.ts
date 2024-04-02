@@ -1,11 +1,11 @@
 // Note: This code runs every time the extension popup is opened.
 
 import { permissions, runtime } from 'webextension-polyfill';
+import { fetchUser, logoutUser } from '../gkApi';
+import type { PermissionsRequest } from '../permissions-helper';
+import { PermissionsGrantedMessage, PopupInitMessage } from '../shared';
+import type { User } from '../types';
 import { createAnchor, createFAIcon } from './domUtils';
-import { fetchUser, logoutUser } from './gkApi';
-import type { PermissionsRequest } from './permissions-helper';
-import { PermissionsGrantedMessage, PopupInitMessage } from './shared';
-import type { User } from './types';
 
 declare const MODE: 'production' | 'development' | 'none';
 
@@ -154,7 +154,7 @@ const renderLoggedOutContent = () => {
 };
 
 const syncWithBackground = async () => {
-	return await runtime.sendMessage(PopupInitMessage) as PermissionsRequest | undefined;
+	return (await runtime.sendMessage(PopupInitMessage)) as PermissionsRequest | undefined;
 };
 
 const sendPermissionsGranted = async () => {
@@ -191,7 +191,10 @@ const renderPermissionRequest = (permissionsRequest: PermissionsRequest) => {
 			typesRequested.push('self-hosted');
 		}
 
-		permissionRequestLink.append(createFAIcon('fa-triangle-exclamation'), `Allow permissions for ${typesRequested.join(' & ')} git providers`);
+		permissionRequestLink.append(
+			createFAIcon('fa-triangle-exclamation'),
+			`Allow permissions for ${typesRequested.join(' & ')} git providers`,
+		);
 		mainEl.append(permissionRequestLink);
 	}
 };
@@ -220,6 +223,6 @@ async function main() {
 	}
 
 	finishLoading();
-};
+}
 
 void main();
