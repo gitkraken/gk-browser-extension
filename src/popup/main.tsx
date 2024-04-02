@@ -5,14 +5,13 @@ import { createRoot } from 'react-dom/client';
 import { permissions, runtime } from 'webextension-polyfill';
 import { fetchUser, logoutUser } from '../gkApi';
 import type { PermissionsRequest } from '../permissions-helper';
-import { PermissionsGrantedMessage, PopupInitMessage } from '../shared';
+import { GKDotDevUrl, PermissionsGrantedMessage, PopupInitMessage } from '../shared';
 import type { User } from '../types';
 import { createAnchor, createFAIcon } from './domUtils';
 import { Popup } from './Popup';
 
 declare const MODE: 'production' | 'development' | 'none';
 
-const gkDotDevUrl = MODE === 'production' ? 'https://gitkraken.dev' : 'https://dev.gitkraken.dev';
 const gkAccountSiteUrl = MODE === 'production' ? 'https://app.gitkraken.com' : 'https://devapp.gitkraken.com';
 
 // Source: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest#basic_example
@@ -71,7 +70,7 @@ const createPromoBanner = (promoMessage: string, callToAction: { text: string; u
 const renderLoggedInContent = async (user: User) => {
 	const emailHash = await sha256(user.email);
 
-	const mainEl = document.getElementById('main-content')!;
+	const mainEl = document.getElementById('popup-container')!;
 
 	/* User Info element */
 	const userEl = document.createElement('div');
@@ -98,7 +97,7 @@ const renderLoggedInContent = async (user: User) => {
 
 	userEl.append(userInfoEl);
 
-	const siteLink = createAnchor(gkDotDevUrl, '_blank');
+	const siteLink = createAnchor(GKDotDevUrl, '_blank');
 	siteLink.append(createFAIcon('fa-arrow-up-right-from-square'));
 	userEl.append(siteLink);
 
@@ -132,30 +131,6 @@ const renderLoggedInContent = async (user: User) => {
 	}
 };
 
-const renderLoggedOutContent = () => {
-	const mainEl = document.getElementById('main-content')!;
-
-	const signInLink = createAnchor(`${gkDotDevUrl}/login`, '_blank');
-	signInLink.append(createFAIcon('fa-right-from-bracket'), 'Sign in to your GitKraken account');
-	signInLink.classList.add('menu-row');
-	mainEl.append(signInLink);
-
-	const supportLink = createAnchor(
-		'https://help.gitkraken.com/browser-extension/gitkraken-browser-extension',
-		'_blank',
-	);
-	supportLink.append(createFAIcon('fa-question-circle'), 'Support');
-	supportLink.classList.add('menu-row');
-	mainEl.append(supportLink);
-
-	const signUpPromo = createPromoBanner(`Get access to the world's most powerful suite of Git tools`, {
-		text: 'Sign up for free',
-		url: `${gkDotDevUrl}/register`,
-	});
-
-	mainEl.append(signUpPromo);
-};
-
 const syncWithBackground = async () => {
 	return (await runtime.sendMessage(PopupInitMessage)) as PermissionsRequest | undefined;
 };
@@ -165,7 +140,7 @@ const sendPermissionsGranted = async () => {
 };
 
 const renderPermissionRequest = (permissionsRequest: PermissionsRequest) => {
-	const mainEl = document.getElementById('main-content')!;
+	const mainEl = document.getElementById('popup-container')!;
 
 	const permissionRequestLink = createAnchor('#', undefined, async () => {
 		const granted = await permissions.request(permissionsRequest.request);
@@ -222,7 +197,7 @@ async function main() {
 	if (user) {
 		void renderLoggedInContent(user);
 	} else {
-		const mainEl = document.getElementById('main-content')!;
+		const mainEl = document.getElementById('popup-container')!;
 		const root = createRoot(mainEl);
 		root.render(<Popup />);
 	}
