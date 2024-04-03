@@ -25,6 +25,8 @@ const IconPaths = {
 
 export const GKDotDevUrl = MODE === 'production' ? 'https://gitkraken.dev' : 'https://dev.gitkraken.dev';
 
+export const GKAccountSiteUrl = MODE === 'production' ? 'https://app.gitkraken.com' : 'https://devapp.gitkraken.com';
+
 export const CloudProviders = ['github.com', 'gitlab.com', 'bitbucket.org', 'dev.azure.com'];
 
 export const updateExtensionIcon = (isLoggedIn: boolean) =>
