@@ -20,12 +20,12 @@ export const Popup = () => {
 
 	useEffect(() => {
 		const loadData = async () => {
-			const permissionsRequest = await syncWithBackground();
-			setPermissionsRequest(permissionsRequest);
+			const newPermissionsRequest = await syncWithBackground();
+			setPermissionsRequest(newPermissionsRequest);
 
 			if (!permissionsRequest?.hasRequired) {
-				const user = await fetchUser();
-				setUser(user);
+				const fetchedUser = await fetchUser();
+				setUser(fetchedUser);
 			}
 
 			setIsLoading(false);
