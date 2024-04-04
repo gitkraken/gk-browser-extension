@@ -382,17 +382,17 @@
     picocolors "^1.0.0"
     tslib "^2.6.0"
 
-"@playwright/test@^1.35.1":
-  version "1.36.1"
-  resolved "https://registry.yarnpkg.com/@playwright/test/-/test-1.36.1.tgz#0b1247d279f142ac0876ce25e7daf15439d5367b"
-  integrity sha512-YK7yGWK0N3C2QInPU6iaf/L3N95dlGdbsezLya4n0ZCh3IL7VgPGxC6Gnznh9ApWdOmkJeleT2kMTcWPRZvzqg==
+"@playwright/test@1.35.1":
+  version "1.35.1"
+  resolved "https://registry.npmjs.org/@playwright/test/-/test-1.35.1.tgz#a596b61e15b980716696f149cc7a2002f003580c"
+  integrity sha512-b5YoFe6J9exsMYg0pQAobNDR85T1nLumUYgUTtKm4d21iX2L7WqKq9dW8NGJ+2vX0etZd+Y7UeuqsxDXm9+5ZA==
   dependencies:
     "@types/node" "*"
-    playwright-core "1.36.1"
+    playwright-core "1.35.1"
   optionalDependencies:
     fsevents "2.3.2"
 
-"@types/chrome@^0.0.246":
+"@types/chrome@0.0.246":
   version "0.0.246"
   resolved "https://registry.npmjs.org/@types/chrome/-/chrome-0.0.246.tgz#412ee1b162a67d1cfebe413887b9aa0c28998ef1"
   integrity sha512-MxGxEomGxsJiL9xe/7ZwVgwdn8XVKWbPvxpVQl3nWOjrS0Ce63JsfzxUc4aU3GvRcUPYsfufHmJ17BFyKxeA4g==
@@ -486,7 +486,7 @@
   resolved "https://registry.npmjs.org/@types/prop-types/-/prop-types-15.7.12.tgz#12bb1e2be27293c1406acb6af1c3f3a1481d98c6"
   integrity sha512-5zvhXYtRNRluoE/jAp4GVsSduVUzNWKkOZrCDBWYtE7biZywwdC2AcEzg+cSMLFRfVgeAFqpfNabiPjxFddV1Q==
 
-"@types/react-dom@^18.2.23":
+"@types/react-dom@18.2.23":
   version "18.2.23"
   resolved "https://registry.npmjs.org/@types/react-dom/-/react-dom-18.2.23.tgz#112338760f622a16d64271b408355f2f27f6302c"
   integrity sha512-ZQ71wgGOTmDYpnav2knkjr3qXdAFu0vsk8Ci5w3pGAIdj7/kKAyn+VsQDhXsmzzzepAiI9leWMmubXz690AI/A==
@@ -3846,10 +3846,10 @@ pkg-dir@^4.2.0:
   dependencies:
     find-up "^4.0.0"
 
-playwright-core@1.36.1:
-  version "1.36.1"
-  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.36.1.tgz#f5f275d70548768ca892583519c89b237a381c77"
-  integrity sha512-7+tmPuMcEW4xeCL9cp9KxmYpQYHKkyjwoXRnoeTowaeNat8PoBMk/HwCYhqkH2fRkshfKEOiVus/IhID2Pg8kg==
+playwright-core@1.35.1:
+  version "1.35.1"
+  resolved "https://registry.npmjs.org/playwright-core/-/playwright-core-1.35.1.tgz#52c1e6ffaa6a8c29de1a5bdf8cce0ce290ffb81d"
+  integrity sha512-pNXb6CQ7OqmGDRspEjlxE49w+4YtR6a3X6mT1hZXeJHWmsEz7SunmvZeiG/+y1yyMZdHnnn73WKYdtV1er0Xyg==
 
 prelude-ls@^1.2.1:
   version "1.2.1"
