@@ -24,7 +24,7 @@ export function injectionScope(url: string) {
 			this.insertHTML(insertions);
 		}
 
-	  /*
+		/*
 			** PLEASE READ BEFORE TOUCHING ANY INJECTIONS **
 
 			GitLab supports up to two major versions behind the current version. See:
@@ -141,10 +141,8 @@ export function injectionScope(url: string) {
 						);
 
 						// v16.8
-						insertions.set(
-							'.git-clone-holder .dropdown-menu .gl-dropdown-item:last-child',
-							{
-								html: /*html*/ `<li data-gk class="divider mt-2" role="presentation"></li>
+						insertions.set('.git-clone-holder .dropdown-menu .gl-dropdown-item:last-child', {
+							html: /*html*/ `<li data-gk class="divider mt-2" role="presentation"></li>
 <li data-gk class="gl-dropdown-item pt-2" role="menuitem">
 	<label class="label-bold gl-px-4">GitKraken</label>
 	<a class="dropdown-item open-with-link" href="${url}" style="align-items: center !important;" target="_blank">
@@ -154,9 +152,8 @@ export function injectionScope(url: string) {
 		</div>
 	</a>
 </li>`,
-								position: 'afterend',
-							},
-						);
+							position: 'afterend',
+						});
 
 						// Drop this injection when support for <= v16.7 is dropped
 						insertions.set(

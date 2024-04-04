@@ -1,5 +1,5 @@
 import type { WebNavigation } from 'webextension-polyfill';
-import { runtime, scripting , tabs, webNavigation } from 'webextension-polyfill';
+import { runtime, scripting, tabs, webNavigation } from 'webextension-polyfill';
 import { fetchUser } from './gkApi';
 import { injectionScope as inject_azureDevops } from './hosts/azureDevops';
 import { injectionScope as inject_bitbucket } from './hosts/bitbucket';
@@ -21,7 +21,7 @@ const DefaultInjectionDomains: InjectionDomains = {
 	github: ['github.com'],
 	gitlab: ['gitlab.com'],
 	bitbucket: ['bitbucket.org'],
-	azureDevops: ['dev.azure.com']
+	azureDevops: ['dev.azure.com'],
 };
 
 webNavigation.onHistoryStateUpdated.addListener(details => {
@@ -35,7 +35,7 @@ webNavigation.onHistoryStateUpdated.addListener(details => {
 	}
 });
 
-runtime.onMessage.addListener(async (msg) => {
+runtime.onMessage.addListener(async msg => {
 	if (msg === PopupInitMessage) {
 		const context: CacheContext = {};
 		return refreshPermissions(context);
@@ -79,12 +79,12 @@ async function addInjectionListener(context: CacheContext) {
 	};
 
 	webNavigation.onDOMContentLoaded.addListener(injectScript, {
-		url: allDomains.map((domain) => ({ hostContains: domain })),
+		url: allDomains.map(domain => ({ hostContains: domain })),
 	});
 }
 
 function urlHostHasDomain(url: URL, domains: string[]): boolean {
-	return domains.some((domain) => url.hostname.endsWith(domain));
+	return domains.some(domain => url.hostname.endsWith(domain));
 }
 
 function getInjectionFn(rawUrl: string, injectionDomains: InjectionDomains): (url: string) => void {
@@ -119,6 +119,6 @@ async function main() {
 	// NOTE: This may request hosts that we may not have permissions for, which will log errors for the extension
 	// This does not cause any issues, and eliminating the errors requires more logic
 	await addInjectionListener(context);
-};
+}
 
 void main();

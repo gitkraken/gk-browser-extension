@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { logoutUser } from '../gkApi';
-import { GKAccountSiteUrl, GKDotDevUrl } from '../shared';
-import type { User } from '../types';
+import { logoutUser } from '../../gkApi';
+import { GKAccountSiteUrl, GKDotDevUrl } from '../../shared';
+import type { User } from '../../types';
 import { Promo } from './Promo';
+import { SupportMenuItem } from './SupportMenuItem';
 
 // Source: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest#basic_example
 const sha256 = async (text: string) => {
@@ -30,7 +31,7 @@ const getUserTrialDaysLeft = (user: User) => {
 	return Math.ceil(diff / (1000 * 60 * 60 * 24));
 };
 
-export const SignedIn = ({ user }: { user: User }) => {
+export const SignedInMenuItems = ({ user }: { user: User }) => {
 	const [emailHash, setEmailHash] = useState<string | null>(null);
 	useEffect(() => {
 		void sha256(user.email).then(setEmailHash);
@@ -44,7 +45,7 @@ export const SignedIn = ({ user }: { user: User }) => {
 	const trialDaysLeft = getUserTrialDaysLeft(user);
 
 	return (
-		<div className="menu">
+		<>
 			<div className="user">
 				<img
 					className="avatar"
@@ -60,14 +61,7 @@ export const SignedIn = ({ user }: { user: User }) => {
 					<i className="fa-regular fa-arrow-up-right-from-square icon" />
 				</a>
 			</div>
-			<a
-				className="menu-row"
-				href="https://help.gitkraken.com/browser-extension/gitkraken-browser-extension"
-				target="_blank"
-			>
-				<i className="fa-regular fa-question-circle icon" />
-				Support
-			</a>
+			<SupportMenuItem />
 			<button className="menu-row" onClick={onSignOutClick}>
 				<i className="fa-regular fa-right-from-bracket icon" />
 				Sign Out
@@ -79,6 +73,6 @@ export const SignedIn = ({ user }: { user: User }) => {
 					callToActionUrl={`${GKAccountSiteUrl}/create-organization`}
 				/>
 			)}
-		</div>
+		</>
 	);
 };

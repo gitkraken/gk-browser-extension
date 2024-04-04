@@ -46,9 +46,7 @@ const getMakeManifest =
 			},
 			// Delete this in favor of optional_host_permissions when https://bugzilla.mozilla.org/show_bug.cgi?id=1766026
 			// is resolved
-			optional_permissions: [
-				'*://*/*'
-			]
+			optional_permissions: ['*://*/*'],
 		};
 
 		const chromiumKeys = {
@@ -57,8 +55,8 @@ const getMakeManifest =
 			},
 			optional_host_permissions: [
 				// TODO: Move this to `manifestBase` when Firefox supports optional_host_permissions
-				'*://*/*'
-			]
+				'*://*/*',
+			],
 		};
 
 		const manifest = {

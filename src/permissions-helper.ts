@@ -9,7 +9,7 @@ function domainToMatchPattern(domain: string): string {
 
 const RequiredOriginPatterns = [
 	// Without this permission, the extension cannot login
-	'gitkraken.dev'
+	'gitkraken.dev',
 ].map(domainToMatchPattern);
 const CloudProviderOriginPatterns = CloudProviders.map(domainToMatchPattern);
 
@@ -18,7 +18,7 @@ async function computeEnterpriseOriginPatterns(context: CacheContext): Promise<s
 	if (!enterpriseConnections) {
 		return;
 	}
-	return enterpriseConnections.map((x) => domainToMatchPattern(x.domain));
+	return enterpriseConnections.map(x => domainToMatchPattern(x.domain));
 }
 
 export type OriginTypes = 'required' | 'cloud' | 'enterprise';
@@ -38,11 +38,15 @@ export async function refreshPermissions(context: CacheContext): Promise<Permiss
 	const newEnterpriseOrigins = arrayDifference(enterpriseOrigins, exitingPermissions.origins);
 	const newCloudOrigins = arrayDifference(CloudProviderOriginPatterns, exitingPermissions.origins);
 	const newOrigins = [...newRequiredOrigins, ...newEnterpriseOrigins, ...newCloudOrigins];
-	const unusedOrigins = arrayDifference(exitingPermissions.origins, [...RequiredOriginPatterns, ...CloudProviderOriginPatterns, ...(enterpriseOrigins ?? [])]);
+	const unusedOrigins = arrayDifference(exitingPermissions.origins, [
+		...RequiredOriginPatterns,
+		...CloudProviderOriginPatterns,
+		...(enterpriseOrigins ?? []),
+	]);
 
 	if (!unusedOrigins.length) {
 		const unusedPermissions: Permissions.Permissions = {
-			origins: unusedOrigins
+			origins: unusedOrigins,
 		};
 		const result = await permissions.remove(unusedPermissions);
 		if (!result) {
@@ -51,18 +55,18 @@ export async function refreshPermissions(context: CacheContext): Promise<Permiss
 	}
 	return newOrigins.length
 		? {
-			request: {
-				origins: newOrigins,
-			},
-			hasRequired: Boolean(newRequiredOrigins.length),
-			hasCloud: Boolean(newCloudOrigins.length),
-			hasEnterprise: Boolean(newEnterpriseOrigins.length)
-		}
+				request: {
+					origins: newOrigins,
+				},
+				hasRequired: Boolean(newRequiredOrigins.length),
+				hasCloud: Boolean(newCloudOrigins.length),
+				hasEnterprise: Boolean(newEnterpriseOrigins.length),
+		  }
 		: undefined;
 }
 
 export async function checkOrigins(origins: string[]): Promise<boolean> {
 	return permissions.contains({
-		origins: origins.map(domainToMatchPattern)
+		origins: origins.map(domainToMatchPattern),
 	});
 }
