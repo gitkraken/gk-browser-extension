@@ -3,6 +3,8 @@ import { getProviderConnections } from './gkApi';
 import type { CacheContext, EnterpriseProviderConnection, ProviderConnection } from './types';
 import { Provider } from './types';
 
+declare const MODE: 'production' | 'development' | 'none';
+
 export const PopupInitMessage = 'popupInit';
 export const PermissionsGrantedMessage = 'permissionsGranted';
 
@@ -21,12 +23,11 @@ const IconPaths = {
 	},
 };
 
-export const CloudProviders = [
-	'github.com',
-	'gitlab.com',
-	'bitbucket.org',
-	'dev.azure.com',
-];
+export const GKDotDevUrl = MODE === 'production' ? 'https://gitkraken.dev' : 'https://dev.gitkraken.dev';
+
+export const GKAccountSiteUrl = MODE === 'production' ? 'https://app.gitkraken.com' : 'https://devapp.gitkraken.com';
+
+export const CloudProviders = ['github.com', 'gitlab.com', 'bitbucket.org', 'dev.azure.com'];
 
 export const updateExtensionIcon = (isLoggedIn: boolean) =>
 	action.setIcon({ path: isLoggedIn ? IconPaths.Green : IconPaths.Grey });
@@ -56,7 +57,11 @@ function ensureDomain(value: string): string {
 	return value;
 }
 
-async function cacheOnContext<K extends keyof CacheContext>(cache: CacheContext, key: K, fn: () => Promise<CacheContext[K] | undefined>): ReturnType<typeof fn> {
+async function cacheOnContext<K extends keyof CacheContext>(
+	cache: CacheContext,
+	key: K,
+	fn: () => Promise<CacheContext[K] | undefined>,
+): ReturnType<typeof fn> {
 	if (cache[key]) {
 		return cache[key];
 	}
@@ -68,7 +73,9 @@ async function cacheOnContext<K extends keyof CacheContext>(cache: CacheContext,
 }
 
 function isEnterpriseProviderConnection(connection: ProviderConnection): connection is EnterpriseProviderConnection {
-	return Boolean(([Provider.GITHUB_ENTERPRISE, Provider.GITLAB_SELF_HOSTED].includes(connection.provider)) && connection.domain);
+	return Boolean(
+		[Provider.GITHUB_ENTERPRISE, Provider.GITLAB_SELF_HOSTED].includes(connection.provider) && connection.domain,
+	);
 }
 
 export async function getEnterpriseConnections(context: CacheContext) {
@@ -78,12 +85,13 @@ export async function getEnterpriseConnections(context: CacheContext) {
 			return;
 		}
 		// note: GitLab support comes later
-		const enterpriseConnections = providerConnections
-			.filter(isEnterpriseProviderConnection)
-			.map(
-				// typing is weird here, but we need to ensure domain is actually a domain
-				(connection: EnterpriseProviderConnection): EnterpriseProviderConnection => ({ ...connection, domain: ensureDomain(connection.domain) })
-			);
+		const enterpriseConnections = providerConnections.filter(isEnterpriseProviderConnection).map(
+			// typing is weird here, but we need to ensure domain is actually a domain
+			(connection: EnterpriseProviderConnection): EnterpriseProviderConnection => ({
+				...connection,
+				domain: ensureDomain(connection.domain),
+			}),
+		);
 		return enterpriseConnections;
 	});
 }

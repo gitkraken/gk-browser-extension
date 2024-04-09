@@ -11,7 +11,7 @@ const accessTokenCookieName = MODE === 'production' ? 'accessToken' : 'devAccess
 
 const getAccessToken = async () => {
 	// Check if the user has granted permission to GitKraken.dev
-	if (!await checkOrigins(['gitkraken.dev'])) {
+	if (!(await checkOrigins(['gitkraken.dev']))) {
 		// If not, just assume we're logged out
 		return undefined;
 	}

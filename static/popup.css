@@ -15,12 +15,14 @@
 }
 
 /* Popup container */
-#main-content {
+#popup-container {
 	min-width: 287px;
 	padding: 8px;
 	font-size: var(--text-md);
 }
-#main-content > *:not(:last-child) {
+
+/* Popup menu */
+.menu > *:not(:last-child) {
 	margin-bottom: 4px;
 }
 
