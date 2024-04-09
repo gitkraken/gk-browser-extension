@@ -1,8 +1,15 @@
 :root {
-	--text-md: 12px;
 	--text-sm: 10px;
-	--color-normal-bg: #f7f8fa;
-	--color-normal-border: #d7d8db;
+	--text-md: 12px;
+	--text-lg: 14px;
+	--font-weight-bold: 600;
+
+	--color-text-primary: #0d1017;
+	--color-text-secondary: #63717c;
+	--color-link: #009e78;
+	--color-bg-main: #f8f8f8;
+	--color-bg-card: #f7f8fa;
+	--color-border-card: #d7d8db;
 }
 
 * {
@@ -11,14 +18,15 @@
 	padding: 0;
 	font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
 		'Segoe UI Symbol';
-	color: #25292f;
+	color: var(--color-text-secondary);
 }
 
 /* Popup container */
 #popup-container {
 	min-width: 287px;
-	padding: 8px;
+	padding: 12px;
 	font-size: var(--text-md);
+	background-color: var(--color-bg-main);
 }
 
 /* Popup menu */
@@ -64,12 +72,12 @@ a.alert {
 
 /* Promo banner */
 .promo {
-	background-color: var(--color-normal-bg);
-	border: 1px solid var(--color-normal-border);
+	background-color: var(--color-bg-card);
+	border: 1px solid var(--color-border-card);
 	border-radius: 6px;
 	padding: 12px 8px;
 	display: flex;
-	font-weight: 600;
+	font-weight: var(--font-weight-bold);
 }
 .promo .icon {
 	color: #cbc440;
@@ -91,8 +99,8 @@ a.alert {
 .user {
 	display: flex;
 	align-items: center;
-	background-color: var(--color-normal-bg);
-	border: 1px solid var(--color-normal-border);
+	background-color: var(--color-bg-card);
+	border: 1px solid var(--color-border-card);
 	border-radius: 6px;
 	padding: 8px;
 }
@@ -108,10 +116,59 @@ a.alert {
 	overflow: hidden;
 }
 .user-info .user-name {
-	font-weight: 600;
+	font-weight: var(--font-weight-bold);
+	color: var(--color-text-primary);
 }
 .user-info .user-email {
 	font-size: var(--text-sm);
+}
+
+/* Focus View */
+.focus-view {
+	width: 640px;
+}
+.pull-request-bucket {
+	margin-bottom: 12px;
+	padding: 8px;
+
+	.pull-request-bucket-header {
+		display: flex;
+		align-items: center;
+		font-weight: var(--font-weight-bold);
+		padding: 8px 0;
+
+		.icon {
+			font-size: 16px;
+			margin-right: 12px;
+		}
+	}
+
+	.pull-request {
+		padding: 8px 0;
+		font-size: var(--text-lg);
+		display: flex;
+		align-items: center;
+
+		a {
+			color: var(--color-link);
+			text-decoration: none;
+		}
+
+		.pull-request-title-and-number {
+			display: flex;
+			width: 364px;
+			margin-right: 8px;
+
+			.pull-request-title {
+				margin-right: 4px;
+			}
+		}
+
+		.repository-name {
+			width: 228px;
+			margin-right: 8px;
+		}
+	}
 }
 
 /* Generic */
@@ -120,7 +177,7 @@ button {
 }
 
 .btn {
-	border: 1px solid var(--color-normal-border);
+	border: 1px solid var(--color-border-card);
 	border-radius: 4px;
 	padding: 8px;
 	text-decoration: none;
