@@ -1,7 +1,7 @@
 import { cookies } from 'webextension-polyfill';
 import { checkOrigins } from './permissions-helper';
 import { updateExtensionIcon } from './shared';
-import type { ProviderConnection, User } from './types';
+import type { Provider, ProviderConnection, ProviderToken, User } from './types';
 
 declare const MODE: 'production' | 'development' | 'none';
 
@@ -73,7 +73,7 @@ export const logoutUser = async () => {
 	await updateExtensionIcon(false);
 };
 
-export const getProviderConnections = async (): Promise<ProviderConnection[] | null> => {
+export const fetchProviderConnections = async () => {
 	const token = await getAccessToken();
 	if (!token) {
 		return null;
@@ -91,4 +91,24 @@ export const getProviderConnections = async (): Promise<ProviderConnection[] | n
 
 	const payload = await res.json();
 	return payload.data as ProviderConnection[];
+};
+
+export const fetchProviderToken = async (provider: Provider) => {
+	const token = await getAccessToken();
+	if (!token) {
+		return null;
+	}
+
+	const res = await fetch(`${gkApiUrl}/v1/provider-tokens/${provider}`, {
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+	});
+
+	if (!res.ok) {
+		return null;
+	}
+
+	const payload = await res.json();
+	return payload.data as ProviderToken;
 };

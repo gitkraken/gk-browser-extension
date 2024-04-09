@@ -35,7 +35,7 @@ export const Popup = () => {
 	}, []);
 
 	if (isLoading) {
-		return <i id="loading-icon" className="fa-regular fa-spinner-third fa-spin" />;
+		return <i className="fa-regular fa-spinner-third fa-spin" />;
 	}
 
 	return (

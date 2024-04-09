@@ -1,7 +1,6 @@
 import { action } from 'webextension-polyfill';
-import { getProviderConnections } from './gkApi';
+import { fetchProviderConnections } from './gkApi';
 import type { CacheContext, EnterpriseProviderConnection, ProviderConnection } from './types';
-import { Provider } from './types';
 
 declare const MODE: 'production' | 'development' | 'none';
 
@@ -73,14 +72,12 @@ async function cacheOnContext<K extends keyof CacheContext>(
 }
 
 function isEnterpriseProviderConnection(connection: ProviderConnection): connection is EnterpriseProviderConnection {
-	return Boolean(
-		[Provider.GITHUB_ENTERPRISE, Provider.GITLAB_SELF_HOSTED].includes(connection.provider) && connection.domain,
-	);
+	return Boolean(['githubEnterprise', 'gitlabSelfHosted'].includes(connection.provider) && connection.domain);
 }
 
 export async function getEnterpriseConnections(context: CacheContext) {
 	return cacheOnContext(context, 'enterpriseConnectionsCache', async () => {
-		const providerConnections = await getProviderConnections();
+		const providerConnections = await fetchProviderConnections();
 		if (!providerConnections) {
 			return;
 		}

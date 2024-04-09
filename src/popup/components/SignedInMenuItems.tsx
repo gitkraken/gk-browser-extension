@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { logoutUser } from '../../gkApi';
 import { GKAccountSiteUrl, GKDotDevUrl } from '../../shared';
 import type { User } from '../../types';
+import { FocusView } from './FocusView';
 import { Promo } from './Promo';
 import { SupportMenuItem } from './SupportMenuItem';
 
@@ -46,6 +47,7 @@ export const SignedInMenuItems = ({ user }: { user: User }) => {
 
 	return (
 		<>
+			<FocusView />
 			<div className="user">
 				<img
 					className="avatar"
