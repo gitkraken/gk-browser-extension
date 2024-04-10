@@ -39,7 +39,7 @@ export const Popup = () => {
 	}
 
 	return (
-		<div className="menu">
+		<div className={`menu ${user ? 'signed-in' : 'signed-out'}`}>
 			{permissionsRequest && <RequestPermissionsMenuItem permissionsRequest={permissionsRequest} />}
 			{permissionsRequest?.hasRequired ? (
 				<SupportMenuItem />

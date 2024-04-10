@@ -35,22 +35,24 @@ const Bucket = ({ bucket }: { bucket: PullRequestBucket }) => {
 };
 
 export const FocusView = () => {
-	const [pullRequestBuckets, setPullRequestBuckets] = useState<PullRequestBucket[]>([]);
-	const [loadingPullRequests, setLoadingPullRequests] = useState(false);
+	const [pullRequestBuckets, setPullRequestBuckets] = useState<PullRequestBucket[]>();
+	const [loadingPullRequests, setLoadingPullRequests] = useState(true);
+	const [filterString, setFilterString] = useState('');
+
 	useEffect(() => {
 		const loadData = async () => {
 			const githubToken = await fetchProviderToken('github');
 			if (!githubToken) {
+				setLoadingPullRequests(false);
 				return;
 			}
 
 			const providerClient = new GitHub({ token: githubToken.accessToken });
 			const { data: providerUser } = await providerClient.getCurrentUser();
 			if (!providerUser.username) {
+				setLoadingPullRequests(false);
 				return;
 			}
-
-			setLoadingPullRequests(true);
 
 			const { data: pullRequests } = await providerClient.getPullRequestsAssociatedWithUser({
 				username: providerUser.username,
@@ -68,12 +70,34 @@ export const FocusView = () => {
 		void loadData();
 	}, []);
 
+	const filteredBuckets = filterString
+		? pullRequestBuckets
+				?.map(bucket => ({
+					...bucket,
+					pullRequests: bucket.pullRequests.filter(pr => pr.title.toLowerCase().includes(filterString)),
+				}))
+				.filter(bucket => bucket.pullRequests.length)
+		: pullRequestBuckets;
+
 	return (
-		<div className={pullRequestBuckets.length ? 'focus-view' : ''}>
+		<div className="focus-view">
 			{loadingPullRequests && <i className="fa-regular fa-spinner-third fa-spin" />}
-			{pullRequestBuckets.map(bucket => (
-				<Bucket key={bucket.id} bucket={bucket} />
-			))}
+			{pullRequestBuckets && (
+				<div className="focus-view-text-filter">
+					<i className="fa-regular fa-search icon" />
+					<input
+						onChange={e => {
+							// Extension popups will automatically grow but not automatically shrink. This
+							// forces the popup to resize when the amount of content changes.
+							document.documentElement.style.height = '0';
+							setFilterString(e.target.value.toLocaleLowerCase().trim());
+						}}
+						placeholder="Search for pull requests"
+					/>
+					{filterString && <i className="fa-regular fa-times icon" onClick={() => setFilterString('')} />}
+				</div>
+			)}
+			{filteredBuckets?.map(bucket => <Bucket key={bucket.id} bucket={bucket} />)}
 		</div>
 	);
 };
