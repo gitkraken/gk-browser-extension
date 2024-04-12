@@ -24,9 +24,10 @@ export const RequestPermissionsBanner = ({ permissionsRequest }: { permissionsRe
 	}
 
 	return (
-		<div className="alert">
+		<div className="alert text-lg bold">
 			{buttonLabel}{' '}
 			<a
+				className="text-link"
 				href="#"
 				onClick={async () => {
 					const granted = await permissions.request(permissionsRequest.request);

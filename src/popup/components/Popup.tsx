@@ -5,9 +5,8 @@ import type { PermissionsRequest } from '../../permissions-helper';
 import { PopupInitMessage } from '../../shared';
 import type { User } from '../../types';
 import { RequestPermissionsBanner } from './RequestPermissionsBanner';
-import { SignedInMenuItems } from './SignedInMenuItems';
-import { SignedOutMenuItems } from './SignedOutMenuItems';
-import { SupportMenuItem } from './SupportMenuItem';
+import { SignedIn } from './SignedIn';
+import { SignedOut } from './SignedOut';
 
 const syncWithBackground = async () => {
 	return (await runtime.sendMessage(PopupInitMessage)) as PermissionsRequest | undefined;
@@ -35,19 +34,24 @@ export const Popup = () => {
 	}, []);
 
 	if (isLoading) {
-		return <i className="fa-regular fa-spinner-third fa-spin" />;
+		return (
+			<div className="popup-content small text-center">
+				<i className="fa-regular fa-spinner-third fa-spin" />
+			</div>
+		);
 	}
 
-	return (
-		<div className={`menu ${user ? 'signed-in' : 'signed-out'}`}>
-			{permissionsRequest && <RequestPermissionsBanner permissionsRequest={permissionsRequest} />}
-			{permissionsRequest?.hasRequired ? (
-				<SupportMenuItem />
-			) : user ? (
-				<SignedInMenuItems user={user} />
-			) : (
-				<SignedOutMenuItems />
-			)}
-		</div>
-	);
+	if (permissionsRequest && permissionsRequest.hasRequired) {
+		return (
+			<div className="popup-content small">
+				<RequestPermissionsBanner permissionsRequest={permissionsRequest} />
+			</div>
+		);
+	}
+
+	if (user) {
+		return <SignedIn user={user} />;
+	}
+
+	return <SignedOut />;
 };

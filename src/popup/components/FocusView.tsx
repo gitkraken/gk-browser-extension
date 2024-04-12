@@ -8,11 +8,11 @@ const PullRequestRow = ({ pullRequest }: { pullRequest: GitPullRequest }) => {
 		<div className="pull-request">
 			<div className="pull-request-title-and-number">
 				<span className="pull-request-title truncate">{pullRequest.title}</span>{' '}
-				<a className="pull-request-number" href={pullRequest.url || undefined} target="_blank">
+				<a className="text-link" href={pullRequest.url || undefined} target="_blank">
 					#{pullRequest.number}
 				</a>
 			</div>
-			<div className="repository-name truncate">{pullRequest.repository.name}</div>
+			<div className="repository-name text-secondary truncate">{pullRequest.repository.name}</div>
 			<a href={pullRequest.url || undefined} target="_blank">
 				<i className="fa-regular fa-arrow-up-right-from-square icon" />
 			</a>
@@ -23,8 +23,8 @@ const PullRequestRow = ({ pullRequest }: { pullRequest: GitPullRequest }) => {
 const Bucket = ({ bucket }: { bucket: PullRequestBucket }) => {
 	return (
 		<div className="pull-request-bucket">
-			<div className="pull-request-bucket-header">
-				<i className={`fa-regular fa-${bucket.faIconName} icon`} />
+			<div className="pull-request-bucket-header text-sm text-secondary bold">
+				<i className={`fa-regular fa-${bucket.faIconName} icon text-lg`} />
 				{bucket.name}
 			</div>
 			{bucket.pullRequests.map(pullRequest => (
@@ -70,31 +70,44 @@ export const FocusView = () => {
 		void loadData();
 	}, []);
 
-	const filteredBuckets = filterString
+	const lowercaseFilterString = filterString.toLowerCase().trim();
+	const filteredBuckets = lowercaseFilterString
 		? pullRequestBuckets
 				?.map(bucket => ({
 					...bucket,
-					pullRequests: bucket.pullRequests.filter(pr => pr.title.toLowerCase().includes(filterString)),
+					pullRequests: bucket.pullRequests.filter(pr =>
+						pr.title.toLowerCase().includes(lowercaseFilterString),
+					),
 				}))
 				.filter(bucket => bucket.pullRequests.length)
 		: pullRequestBuckets;
 
+	if (loadingPullRequests) {
+		return (
+			<div className="focus-view text-center">
+				<i className="fa-regular fa-spinner-third fa-spin" />
+			</div>
+		);
+	}
+
 	return (
 		<div className="focus-view">
-			{loadingPullRequests && <i className="fa-regular fa-spinner-third fa-spin" />}
 			{pullRequestBuckets && (
 				<div className="focus-view-text-filter">
-					<i className="fa-regular fa-search icon" />
+					<i className="fa-regular fa-search icon text-xl" />
 					<input
 						onChange={e => {
 							// Extension popups will automatically grow but not automatically shrink. This
 							// forces the popup to resize when the amount of content changes.
 							document.documentElement.style.height = '0';
-							setFilterString(e.target.value.toLocaleLowerCase().trim());
+							setFilterString(e.target.value);
 						}}
 						placeholder="Search for pull requests"
+						value={filterString}
 					/>
-					{filterString && <i className="fa-regular fa-times icon" onClick={() => setFilterString('')} />}
+					{filterString && (
+						<i className="fa-regular fa-times icon text-xl" onClick={() => setFilterString('')} />
+					)}
 				</div>
 			)}
 			{filteredBuckets?.map(bucket => <Bucket key={bucket.id} bucket={bucket} />)}

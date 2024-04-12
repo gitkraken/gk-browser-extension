@@ -14,7 +14,7 @@ const sha256 = async (text: string) => {
 	return hashHex;
 };
 
-export const SignedInMenuItems = ({ user }: { user: User }) => {
+export const SignedIn = ({ user }: { user: User }) => {
 	const [emailHash, setEmailHash] = useState<string | null>(null);
 	useEffect(() => {
 		void sha256(user.email).then(setEmailHash);
@@ -26,8 +26,10 @@ export const SignedInMenuItems = ({ user }: { user: User }) => {
 	};
 
 	return (
-		<>
-			<FocusView />
+		<div className="popup-content signed-in">
+			<div className="main-ui">
+				<FocusView />
+			</div>
 			<div className="user-row">
 				<div className="user">
 					<img
@@ -37,17 +39,17 @@ export const SignedInMenuItems = ({ user }: { user: User }) => {
 						title={user.name || user.email}
 					/>
 					<div>
-						<div className="user-name">{user.name || user.username}</div>
-						<div className="user-email">{user.email}</div>
+						<div>{user.name || user.username}</div>
+						<div className="text-sm text-secondary">{user.email}</div>
 					</div>
 					<a href={GKDotDevUrl} target="_blank">
-						<i className="fa-regular fa-arrow-up-right-from-square icon" />
+						<i className="fa-regular fa-arrow-up-right-from-square icon text-lg" />
 					</a>
 				</div>
 				<button className="icon-btn" onClick={onSignOutClick}>
-					<i className="fa-regular fa-right-from-bracket icon" />
+					<i className="fa-regular fa-right-from-bracket icon text-lg" />
 				</button>
 			</div>
-		</>
+		</div>
 	);
 };
