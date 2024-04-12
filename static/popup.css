@@ -65,6 +65,12 @@ html {
 
 /* Sign in prompt */
 .signed-out {
+	background-image: url('img/keif-sign-in.png');
+	background-size: 300px;
+	background-repeat: no-repeat;
+	background-position-x: 300px;
+	background-position-y: 160px;
+
 	.sign-in-prompt {
 		width: 400px;
 		margin-top: 150px;
@@ -72,7 +78,7 @@ html {
 		background-color: var(--color-bg-glass);
 		border: 1px solid var(--color-border-row);
 		border-radius: 6px;
-		backdrop-filter: blur(1px);
+		backdrop-filter: blur(2px);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -86,6 +92,13 @@ html {
 			padding: 16px;
 			border-radius: 4px;
 			text-align: center;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+
+			img {
+				margin-right: 8px;
+			}
 		}
 	}
 }
