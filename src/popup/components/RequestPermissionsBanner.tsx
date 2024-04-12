@@ -7,10 +7,10 @@ const sendPermissionsGranted = async () => {
 	await runtime.sendMessage(PermissionsGrantedMessage);
 };
 
-export const RequestPermissionsMenuItem = ({ permissionsRequest }: { permissionsRequest: PermissionsRequest }) => {
+export const RequestPermissionsBanner = ({ permissionsRequest }: { permissionsRequest: PermissionsRequest }) => {
 	let buttonLabel;
 	if (permissionsRequest.hasRequired) {
-		buttonLabel = 'Allow required permissions to continue';
+		buttonLabel = 'This extension requires additional permissions.';
 	} else {
 		const typesRequested: string[] = [];
 		if (permissionsRequest.hasCloud) {
@@ -20,21 +20,23 @@ export const RequestPermissionsMenuItem = ({ permissionsRequest }: { permissions
 			typesRequested.push('self-hosted');
 		}
 
-		buttonLabel = `Allow permissions for ${typesRequested.join(' & ')} git providers`;
+		buttonLabel = `Allow permissions for ${typesRequested.join(' & ')} git providers.`;
 	}
 
 	return (
-		<a
-			className="alert"
-			href="#"
-			onClick={async () => {
-				const granted = await permissions.request(permissionsRequest.request);
-				if (granted) {
-					await sendPermissionsGranted();
-				}
-			}}
-		>
-			{buttonLabel}
-		</a>
+		<div className="alert">
+			{buttonLabel}{' '}
+			<a
+				href="#"
+				onClick={async () => {
+					const granted = await permissions.request(permissionsRequest.request);
+					if (granted) {
+						await sendPermissionsGranted();
+					}
+				}}
+			>
+				Request Permissions
+			</a>
+		</div>
 	);
 };

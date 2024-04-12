@@ -8,12 +8,15 @@
 	--color-text-primary: #0d1017;
 	--color-text-secondary: #63717c;
 	--color-link: #009e78;
+
 	--color-bg-main: #f8f8f8;
 	--color-bg-card: #f7f8fa;
 	--color-border-card: #d7d8db;
 
 	--color-bg-input: #ebebeb;
 	--color-border-input: #d1d1d1;
+
+	--color-border-neutral: #5f6772;
 }
 
 * {
@@ -63,21 +66,21 @@ button.menu-row {
 }
 
 /* Popup alert */
+.signed-in .alert {
+	margin-bottom: 12px;
+}
 .alert {
-	background-color: #ffdede;
-	border: 1px solid #e09999;
-	border-radius: 6px;
-	display: flex;
-	align-items: center;
-	padding: 8px;
-	white-space: nowrap;
-}
-a.alert {
-	text-decoration: none;
-}
-.alert .icon {
-	color: #ad7777;
-	margin-right: 8px;
+	/* background-color: #ffdede; */
+	border: 1px solid var(--color-border-neutral);
+	border-radius: 4px;
+	padding: 16px 24px;
+	font-size: var(--text-lg);
+	font-weight: var(--font-weight-bold);
+
+	a {
+		color: var(--color-link);
+		text-decoration: none;
+	}
 }
 
 /* Promo banner */

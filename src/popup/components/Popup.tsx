@@ -4,7 +4,7 @@ import { fetchUser } from '../../gkApi';
 import type { PermissionsRequest } from '../../permissions-helper';
 import { PopupInitMessage } from '../../shared';
 import type { User } from '../../types';
-import { RequestPermissionsMenuItem } from './RequestPermissionsMenuItem';
+import { RequestPermissionsBanner } from './RequestPermissionsBanner';
 import { SignedInMenuItems } from './SignedInMenuItems';
 import { SignedOutMenuItems } from './SignedOutMenuItems';
 import { SupportMenuItem } from './SupportMenuItem';
@@ -40,7 +40,7 @@ export const Popup = () => {
 
 	return (
 		<div className={`menu ${user ? 'signed-in' : 'signed-out'}`}>
-			{permissionsRequest && <RequestPermissionsMenuItem permissionsRequest={permissionsRequest} />}
+			{permissionsRequest && <RequestPermissionsBanner permissionsRequest={permissionsRequest} />}
 			{permissionsRequest?.hasRequired ? (
 				<SupportMenuItem />
 			) : user ? (
