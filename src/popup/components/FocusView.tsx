@@ -6,16 +6,14 @@ import { fetchProviderToken } from '../../gkApi';
 const PullRequestRow = ({ pullRequest }: { pullRequest: GitPullRequest }) => {
 	return (
 		<div className="pull-request">
-			<div className="pull-request-title-and-number">
-				<span className="pull-request-title truncate">{pullRequest.title}</span>{' '}
-				<a className="text-link" href={pullRequest.url || undefined} target="_blank">
-					#{pullRequest.number}
-				</a>
-			</div>
+			<div className="pull-request-title truncate">{pullRequest.title}</div>
 			<div className="repository-name text-secondary truncate">{pullRequest.repository.name}</div>
-			<a href={pullRequest.url || undefined} target="_blank">
-				<i className="fa-regular fa-arrow-up-right-from-square icon" />
+			<a className="pull-request-number text-link" href={pullRequest.url || undefined} target="_blank">
+				#{pullRequest.number}
 			</a>
+			{/* <a>
+				<i className="fa-brands fa-gitkraken icon text-link" />
+			</a> */}
 		</div>
 	);
 };
@@ -110,7 +108,9 @@ export const FocusView = () => {
 					)}
 				</div>
 			)}
-			{filteredBuckets?.map(bucket => <Bucket key={bucket.id} bucket={bucket} />)}
+			<div className="pull-request-buckets">
+				{filteredBuckets?.map(bucket => <Bucket key={bucket.id} bucket={bucket} />)}
+			</div>
 		</div>
 	);
 };

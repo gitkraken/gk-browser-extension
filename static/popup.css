@@ -43,7 +43,7 @@ html {
 .popup-content {
 	font-size: var(--text-md);
 	color: var(--color-text-primary);
-	width: 560px;
+	width: 592px;
 	overflow: hidden;
 }
 .popup-content:not(.small) {
@@ -125,6 +125,7 @@ html {
 		display: flex;
 		align-items: center;
 		position: relative;
+		margin-bottom: 12px;
 
 		input {
 			width: 100%;
@@ -146,8 +147,10 @@ html {
 		}
 	}
 
+	.pull-request-bucket:not(:first-child) {
+		margin-top: 24px;
+	}
 	.pull-request-bucket {
-		margin-top: 16px;
 		padding: 0 12px;
 
 		.pull-request-bucket-header {
@@ -161,23 +164,24 @@ html {
 		}
 
 		.pull-request {
-			padding: 4px 0;
+			padding: 8px 0;
 			display: flex;
 			align-items: center;
 
-			.pull-request-title-and-number {
-				display: flex;
-				width: 264px;
+			> *:not(:last-child) {
 				margin-right: 12px;
+			}
 
-				.pull-request-title {
-					margin-right: 4px;
-				}
+			.pull-request-title {
+				width: 300;
 			}
 
 			.repository-name {
-				width: 200px;
-				margin-right: 12px;
+				width: 148px;
+			}
+
+			.pull-request-number {
+				width: 64px;
 			}
 		}
 	}
