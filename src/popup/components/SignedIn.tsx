@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { logoutUser } from '../../gkApi';
+import type { PermissionsRequest } from '../../permissions-helper';
 import { GKDotDevUrl } from '../../shared';
 import type { User } from '../../types';
 import { FocusView } from './FocusView';
+import { RequestPermissionsBanner } from './RequestPermissionsBanner';
 
 // Source: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest#basic_example
 const sha256 = async (text: string) => {
@@ -14,7 +16,7 @@ const sha256 = async (text: string) => {
 	return hashHex;
 };
 
-export const SignedIn = ({ user }: { user: User }) => {
+export const SignedIn = ({ permissionsRequest, user }: { permissionsRequest?: PermissionsRequest; user: User }) => {
 	const [emailHash, setEmailHash] = useState<string | null>(null);
 	useEffect(() => {
 		void sha256(user.email).then(setEmailHash);
@@ -27,6 +29,7 @@ export const SignedIn = ({ user }: { user: User }) => {
 
 	return (
 		<div className="popup-content signed-in">
+			{permissionsRequest && <RequestPermissionsBanner permissionsRequest={permissionsRequest} />}
 			<div className="main-ui">
 				<FocusView />
 			</div>

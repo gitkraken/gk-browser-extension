@@ -107,6 +107,10 @@ html {
 	display: flex;
 	flex-direction: column;
 
+	.alert {
+		margin: 12px 16px;
+	}
+
 	.main-ui {
 		flex: 1 1 0%;
 		overflow: auto;

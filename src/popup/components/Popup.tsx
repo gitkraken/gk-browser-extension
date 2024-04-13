@@ -50,8 +50,8 @@ export const Popup = () => {
 	}
 
 	if (user) {
-		return <SignedIn user={user} />;
+		return <SignedIn permissionsRequest={permissionsRequest} user={user} />;
 	}
 
-	return <SignedOut />;
+	return <SignedOut permissionsRequest={permissionsRequest} />;
 };
