@@ -74,6 +74,17 @@ export function injectionScope(url: string) {
 			const [, , , type] = this.uri.pathname.split('/');
 			switch (type) {
 				case 'commit':
+					insertions.set('.commit > * #browse-at-time-link', {
+						// This is inside a flexbox, so ml-auto adds a ballooning margin that pushes the element to the right
+						html: /*html*/ `<a data-gk class="btn px-2 ml-auto flex-self-start" style="padding-top:2px !important; padding-bottom:1px !important;" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
+							22,
+							undefined,
+							'position:relative; top:2px;',
+						)}</a>`,
+						position: 'beforebegin',
+					});
+
+					// For GitHub Enterprise 3.11.2
 					insertions.set('.commit > #browse-at-time-link', {
 						html: /*html*/ `<a data-gk class="btn mr-2 px-2 float-right" style="padding-top:2px !important; padding-bottom:1px !important;" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
 							22,
