@@ -42,7 +42,7 @@ export function injectionScope(url: string) {
 			>();
 			try {
 				const label = 'Open with GitKraken';
-				const url = this.transformUrl('open', pathname);
+				const openUrl = this.transformUrl('open', pathname);
 
 				const [, , , type] = pathname.split('/');
 				switch (type) {
@@ -65,7 +65,7 @@ export function injectionScope(url: string) {
 					case 'pull-requests': {
 						const compareUrl = this.transformUrl('compare', pathname);
 						insertions.set('.css-1oy5iav', {
-							html: /*html*/ `<a data-gk class="gk-insert-pr css-w97uih" href="${url}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+							html: /*html*/ `<a data-gk class="gk-insert-pr css-w97uih" href="${openUrl}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
 								20,
 								undefined,
 								'position:relative; top:4px; left:-5px;',
@@ -77,7 +77,7 @@ export function injectionScope(url: string) {
 							)}Open Comparison with GitKraken</a>`,
 							position: 'afterbegin',
 							replaceSelectorList: [
-								{ selector: '.gk-insert-pr', href: url },
+								{ selector: '.gk-insert-pr', href: openUrl },
 								{ selector: '.gk-insert-comparison', href: compareUrl },
 							],
 						});
@@ -85,7 +85,7 @@ export function injectionScope(url: string) {
 					}
 					case 'branches': {
 						insertions.set('.css-1bvc4cc', {
-							html: /*html*/ `<a data-gk class="css-w97uih" style="margin-right:4px !important;" href="${url}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+							html: /*html*/ `<a data-gk class="css-w97uih" style="margin-right:4px !important;" href="${openUrl}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
 								20,
 								undefined,
 								'position:relative; top:4px; left:-5px;',
@@ -99,13 +99,13 @@ export function injectionScope(url: string) {
 					case 'src':
 					case undefined: {
 						insertions.set('.css-1oy5iav', {
-							html: /*html*/ `<a data-gk class="gk-insert css-w97uih" href="${url}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+							html: /*html*/ `<a data-gk class="gk-insert css-w97uih" href="${openUrl}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
 								20,
 								undefined,
 								'position:relative; top:4px; left:-5px;',
 							)}Open with GitKraken</a>`,
 							position: 'afterbegin',
-							replaceSelectorList: [{ selector: '.gk-insert', href: url }],
+							replaceSelectorList: [{ selector: '.gk-insert', href: openUrl }],
 						});
 
 						break;
@@ -202,21 +202,21 @@ export function injectionScope(url: string) {
 
 			const repoId = '-';
 
-			let url;
+			let redirectUrl: URL | null = null;
 			switch (type) {
 				case 'commits': {
 					const urlTarget = rest.join('/');
 					if (!urlTarget) {
-						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+						redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
 						break;
 					}
-					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${urlTarget}`);
+					redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${urlTarget}`);
 					break;
 				}
 				case 'compare': {
 					let comparisonTarget = rest.join('/');
 					if (!comparisonTarget) {
-						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+						redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
 						break;
 					}
 					const sameOrigin = !comparisonTarget.includes(':');
@@ -225,7 +225,7 @@ export function injectionScope(url: string) {
 
 						comparisonTarget = branches.join('...');
 					}
-					url = new URL(
+					redirectUrl = new URL(
 						`${target}://eamodio.gitlens/link/r/${repoId}/compare/${comparisonTarget.replace(
 							/%0D/g,
 							'...',
@@ -273,51 +273,51 @@ export function injectionScope(url: string) {
 
 							if (prOwner === baseOwner && prRepo === baseRepo) {
 								const baseBranch = base;
-								const prBranch = pr;
+								prBranch = pr;
 								baseBranchString = `${baseOwner}/${baseRepo}:${baseBranch}`;
 								prBranchString = `${prOwner}/${prRepo}:${prBranch}`;
 							} else {
 								baseBranchString = base;
 								prBranchString = pr;
 							}
-							url = new URL(
+							redirectUrl = new URL(
 								`${target}://eamodio.gitlens/link/r/${repoId}/compare/${baseBranchString}...${prBranchString}`,
 							);
 						}
 
-						if (url == null) {
-							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${prBranch}`);
+						if (redirectUrl === null) {
+							redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${prBranch}`);
 						}
 
-						url.searchParams.set('pr', prNumber);
-						url.searchParams.set('prUrl', this.uri.toString());
+						redirectUrl.searchParams.set('pr', prNumber);
+						redirectUrl.searchParams.set('prUrl', this.uri.toString());
 
 						if (prOwner !== owner || prRepo !== repo) {
 							const prRepoUrl = new URL(this.uri.toString());
 							prRepoUrl.hash = '';
 							prRepoUrl.search = '';
 							prRepoUrl.pathname = `/${owner}/${repo}.git`;
-							url.searchParams.set('prRepoUrl', prRepoUrl.toString());
+							redirectUrl.searchParams.set('prRepoUrl', prRepoUrl.toString());
 
 							owner = prOwner;
 							repo = prRepo;
 						}
 					} else {
-						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
-						url.searchParams.set('pr', prNumber);
-						url.searchParams.set('prUrl', this.uri.toString());
+						redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+						redirectUrl.searchParams.set('pr', prNumber);
+						redirectUrl.searchParams.set('prUrl', this.uri.toString());
 					}
-					console.log('transform', url.toString(), action);
+					console.log('transform', redirectUrl.toString(), action);
 					break;
 				}
 				case 'branches':
 				case 'branch': {
 					const urlTarget = rest.join('/');
 					if (!urlTarget) {
-						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+						redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
 						break;
 					}
-					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${urlTarget}`);
+					redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${urlTarget}`);
 					break;
 				}
 				case 'src': {
@@ -325,16 +325,16 @@ export function injectionScope(url: string) {
 					// this is currently broken when branches have 40 characters or if you use the short sha of a commit
 					if (rest.length === 1 && rest[0].length === 40) {
 						// commit sha's are 40 characters long
-						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
+						redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
 					} else if (!rest.length) {
-						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+						redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
 					} else {
-						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
+						redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
 					}
 					break;
 				}
 				default:
-					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+					redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
 					break;
 			}
 
@@ -343,8 +343,8 @@ export function injectionScope(url: string) {
 			remoteUrl.search = '';
 			remoteUrl.pathname = `/${owner}/${repo}.git`;
 
-			url.searchParams.set('url', remoteUrl.toString());
-			return url.toString();
+			redirectUrl.searchParams.set('url', remoteUrl.toString());
+			return redirectUrl.toString();
 		}
 
 		private getGitKrakenSvg(size: number, classes?: string, style?: string) {

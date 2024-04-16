@@ -42,7 +42,7 @@ export function injectionScope(url: string) {
 			>();
 			try {
 				const label = 'Open with GitKraken';
-				const url = this.transformUrl('open', pathname, search);
+				const openUrl = this.transformUrl('open', pathname, search);
 
 				const [, , , , , type] = pathname.split('/');
 				switch (type) {
@@ -62,7 +62,7 @@ export function injectionScope(url: string) {
 					case 'pullrequest': {
 						const compareUrl = this.transformUrl('compare', pathname, search);
 						insertions.set('.repos-pr-title-row', {
-							html: /*html*/ `<a data-gk class="gk-insert-pr bolt-header-command-item-button bolt-button" href="${url}" style="text-decoration:none !important" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+							html: /*html*/ `<a data-gk class="gk-insert-pr bolt-header-command-item-button bolt-button" href="${openUrl}" style="text-decoration:none !important" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
 								20,
 								undefined,
 								'position:relative; margin-right:4px;',
@@ -75,33 +75,33 @@ export function injectionScope(url: string) {
 							position: 'afterend',
 							replaceSelectorList: [
 								{ selector: '.gk-insert-compare', href: compareUrl },
-								{ selector: '.gk-insert-pr', href: url },
+								{ selector: '.gk-insert-pr', href: openUrl },
 							],
 						});
 						break;
 					}
 					case 'commit': {
 						insertions.set('.bolt-header-commandbar ', {
-							html: /*html*/ `<a data-gk class="gk-insert-commit bolt-header-command-item-button bolt-button" href="${url}" style="text-decoration:none !important" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+							html: /*html*/ `<a data-gk class="gk-insert-commit bolt-header-command-item-button bolt-button" href="${openUrl}" style="text-decoration:none !important" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
 								20,
 								undefined,
 								'position:relative; margin-right:4px;',
 							)}Open with GitKraken</a>`,
 							position: 'afterbegin',
-							replaceSelectorList: [{ selector: '.gk-insert-commit', href: url }],
+							replaceSelectorList: [{ selector: '.gk-insert-commit', href: openUrl }],
 						});
 
 						break;
 					}
 					case undefined: {
 						insertions.set('.repos-files-header-commandbar ', {
-							html: /*html*/ `<a data-gk class="gk-insert bolt-header-command-item-button bolt-button" href="${url}" style="text-decoration:none !important" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+							html: /*html*/ `<a data-gk class="gk-insert bolt-header-command-item-button bolt-button" href="${openUrl}" style="text-decoration:none !important" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
 								20,
 								undefined,
 								'position:relative; margin-right:4px;',
 							)}Open with GitKraken</a>`,
 							position: 'afterbegin',
-							replaceSelectorList: [{ selector: '.gk-insert', href: url }],
+							replaceSelectorList: [{ selector: '.gk-insert', href: openUrl }],
 						});
 
 						break;
@@ -200,10 +200,10 @@ export function injectionScope(url: string) {
 
 			const repoId = '-';
 
-			let url;
+			let redirectUrl: URL | null = null;
 			switch (type) {
 				case 'commit': {
-					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${urlTarget}`);
+					redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${urlTarget}`);
 					break;
 				}
 				case 'branchCompare': {
@@ -211,10 +211,10 @@ export function injectionScope(url: string) {
 					const comparisonTargetBranch = search.get('targetVersion')?.slice(2);
 					const comparisonBaseBranch = search.get('baseVersion')?.slice(2);
 					if (!comparisonTargetBranch || !comparisonBaseBranch) {
-						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+						redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
 						break;
 					}
-					url = new URL(
+					redirectUrl = new URL(
 						`${target}://eamodio.gitlens/link/r/${repoId}/compare/${org}/${project}/${repo}:${comparisonBaseBranch}...${org}/${project}/${repo}:${comparisonTargetBranch}`,
 					);
 					break;
@@ -241,38 +241,38 @@ export function injectionScope(url: string) {
 							const baseBranchString = `${baseOrg}/${baseProject}/${baseRepo}:${baseBranch}`;
 							const prBranchString = `${prOrg}/${prProject}/${prRepo}:${prBranch}`;
 
-							url = new URL(
+							redirectUrl = new URL(
 								`${target}://eamodio.gitlens/link/r/${repoId}/compare/${baseBranchString}...${prBranchString}`,
 							);
 						}
 
-						if (url == null) {
-							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${prBranch}`);
+						if (redirectUrl === null) {
+							redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${prBranch}`);
 						}
 
-						url.searchParams.set('pr', prNumber);
-						url.searchParams.set('prUrl', this.uri.toString());
+						redirectUrl.searchParams.set('pr', prNumber);
+						redirectUrl.searchParams.set('prUrl', this.uri.toString());
 
 						if (prOrg !== org || prRepo !== repo) {
 							const prRepoUrl = `https://${prOrg}@dev.azure.com/${prOrg}/${prProject}/_git/${prRepo}`;
-							url.searchParams.set('prRepoUrl', prRepoUrl.toString());
+							redirectUrl.searchParams.set('prRepoUrl', prRepoUrl.toString());
 
 							org = prOrg;
 							repo = prRepo;
 						}
 					} else {
-						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
-						url.searchParams.set('pr', prNumber);
-						url.searchParams.set('prUrl', this.uri.toString());
+						redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+						redirectUrl.searchParams.set('pr', prNumber);
+						redirectUrl.searchParams.set('prUrl', this.uri.toString());
 					}
 					break;
 				}
 				default: {
 					const branch = search.get('version')?.slice(2);
 					if (branch) {
-						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${branch}`);
+						redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${branch}`);
 					} else {
-						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+						redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
 					}
 					break;
 				}
@@ -281,8 +281,8 @@ export function injectionScope(url: string) {
 			const remoteUrl = `https://${org}@dev.azure.com/${org}/${project}/_git/${repo}`;
 			console.log('remoteUrl', remoteUrl);
 
-			url.searchParams.set('url', remoteUrl.toString());
-			return url.toString();
+			redirectUrl.searchParams.set('url', remoteUrl.toString());
+			return redirectUrl.toString();
 		}
 
 		private parsePathname(pathname: string): {
