@@ -70,138 +70,122 @@ html {
 	background-repeat: no-repeat;
 	background-position-x: 300px;
 	background-position-y: 160px;
-
-	.sign-in-prompt {
-		width: 400px;
-		margin-top: 150px;
-		padding: 20px;
-		background-color: var(--color-bg-glass);
-		border: 1px solid var(--color-border-row);
-		border-radius: 6px;
-		backdrop-filter: blur(2px);
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-
-		> *:not(:last-child) {
-			margin-bottom: 16px;
-		}
-
-		.sign-in-link {
-			width: 100%;
-			padding: 16px;
-			border-radius: 4px;
-			text-align: center;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-
-			img {
-				margin-right: 8px;
-			}
-		}
-	}
+}
+.signed-out .sign-in-prompt {
+	width: 400px;
+	margin-top: 150px;
+	padding: 20px;
+	background-color: var(--color-bg-glass);
+	border: 1px solid var(--color-border-row);
+	border-radius: 6px;
+	backdrop-filter: blur(2px);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+.signed-out .sign-in-prompt > *:not(:last-child) {
+	margin-bottom: 16px;
+}
+.signed-out .sign-in-prompt .sign-in-link {
+	width: 100%;
+	padding: 16px;
+	border-radius: 4px;
+	text-align: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.signed-out .sign-in-prompt .sign-in-link img {
+	margin-right: 8px;
 }
 
+/* Main (signed in) UI */
 .signed-in {
 	display: flex;
 	flex-direction: column;
+}
+.signed-in .alert {
+	margin: 12px 16px;
+}
+.signed-in .main-ui {
+	flex: 1 1 0%;
+	overflow: auto;
+	padding: 12px 16px;
+}
 
-	.alert {
-		margin: 12px 16px;
-	}
+/* User Info bar */
+.user-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 16px;
+}
+.user-row .user {
+	display: flex;
+	align-items: center;
+}
+.user-row .user > *:not(:last-child) {
+	margin-right: 8px;
+}
+.user-row .user .avatar {
+	border-radius: 50%;
+}
 
-	.main-ui {
-		flex: 1 1 0%;
-		overflow: auto;
-		padding: 12px 16px;
-	}
+/* Focus View */
+.focus-view .focus-view-text-filter {
+	display: flex;
+	align-items: center;
+	position: relative;
+	margin-bottom: 12px;
+}
+.focus-view .focus-view-text-filter input {
+	width: 100%;
+	background-color: var(--color-bg-input);
+	border: 1px solid var(--color-border-input);
+	border-radius: 6px;
+	padding: 12px 48px 12px 48px;
+	font-size: var(--text-lg);
+}
+.focus-view .focus-view-text-filter .icon {
+	position: absolute;
+}
+.focus-view .focus-view-text-filter .fa-search {
+	left: 16px;
+}
+.focus-view .focus-view-text-filter .fa-times {
+	right: 16px;
+}
 
-	/* User Info bar */
-	.user-row {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 12px 16px;
-
-		.user {
-			display: flex;
-			align-items: center;
-
-			> *:not(:last-child) {
-				margin-right: 8px;
-			}
-			.avatar {
-				border-radius: 50%;
-			}
-		}
-	}
-
-	/* Focus View */
-	.focus-view-text-filter {
-		display: flex;
-		align-items: center;
-		position: relative;
-		margin-bottom: 12px;
-
-		input {
-			width: 100%;
-			background-color: var(--color-bg-input);
-			border: 1px solid var(--color-border-input);
-			border-radius: 6px;
-			padding: 12px 48px 12px 48px;
-			font-size: var(--text-lg);
-		}
-
-		.icon {
-			position: absolute;
-		}
-		.fa-search {
-			left: 16px;
-		}
-		.fa-times {
-			right: 16px;
-		}
-	}
-
-	.pull-request-bucket:not(:first-child) {
-		margin-top: 24px;
-	}
-	.pull-request-bucket {
-		padding: 0 12px;
-
-		.pull-request-bucket-header {
-			display: flex;
-			align-items: center;
-			padding: 4px 0;
-
-			.icon {
-				margin-right: 12px;
-			}
-		}
-
-		.pull-request {
-			padding: 8px 0;
-			display: flex;
-			align-items: center;
-
-			> *:not(:last-child) {
-				margin-right: 12px;
-			}
-
-			.pull-request-title {
-				width: 300;
-			}
-
-			.repository-name {
-				width: 148px;
-			}
-
-			.pull-request-number {
-				width: 64px;
-			}
-		}
-	}
+.focus-view .pull-request-bucket:not(:first-child) {
+	margin-top: 24px;
+}
+.focus-view .pull-request-bucket {
+	padding: 0 12px;
+}
+.focus-view .pull-request-bucket .pull-request-bucket-header {
+	display: flex;
+	align-items: center;
+	padding: 4px 0;
+}
+.focus-view .pull-request-bucket .pull-request-bucket-header .icon {
+	margin-right: 12px;
+}
+.focus-view .pull-request-bucket .pull-request {
+	padding: 8px 0;
+	display: flex;
+	align-items: center;
+}
+.focus-view .pull-request-bucket .pull-request > *:not(:last-child) {
+	margin-right: 12px;
+}
+.focus-view .pull-request-bucket .pull-request .pull-request-title {
+	width: 300;
+}
+.focus-view .pull-request-bucket .pull-request .repository-name {
+	width: 148px;
+}
+.focus-view .pull-request-bucket .pull-request .pull-request-number {
+	width: 64px;
 }
 
 /* Generic components */
