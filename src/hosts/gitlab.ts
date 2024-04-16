@@ -40,14 +40,14 @@ export function injectionScope(url: string) {
 
 			try {
 				const label = 'Open with GitKraken';
-				const url = this.transformUrl('open');
+				const openUrl = this.transformUrl('open');
 
 				const { type, rest } = this.parseUrl(this.uri.pathname);
 
 				switch (type) {
 					case 'commit': {
 						insertions.set('.page-content-header > .gl-button', {
-							html: /*html*/ `<a data-gk class="gl-button btn btn-icon btn-md btn-default gl-mr-3 has-tooltip" href="${url}" target="_blank" title="${label}" aria-label="${label}">
+							html: /*html*/ `<a data-gk class="gl-button btn btn-icon btn-md btn-default gl-mr-3 has-tooltip" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">
 	${this.getGitKrakenSvg(22, 's16 gl-icon gl-button-icon', undefined)}
 </a>`,
 							position: 'beforebegin',
@@ -59,7 +59,7 @@ export function injectionScope(url: string) {
 						if (rest.length) {
 							// only insert if we know what we're comparing
 							insertions.set('form.js-requires-input .gl-display-flex:last-child .btn-confirm', {
-								html: /*html*/ `<a data-gk type="button" class="gl-button btn btn-defualt btn-md" href="${url}" target="_blank">
+								html: /*html*/ `<a data-gk type="button" class="gl-button btn btn-defualt btn-md" href="${openUrl}" target="_blank">
 		<span class="gl-button-text">
 			${this.getGitKrakenSvg(22, 's16 gl-icon gl-button-icon', undefined)}
 			Compare with GitKraken
@@ -97,7 +97,7 @@ export function injectionScope(url: string) {
 	</header>
 </li>
 <li data-gk class="gl-dropdown-item">
-	<a class="dropdown-item" href="${url}" style="align-items: center !important;" target="_blank">
+	<a class="dropdown-item" href="${openUrl}" style="align-items: center !important;" target="_blank">
 		<div class="gl-dropdown-item-text-wrapper" style="display: flex; align-items: center !important;">
 			${this.getGitKrakenSvg(16, 'mr-2 gl-icon', 'flex: 0 0 auto;')}
 			${label}
@@ -127,7 +127,7 @@ export function injectionScope(url: string) {
 	<div id="gk-code-dropdown-group" class="gl-pl-4 gl-py-2 gl-font-sm gl-font-weight-bold" aria-hidden="true">GitKraken</div>
 	<ul class="gl-mb-0 gl-pl-0 gl-list-style-none" aria-labelledby="gk-code-dropdown-group">
 		<li class="gl-new-dropdown-item" tabindex="0">
-			<a class="gl-new-dropdown-item-content" tabindex="-1" href="${url}" style="align-items: center !important;" target="_blank">
+			<a class="gl-new-dropdown-item-content" tabindex="-1" href="${openUrl}" style="align-items: center !important;" target="_blank">
 				<div class="gl-new-dropdown-item-text-wrapper" style="display: flex; align-items: center !important;">
 					${this.getGitKrakenSvg(16, 'mr-2 gl-icon', 'flex: 0 0 auto;')}
 					<span>${label}</span>
@@ -145,7 +145,7 @@ export function injectionScope(url: string) {
 							html: /*html*/ `<li data-gk class="divider mt-2" role="presentation"></li>
 <li data-gk class="gl-dropdown-item pt-2" role="menuitem">
 	<label class="label-bold gl-px-4">GitKraken</label>
-	<a class="dropdown-item open-with-link" href="${url}" style="align-items: center !important;" target="_blank">
+	<a class="dropdown-item open-with-link" href="${openUrl}" style="align-items: center !important;" target="_blank">
 		<div class="gl-dropdown-item-text-wrapper" style="display: flex; align-items: center !important;">
 			${this.getGitKrakenSvg(16, 'mr-2 gl-icon', 'flex: 0 0 auto;')}
 			<span>${label}</span>
@@ -159,7 +159,7 @@ export function injectionScope(url: string) {
 						insertions.set(
 							'.project-clone-holder .dropdown-menu .gl-dropdown-item:last-child .dropdown-item:last-child',
 							{
-								html: /*html*/ `<a data-gk class="dropdown-item open-with-link" href="${url}" style="align-items: center !important;" target="_blank">
+								html: /*html*/ `<a data-gk class="dropdown-item open-with-link" href="${openUrl}" style="align-items: center !important;" target="_blank">
 	<div class="gl-dropdown-item-text-wrapper" style="display: flex; align-items: center !important;">
 		${this.getGitKrakenSvg(16, 'mr-2 gl-icon', 'flex: 0 0 auto;')}
 		<span>${label}</span>
@@ -217,7 +217,7 @@ export function injectionScope(url: string) {
 
 		// TODO this does not support parsing of gitlab self-hosted relative URLs
 		// https://docs.gitlab.com/ee/install/relative_url.html
-		private parseUrl(url: string): {
+		private parseUrl(rawUrl: string): {
 			owner: string;
 			subgroups: string[];
 			repo: string;
@@ -225,7 +225,7 @@ export function injectionScope(url: string) {
 			rest: string[];
 		} {
 			// remove slash at the end of the pathname
-			const path = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+			const path = rawUrl.endsWith('/') ? rawUrl.substring(0, rawUrl.length - 1) : rawUrl;
 
 			const split = path.split('/');
 			const separatorIndex = split.findIndex(value => value == '-');
@@ -267,10 +267,10 @@ export function injectionScope(url: string) {
 
 			const repoId = '-';
 
-			let url;
+			let redirectUrl: URL | null = null;
 			switch (type) {
 				case 'commit': {
-					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
+					redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
 					break;
 				}
 				case 'compare': {
@@ -279,7 +279,7 @@ export function injectionScope(url: string) {
 					if (!comparisonTarget) {
 						// TODO get the current state of the comparison pickers
 						// currently defaulting to a link to the repo
-						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+						redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
 						break;
 					}
 					const sameOrigin = !comparisonTarget.includes(':');
@@ -287,7 +287,7 @@ export function injectionScope(url: string) {
 						const branches = comparisonTarget.split('...').map(branch => `${owner}/${repo}:${branch}`);
 						comparisonTarget = branches.join('...');
 					}
-					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/compare/${comparisonTarget}`);
+					redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/compare/${comparisonTarget}`);
 					break;
 				}
 				case 'merge_requests': {
@@ -317,33 +317,33 @@ export function injectionScope(url: string) {
 								const baseBranchString = `${baseOwner}/${baseRepo}:${baseBranch.join('/')}`;
 								const prBranchString = `${prOwner}/${prRepo}:${prBranch.join('/')}`;
 
-								url = new URL(
+								redirectUrl = new URL(
 									`${target}://eamodio.gitlens/link/r/${repoId}/compare/${baseBranchString}...${prBranchString}`,
 								);
 							}
 						}
 
-						if (url == null) {
-							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${prBranch.join('/')}`);
+						if (redirectUrl === null) {
+							redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${prBranch.join('/')}`);
 						}
 
-						url.searchParams.set('pr', prNumber);
-						url.searchParams.set('prUrl', this.uri.toString());
+						redirectUrl.searchParams.set('pr', prNumber);
+						redirectUrl.searchParams.set('prUrl', this.uri.toString());
 
 						if (prOwner !== owner || prRepo !== repo) {
 							const prRepoUrl = new URL(this.uri.toString());
 							prRepoUrl.hash = '';
 							prRepoUrl.search = '';
 							prRepoUrl.pathname = `/${owner}/${repo}.git`;
-							url.searchParams.set('prRepoUrl', prRepoUrl.toString());
+							redirectUrl.searchParams.set('prRepoUrl', prRepoUrl.toString());
 
 							owner = prOwner;
 							repo = prRepo;
 						}
 					} else {
-						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
-						url.searchParams.set('pr', prNumber);
-						url.searchParams.set('prUrl', this.uri.toString());
+						redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+						redirectUrl.searchParams.set('pr', prNumber);
+						redirectUrl.searchParams.set('prUrl', this.uri.toString());
 					}
 					break;
 				}
@@ -352,14 +352,14 @@ export function injectionScope(url: string) {
 					// this is currently broken when branches have 40 characters or if you use the short sha of a commit
 					if (rest.length === 1 && rest[0].length === 40) {
 						// commit sha's are 40 characters long
-						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
+						redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
 					} else {
-						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
+						redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
 					}
 					break;
 				}
 				default: {
-					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+					redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
 					break;
 				}
 			}
@@ -369,8 +369,8 @@ export function injectionScope(url: string) {
 			remoteUrl.search = '';
 			remoteUrl.pathname = `/${owner}/${repo}.git`;
 
-			url.searchParams.set('url', remoteUrl.toString());
-			return url.toString();
+			redirectUrl.searchParams.set('url', remoteUrl.toString());
+			return redirectUrl.toString();
 		}
 
 		private getGitKrakenSvg(size: number, classes?: string, style?: string) {

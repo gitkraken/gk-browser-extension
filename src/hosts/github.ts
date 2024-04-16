@@ -21,8 +21,8 @@ export function injectionScope(url: string) {
 				this.render();
 			});
 
-			this._domObserver = new MutationObserver((e: MutationRecord[]) => {
-				const portalchange = e.find(e => e.target && (e.target as HTMLElement).id === '__primerPortalRoot__');
+			this._domObserver = new MutationObserver((mutationRecord: MutationRecord[]) => {
+				const portalchange = mutationRecord.find(e => e.target && (e.target as HTMLElement).id === '__primerPortalRoot__');
 				if (portalchange) {
 					if (this._domTimer != null) {
 						return;
@@ -69,14 +69,14 @@ export function injectionScope(url: string) {
 			const insertions = new Map<string, { html: string; position: InsertPosition }>();
 
 			const label = 'Open with GitKraken';
-			const url = this.transformUrl('open');
+			const openUrl = this.transformUrl('open');
 
 			const [, , , type] = this.uri.pathname.split('/');
 			switch (type) {
 				case 'commit':
 					insertions.set('.commit > * #browse-at-time-link', {
 						// This is inside a flexbox, so ml-auto adds a ballooning margin that pushes the element to the right
-						html: /*html*/ `<a data-gk class="btn px-2 ml-auto flex-self-start" style="padding-top:2px !important; padding-bottom:1px !important;" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
+						html: /*html*/ `<a data-gk class="btn px-2 ml-auto flex-self-start" style="padding-top:2px !important; padding-bottom:1px !important;" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
 							22,
 							undefined,
 							'position:relative; top:2px;',
@@ -86,7 +86,7 @@ export function injectionScope(url: string) {
 
 					// For GitHub Enterprise 3.11.2
 					insertions.set('.commit > #browse-at-time-link', {
-						html: /*html*/ `<a data-gk class="btn mr-2 px-2 float-right" style="padding-top:2px !important; padding-bottom:1px !important;" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
+						html: /*html*/ `<a data-gk class="btn mr-2 px-2 float-right" style="padding-top:2px !important; padding-bottom:1px !important;" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
 							22,
 							undefined,
 							'position:relative; top:2px;',
@@ -97,7 +97,7 @@ export function injectionScope(url: string) {
 					break;
 				case 'compare':
 					insertions.set('.js-range-editor', {
-						html: /*html*/ `<a data-gk class="btn mr-2 px-2 float-right" style="padding-top:2px !important; padding-bottom:1px !important;" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
+						html: /*html*/ `<a data-gk class="btn mr-2 px-2 float-right" style="padding-top:2px !important; padding-bottom:1px !important;" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
 							22,
 							undefined,
 							'position:relative; top:2px;',
@@ -111,7 +111,7 @@ export function injectionScope(url: string) {
 
 					insertions.set('[data-target="get-repo.modal"] #local-panel ul li:first-child', {
 						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
-	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
+	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">
 		${this.getGitKrakenSvg(16, 'mr-2')}
 		${label}
 	</a>
@@ -127,7 +127,7 @@ export function injectionScope(url: string) {
 
 					insertions.set('#__primerPortalRoot__ > div > div > div > ul > div > ul > li:first-child', {
 						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
-	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
+	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">
 		${this.getGitKrakenSvg(16, 'mr-2')}
 		${label}
 	</a>
@@ -148,7 +148,7 @@ export function injectionScope(url: string) {
 					// Enterpise v3.11.2
 					insertions.set('[data-target="get-repo.modal"] ul li:last-child', {
 						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
-	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
+	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">
 		${this.getGitKrakenSvg(16, 'mr-2')}
 		${label}
 	</a>
@@ -158,7 +158,7 @@ export function injectionScope(url: string) {
 
 					insertions.set('[data-target="get-repo.modal"] #local-panel ul li:first-child', {
 						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
-	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
+	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">
 		${this.getGitKrakenSvg(16, 'mr-2')}
 		${label}
 	</a>
@@ -168,7 +168,7 @@ export function injectionScope(url: string) {
 
 					insertions.set('#__primerPortalRoot__ > div > div > div > ul > div > ul > li:first-child', {
 						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
-	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
+	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">
 		${this.getGitKrakenSvg(16, 'mr-2')}
 		${label}
 	</a>
@@ -179,7 +179,7 @@ export function injectionScope(url: string) {
 					break;
 				default: {
 					insertions.set('.file-navigation get-repo', {
-						html: /*html*/ `<a data-gk class="btn mr-2 px-2 py-0" href="${url}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
+						html: /*html*/ `<a data-gk class="btn mr-2 px-2 py-0" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
 							22,
 							undefined,
 							'position:relative; top:2px;',
@@ -188,7 +188,7 @@ export function injectionScope(url: string) {
 					});
 					insertions.set('[data-target="get-repo.modal"] #local-panel ul li:first-child', {
 						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
-	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
+	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">
 		${this.getGitKrakenSvg(16, 'mr-2')}
 		${label}
 	</a>
@@ -198,7 +198,7 @@ export function injectionScope(url: string) {
 
 					insertions.set('#__primerPortalRoot__ > div > div > div > ul > div > ul > li:first-child', {
 						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
-	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${url}" target="_blank" title="${label}" aria-label="${label}">
+	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">
 		${this.getGitKrakenSvg(16, 'mr-2')}
 		${label}
 	</a>
@@ -268,15 +268,15 @@ export function injectionScope(url: string) {
 
 			const repoId = '-';
 
-			let url;
+			let redirectUrl: URL | null = null;
 			switch (type) {
 				case 'commit':
-					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
+					redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
 					break;
 				case 'compare': {
 					let comparisonTarget = rest.join('/');
 					if (!comparisonTarget) {
-						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+						redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
 						break;
 					}
 					const sameOrigin = !comparisonTarget.includes(':');
@@ -284,7 +284,7 @@ export function injectionScope(url: string) {
 						const branches = comparisonTarget.split('...').map(branch => `${owner}/${repo}:${branch}`);
 						comparisonTarget = branches.join('...');
 					}
-					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/compare/${comparisonTarget}`);
+					redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/compare/${comparisonTarget}`);
 					break;
 				}
 				case 'pull': {
@@ -305,33 +305,33 @@ export function injectionScope(url: string) {
 								const baseBranchString = `${baseOwner}/${baseRepo}:${baseBranch.join('/')}`;
 								const prBranchString = `${prOwner}/${prRepo}:${prBranch.join('/')}`;
 
-								url = new URL(
+								redirectUrl = new URL(
 									`${target}://eamodio.gitlens/link/r/${repoId}/compare/${baseBranchString}...${prBranchString}`,
 								);
 							}
 						}
 
-						if (url == null) {
-							url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${prBranch.join('/')}`);
+						if (redirectUrl === null) {
+							redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${prBranch.join('/')}`);
 						}
 
-						url.searchParams.set('pr', prNumber);
-						url.searchParams.set('prUrl', this.uri.toString());
+						redirectUrl.searchParams.set('pr', prNumber);
+						redirectUrl.searchParams.set('prUrl', this.uri.toString());
 
 						if (prOwner !== owner || prRepo !== repo) {
 							const prRepoUrl = new URL(this.uri.toString());
 							prRepoUrl.hash = '';
 							prRepoUrl.search = '';
 							prRepoUrl.pathname = `/${owner}/${repo}.git`;
-							url.searchParams.set('prRepoUrl', prRepoUrl.toString());
+							redirectUrl.searchParams.set('prRepoUrl', prRepoUrl.toString());
 
 							owner = prOwner;
 							repo = prRepo;
 						}
 					} else {
-						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
-						url.searchParams.set('pr', prNumber);
-						url.searchParams.set('prUrl', this.uri.toString());
+						redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+						redirectUrl.searchParams.set('pr', prNumber);
+						redirectUrl.searchParams.set('prUrl', this.uri.toString());
 					}
 					break;
 				}
@@ -340,14 +340,14 @@ export function injectionScope(url: string) {
 					// this is currently broken when branches have 40 characters or if you use the short sha of a commit
 					if (rest.length === 1 && rest[0].length === 40) {
 						// commit sha's are 40 characters long
-						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
+						redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/c/${rest.join('/')}`);
 					} else {
-						url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
+						redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${rest.join('/')}`);
 					}
 					break;
 				}
 				default:
-					url = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
+					redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);
 					break;
 			}
 
@@ -356,8 +356,8 @@ export function injectionScope(url: string) {
 			remoteUrl.search = '';
 			remoteUrl.pathname = `/${owner}/${repo}.git`;
 
-			url.searchParams.set('url', remoteUrl.toString());
-			return url.toString();
+			redirectUrl.searchParams.set('url', remoteUrl.toString());
+			return redirectUrl.toString();
 		}
 
 		private getGitKrakenSvg(size: number, classes?: string, style?: string) {
