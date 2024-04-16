@@ -94,12 +94,7 @@ export const FocusView = () => {
 				<div className="focus-view-text-filter">
 					<i className="fa-regular fa-search icon text-xl" />
 					<input
-						onChange={e => {
-							// Extension popups will automatically grow but not automatically shrink. This
-							// forces the popup to resize when the amount of content changes.
-							document.documentElement.style.height = '0';
-							setFilterString(e.target.value);
-						}}
+						onChange={e => setFilterString(e.target.value)}
 						placeholder="Search for pull requests"
 						value={filterString}
 					/>
