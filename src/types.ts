@@ -9,16 +9,30 @@ export interface User {
 	username: string;
 }
 
-export enum Provider {
-	GITHUB_ENTERPRISE = 'githubEnterprise',
-	GITLAB_SELF_HOSTED = 'gitlabSelfHosted',
-}
+// providers: "github" "gitlab" "azure" "bitbucket" "jira" "trello"
+export type Provider =
+	| 'github'
+	| 'gitlab'
+	| 'azure'
+	| 'bitbucket'
+	| 'jira'
+	| 'trello'
+	| 'githubEnterprise'
+	| 'gitlabSelfHosted';
 
 export interface ProviderConnection {
 	provider: Provider;
 	type: string;
 	domain?: string; // NOTE: This could include the protocol scheme
 }
+
+export type ProviderToken = {
+	accessToken: string;
+	domain: string;
+	expiresIn: number;
+	scopes: string;
+	type: 'oauth' | 'pat';
+};
 
 // NOTE: domain here is actually a domain name, not a URI
 export type EnterpriseProviderConnection = ProviderConnection & Required<Pick<ProviderConnection, 'domain'>>;

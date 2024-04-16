@@ -8,7 +8,6 @@ import { injectionScope as inject_gitlab } from './hosts/gitlab';
 import { refreshPermissions } from './permissions-helper';
 import { getEnterpriseConnections, PermissionsGrantedMessage, PopupInitMessage } from './shared';
 import type { CacheContext } from './types';
-import { Provider } from './types';
 
 interface InjectionDomains {
 	github: string[];
@@ -53,10 +52,10 @@ async function computeInjectionDomains(context: CacheContext) {
 	const enterpriseConnections = await getEnterpriseConnections(context);
 	if (enterpriseConnections) {
 		for (const connection of enterpriseConnections) {
-			if (connection.provider === Provider.GITHUB_ENTERPRISE) {
+			if (connection.provider === 'githubEnterprise') {
 				injectionDomains.github.push(connection.domain);
 			}
-			if (connection.provider === Provider.GITLAB_SELF_HOSTED) {
+			if (connection.provider === 'gitlabSelfHosted') {
 				injectionDomains.gitlab.push(connection.domain);
 			}
 		}
