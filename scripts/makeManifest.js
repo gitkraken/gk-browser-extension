@@ -18,7 +18,7 @@ const manifestBase = {
 		48: 'icons/gk-grey-48.png',
 		128: 'icons/gk-grey-128.png',
 	},
-	permissions: ['cookies', 'scripting', 'webNavigation'],
+	permissions: ['cookies', 'scripting', 'storage', 'webNavigation'],
 	host_permissions: [
 		'*://*.github.com/*',
 		'*://*.gitlab.com/*',

@@ -22,7 +22,9 @@ export function injectionScope(url: string) {
 			});
 
 			this._domObserver = new MutationObserver((mutationRecord: MutationRecord[]) => {
-				const portalchange = mutationRecord.find(e => e.target && (e.target as HTMLElement).id === '__primerPortalRoot__');
+				const portalchange = mutationRecord.find(
+					e => e.target && (e.target as HTMLElement).id === '__primerPortalRoot__',
+				);
 				if (portalchange) {
 					if (this._domTimer != null) {
 						return;
@@ -312,7 +314,9 @@ export function injectionScope(url: string) {
 						}
 
 						if (redirectUrl === null) {
-							redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${prBranch.join('/')}`);
+							redirectUrl = new URL(
+								`${target}://eamodio.gitlens/link/r/${repoId}/b/${prBranch.join('/')}`,
+							);
 						}
 
 						redirectUrl.searchParams.set('pr', prNumber);

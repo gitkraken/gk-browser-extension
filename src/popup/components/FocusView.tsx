@@ -2,6 +2,7 @@ import type { GitPullRequest, PullRequestBucket } from '@gitkraken/provider-apis
 import { GitHub, GitProviderUtils } from '@gitkraken/provider-apis';
 import React, { useEffect, useState } from 'react';
 import { fetchProviderToken } from '../../gkApi';
+import { DefaultCacheTimeMinutes, sessionCachedFetch } from '../../shared';
 
 const PullRequestRow = ({ pullRequest }: { pullRequest: GitPullRequest }) => {
 	return (
@@ -39,24 +40,34 @@ export const FocusView = () => {
 
 	useEffect(() => {
 		const loadData = async () => {
-			const githubToken = await fetchProviderToken('github');
-			if (!githubToken) {
-				setLoadingPullRequests(false);
-				return;
-			}
+			const focusViewData = await sessionCachedFetch('focusViewData', DefaultCacheTimeMinutes, async () => {
+				const githubToken = await fetchProviderToken('github');
+				if (!githubToken) {
+					return null;
+				}
 
-			const providerClient = new GitHub({ token: githubToken.accessToken });
-			const { data: providerUser } = await providerClient.getCurrentUser();
-			if (!providerUser.username) {
-				setLoadingPullRequests(false);
-				return;
-			}
+				const providerClient = new GitHub({ token: githubToken.accessToken });
+				const { data: providerUser } = await providerClient.getCurrentUser();
+				if (!providerUser.username) {
+					return null;
+				}
 
-			const { data: pullRequests } = await providerClient.getPullRequestsAssociatedWithUser({
-				username: providerUser.username,
+				const { data: pullRequests } = await providerClient.getPullRequestsAssociatedWithUser({
+					username: providerUser.username,
+				});
+
+				return { providerUser: providerUser, pullRequests: pullRequests };
 			});
 
-			const bucketsMap = GitProviderUtils.groupPullRequestsIntoBuckets(pullRequests, providerUser);
+			if (!focusViewData) {
+				setLoadingPullRequests(false);
+				return;
+			}
+
+			const bucketsMap = GitProviderUtils.groupPullRequestsIntoBuckets(
+				focusViewData.pullRequests,
+				focusViewData.providerUser,
+			);
 			const buckets = Object.values(bucketsMap)
 				.filter(bucket => bucket.pullRequests.length)
 				.sort((a, b) => a.priority - b.priority);

@@ -324,7 +324,9 @@ export function injectionScope(url: string) {
 						}
 
 						if (redirectUrl === null) {
-							redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${prBranch.join('/')}`);
+							redirectUrl = new URL(
+								`${target}://eamodio.gitlens/link/r/${repoId}/b/${prBranch.join('/')}`,
+							);
 						}
 
 						redirectUrl.searchParams.set('pr', prNumber);

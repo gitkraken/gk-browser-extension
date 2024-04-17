@@ -1,6 +1,6 @@
-import { cookies } from 'webextension-polyfill';
+import { cookies, storage } from 'webextension-polyfill';
 import { checkOrigins } from './permissions-helper';
-import { updateExtensionIcon } from './shared';
+import { DefaultCacheTimeMinutes, sessionCachedFetch, updateExtensionIcon } from './shared';
 import type { Provider, ProviderConnection, ProviderToken, User } from './types';
 
 declare const MODE: 'production' | 'development' | 'none';
@@ -9,10 +9,16 @@ const gkApiUrl = MODE === 'production' ? 'https://api.gitkraken.dev' : 'https://
 const accessTokenCookieUrl = 'https://gitkraken.dev';
 const accessTokenCookieName = MODE === 'production' ? 'accessToken' : 'devAccessToken';
 
+const onLoggedOut = () => {
+	void updateExtensionIcon(false);
+	void storage.session.clear();
+};
+
 const getAccessToken = async () => {
 	// Check if the user has granted permission to GitKraken.dev
 	if (!(await checkOrigins(['gitkraken.dev']))) {
 		// If not, just assume we're logged out
+		onLoggedOut();
 		return undefined;
 	}
 
@@ -22,29 +28,42 @@ const getAccessToken = async () => {
 		name: accessTokenCookieName,
 	});
 
+	if (!cookie?.value) {
+		onLoggedOut();
+	}
+
 	return cookie?.value;
 };
 
 export const fetchUser = async () => {
 	const token = await getAccessToken();
 	if (!token) {
+		onLoggedOut();
 		return null;
 	}
 
-	const res = await fetch(`${gkApiUrl}/user`, {
-		headers: {
-			Authorization: `Bearer ${token}`,
-		},
+	// Since the user object is unlikely to change, we can cache it for much longer than other data
+	const user = await sessionCachedFetch('user', 60 * 12 /* 12 hours */, async () => {
+		const res = await fetch(`${gkApiUrl}/user`, {
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		});
+
+		if (!res.ok) {
+			return null;
+		}
+
+		return res.json() as Promise<User>;
 	});
 
-	if (!res.ok) {
+	if (!user) {
+		onLoggedOut();
 		return null;
 	}
 
 	void updateExtensionIcon(true);
-
-	const user = await res.json();
-	return user as User;
+	return user;
 };
 
 export const logoutUser = async () => {
@@ -70,6 +89,7 @@ export const logoutUser = async () => {
 		name: accessTokenCookieName,
 	});
 
+	await storage.session.clear();
 	await updateExtensionIcon(false);
 };
 
@@ -79,18 +99,20 @@ export const fetchProviderConnections = async () => {
 		return null;
 	}
 
-	const res = await fetch(`${gkApiUrl}/v1/provider-tokens/`, {
-		headers: {
-			Authorization: `Bearer ${token}`,
-		},
+	return sessionCachedFetch('providerConnections', DefaultCacheTimeMinutes, async () => {
+		const res = await fetch(`${gkApiUrl}/v1/provider-tokens/`, {
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		});
+
+		if (!res.ok) {
+			return null;
+		}
+
+		const payload = await res.json();
+		return payload.data as ProviderConnection[];
 	});
-
-	if (!res.ok) {
-		return null;
-	}
-
-	const payload = await res.json();
-	return payload.data as ProviderConnection[];
 };
 
 export const fetchProviderToken = async (provider: Provider) => {
