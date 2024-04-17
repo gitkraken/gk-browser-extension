@@ -1,6 +1,7 @@
 import type { GitPullRequest, PullRequestBucket } from '@gitkraken/provider-apis';
 import { GitHub, GitProviderUtils } from '@gitkraken/provider-apis';
 import React, { useEffect, useState } from 'react';
+import { storage } from 'webextension-polyfill';
 import { fetchProviderToken } from '../../gkApi';
 import { DefaultCacheTimeMinutes, sessionCachedFetch } from '../../shared';
 
@@ -9,7 +10,17 @@ const PullRequestRow = ({ pullRequest }: { pullRequest: GitPullRequest }) => {
 		<div className="pull-request">
 			<div className="pull-request-title truncate">{pullRequest.title}</div>
 			<div className="repository-name text-secondary truncate">{pullRequest.repository.name}</div>
-			<a className="pull-request-number text-link" href={pullRequest.url || undefined} target="_blank">
+			<a
+				className="pull-request-number text-link"
+				href={pullRequest.url || undefined}
+				target="_blank"
+				onClick={() => {
+					// Since there is a decent chance that the PR will be acted upon after the user clicks on it,
+					// invalidate the cache so that the PR shows up in the appropriate bucket (or not at all) the
+					// next time the popup is opened.
+					void storage.session.remove('focusViewData');
+				}}
+			>
 				#{pullRequest.number}
 			</a>
 			{/* <a>
