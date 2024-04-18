@@ -2,8 +2,9 @@ import type { GitPullRequest, PullRequestBucket } from '@gitkraken/provider-apis
 import { GitHub, GitProviderUtils } from '@gitkraken/provider-apis';
 import React, { useEffect, useState } from 'react';
 import { storage } from 'webextension-polyfill';
-import { fetchProviderToken } from '../../gkApi';
+import { fetchProviderConnections, fetchProviderToken } from '../../gkApi';
 import { DefaultCacheTimeMinutes, sessionCachedFetch } from '../../shared';
+import { ConnectAProvider } from './ConnectAProvider';
 
 const PullRequestRow = ({ pullRequest }: { pullRequest: GitPullRequest }) => {
 	return (
@@ -45,12 +46,37 @@ const Bucket = ({ bucket }: { bucket: PullRequestBucket }) => {
 };
 
 export const FocusView = () => {
+	const [selectedProvider, setSelectedProvider] = useState<'github'>();
 	const [pullRequestBuckets, setPullRequestBuckets] = useState<PullRequestBucket[]>();
 	const [loadingPullRequests, setLoadingPullRequests] = useState(true);
 	const [filterString, setFilterString] = useState('');
 
 	useEffect(() => {
 		const loadData = async () => {
+			const providerConnections = await fetchProviderConnections();
+
+			const supportedProvider = providerConnections?.find(
+				connection => connection.provider === 'github' && !connection.domain,
+			);
+			if (supportedProvider) {
+				setSelectedProvider(supportedProvider.provider as 'github');
+			} else {
+				setLoadingPullRequests(false);
+				// Clear the cache so that if the user connects a provider, we'll fetch it the next
+				// time the popup is opened.
+				void storage.session.remove('providerConnections');
+			}
+		};
+
+		void loadData();
+	}, []);
+
+	useEffect(() => {
+		const loadData = async () => {
+			if (!selectedProvider) {
+				return;
+			}
+
 			const focusViewData = await sessionCachedFetch('focusViewData', DefaultCacheTimeMinutes, async () => {
 				const githubToken = await fetchProviderToken('github');
 				if (!githubToken) {
@@ -88,7 +114,7 @@ export const FocusView = () => {
 		};
 
 		void loadData();
-	}, []);
+	}, [selectedProvider]);
 
 	const lowercaseFilterString = filterString.toLowerCase().trim();
 	const filteredBuckets = lowercaseFilterString
@@ -108,6 +134,10 @@ export const FocusView = () => {
 				<i className="fa-regular fa-spinner-third fa-spin" />
 			</div>
 		);
+	}
+
+	if (!selectedProvider) {
+		return <ConnectAProvider />;
 	}
 
 	return (

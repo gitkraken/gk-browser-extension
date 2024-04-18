@@ -1,4 +1,5 @@
 import { action, storage } from 'webextension-polyfill';
+import { debug } from './debug';
 import { fetchProviderConnections } from './gkApi';
 import type {
 	CacheContext,
@@ -107,7 +108,12 @@ export const sessionCachedFetch = async <T>(
 	const sessionStorage = await storage.session.get(key);
 	const data = sessionStorage[key] as CachedFetchResponse<T> | undefined;
 	if (data && data.timestamp > Date.now() - cacheTimeMinutes * 60 * 1000) {
+		debug('Cache hit:', key);
 		return data.data;
+	} else if (data) {
+		debug('Cache stale:', key);
+	} else {
+		debug('Cache miss:', key);
 	}
 
 	const newData = await fetchFn();
