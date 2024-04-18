@@ -1,9 +1,11 @@
 import type { GitPullRequest, PullRequestBucket } from '@gitkraken/provider-apis';
-import { GitHub, GitProviderUtils } from '@gitkraken/provider-apis';
+import { GitProviderUtils } from '@gitkraken/provider-apis';
 import React, { useEffect, useState } from 'react';
 import { storage } from 'webextension-polyfill';
-import { fetchProviderConnections, fetchProviderToken } from '../../gkApi';
+import { fetchProviderConnections } from '../../gkApi';
+import { fetchFocusViewData } from '../../providers';
 import { DefaultCacheTimeMinutes, sessionCachedFetch } from '../../shared';
+import type { FocusViewSupportedProvider } from '../../types';
 import { ConnectAProvider } from './ConnectAProvider';
 
 const PullRequestRow = ({ pullRequest }: { pullRequest: GitPullRequest }) => {
@@ -46,7 +48,7 @@ const Bucket = ({ bucket }: { bucket: PullRequestBucket }) => {
 };
 
 export const FocusView = () => {
-	const [selectedProvider, setSelectedProvider] = useState<'github'>();
+	const [selectedProvider, setSelectedProvider] = useState<FocusViewSupportedProvider>();
 	const [pullRequestBuckets, setPullRequestBuckets] = useState<PullRequestBucket[]>();
 	const [loadingPullRequests, setLoadingPullRequests] = useState(true);
 	const [filterString, setFilterString] = useState('');
@@ -56,10 +58,11 @@ export const FocusView = () => {
 			const providerConnections = await fetchProviderConnections();
 
 			const supportedProvider = providerConnections?.find(
-				connection => connection.provider === 'github' && !connection.domain,
+				connection =>
+					(connection.provider === 'github' || connection.provider === 'gitlab') && !connection.domain,
 			);
 			if (supportedProvider) {
-				setSelectedProvider(supportedProvider.provider as 'github');
+				setSelectedProvider(supportedProvider.provider as FocusViewSupportedProvider);
 			} else {
 				setLoadingPullRequests(false);
 				// Clear the cache so that if the user connects a provider, we'll fetch it the next
@@ -77,24 +80,9 @@ export const FocusView = () => {
 				return;
 			}
 
-			const focusViewData = await sessionCachedFetch('focusViewData', DefaultCacheTimeMinutes, async () => {
-				const githubToken = await fetchProviderToken('github');
-				if (!githubToken) {
-					return null;
-				}
-
-				const providerClient = new GitHub({ token: githubToken.accessToken });
-				const { data: providerUser } = await providerClient.getCurrentUser();
-				if (!providerUser.username) {
-					return null;
-				}
-
-				const { data: pullRequests } = await providerClient.getPullRequestsAssociatedWithUser({
-					username: providerUser.username,
-				});
-
-				return { providerUser: providerUser, pullRequests: pullRequests };
-			});
+			const focusViewData = await sessionCachedFetch('focusViewData', DefaultCacheTimeMinutes, () =>
+				fetchFocusViewData(selectedProvider),
+			);
 
 			if (!focusViewData) {
 				setLoadingPullRequests(false);

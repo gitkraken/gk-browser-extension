@@ -20,6 +20,8 @@ export type Provider =
 	| 'githubEnterprise'
 	| 'gitlabSelfHosted';
 
+export type FocusViewSupportedProvider = 'github' | 'gitlab';
+
 export interface ProviderConnection {
 	provider: Provider;
 	type: string;

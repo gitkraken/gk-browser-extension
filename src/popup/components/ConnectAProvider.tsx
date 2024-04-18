@@ -10,7 +10,7 @@ export const ConnectAProvider = () => {
 					Integration Settings
 				</a>
 				<div className="text-sm text-secondary italic">
-					*Only GitHub is currently supported. More support currently in development.
+					*Only GitHub and GitLab are currently supported. More support currently in development.
 				</div>
 			</div>
 		</div>
