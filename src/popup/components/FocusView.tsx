@@ -59,7 +59,10 @@ export const FocusView = () => {
 
 			const supportedProvider = providerConnections?.find(
 				connection =>
-					(connection.provider === 'github' || connection.provider === 'gitlab') && !connection.domain,
+					(connection.provider === 'github' ||
+						connection.provider === 'gitlab' ||
+						connection.provider === 'bitbucket') &&
+					!connection.domain,
 			);
 			if (supportedProvider) {
 				setSelectedProvider(supportedProvider.provider as FocusViewSupportedProvider);

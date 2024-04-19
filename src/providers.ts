@@ -1,4 +1,4 @@
-import { GitHub, GitLab } from '@gitkraken/provider-apis';
+import { Bitbucket, GitHub, GitLab } from '@gitkraken/provider-apis';
 import { fetchProviderToken } from './gkApi';
 import type { FocusViewSupportedProvider, Provider } from './types';
 
@@ -32,6 +32,18 @@ const fetchGitLabFocusViewData = async (token: string) => {
 	return { providerUser: providerUser, pullRequests: pullRequests };
 };
 
+const fetchBitbucketFocusViewData = async (token: string) => {
+	const bitbucket = new Bitbucket({ token: token });
+
+	const { data: providerUser } = await bitbucket.getCurrentUser();
+
+	const { data: pullRequests } = await bitbucket.getPullRequestsForUser({
+		userId: providerUser.id,
+	});
+
+	return { providerUser: providerUser, pullRequests: pullRequests };
+};
+
 export const fetchFocusViewData = async (provider: FocusViewSupportedProvider) => {
 	const providerToken = await fetchProviderToken(provider);
 	if (!providerToken) {
@@ -43,6 +55,8 @@ export const fetchFocusViewData = async (provider: FocusViewSupportedProvider) =
 			return fetchGitHubFocusViewData(providerToken.accessToken);
 		case 'gitlab':
 			return fetchGitLabFocusViewData(providerToken.accessToken);
+		case 'bitbucket':
+			return fetchBitbucketFocusViewData(providerToken.accessToken);
 		default:
 			throw new Error(`Attempted to fetch pull requests for unsupported provider: ${provider as Provider}`);
 	}
