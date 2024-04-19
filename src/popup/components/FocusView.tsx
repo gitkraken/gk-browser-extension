@@ -3,7 +3,7 @@ import { GitProviderUtils } from '@gitkraken/provider-apis';
 import React, { useEffect, useState } from 'react';
 import { storage } from 'webextension-polyfill';
 import { fetchProviderConnections } from '../../gkApi';
-import { fetchFocusViewData } from '../../providers';
+import { fetchFocusViewData, ProviderMeta } from '../../providers';
 import { DefaultCacheTimeMinutes, sessionCachedFetch } from '../../shared';
 import type { FocusViewSupportedProvider } from '../../types';
 import { ConnectAProvider } from './ConnectAProvider';
@@ -48,6 +48,7 @@ const Bucket = ({ bucket }: { bucket: PullRequestBucket }) => {
 };
 
 export const FocusView = () => {
+	const [connectedProviders, setConnectedProviders] = useState<FocusViewSupportedProvider[]>([]);
 	const [selectedProvider, setSelectedProvider] = useState<FocusViewSupportedProvider>();
 	const [pullRequestBuckets, setPullRequestBuckets] = useState<PullRequestBucket[]>();
 	const [loadingPullRequests, setLoadingPullRequests] = useState(true);
@@ -55,18 +56,32 @@ export const FocusView = () => {
 
 	useEffect(() => {
 		const loadData = async () => {
-			const providerConnections = await fetchProviderConnections();
+			const [providerConnections, { focusViewSelectedProvider: savedSelectedProvider }] = await Promise.all([
+				fetchProviderConnections(),
+				storage.local.get('focusViewSelectedProvider'),
+			]);
 
-			const supportedProvider = providerConnections?.find(
-				connection =>
-					(connection.provider === 'github' ||
-						connection.provider === 'gitlab' ||
-						connection.provider === 'bitbucket' ||
-						connection.provider === 'azure') &&
-					!connection.domain,
-			);
-			if (supportedProvider) {
-				setSelectedProvider(supportedProvider.provider as FocusViewSupportedProvider);
+			const supportedProviders = (providerConnections || [])
+				.filter(
+					connection =>
+						(connection.provider === 'github' ||
+							connection.provider === 'gitlab' ||
+							connection.provider === 'bitbucket' ||
+							connection.provider === 'azure') &&
+						!connection.domain,
+				)
+				.map(connection => connection.provider as FocusViewSupportedProvider);
+
+			setConnectedProviders(supportedProviders);
+
+			if (supportedProviders && supportedProviders.length > 0) {
+				const providerToSelect =
+					savedSelectedProvider && supportedProviders.includes(savedSelectedProvider)
+						? (savedSelectedProvider as FocusViewSupportedProvider)
+						: supportedProviders[0];
+
+				setSelectedProvider(providerToSelect);
+				void storage.local.set({ focusViewSelectedProvider: providerToSelect });
 			} else {
 				setLoadingPullRequests(false);
 				// Clear the cache so that if the user connects a provider, we'll fetch it the next
@@ -84,6 +99,7 @@ export const FocusView = () => {
 				return;
 			}
 
+			setLoadingPullRequests(true);
 			const focusViewData = await sessionCachedFetch('focusViewData', DefaultCacheTimeMinutes, () =>
 				fetchFocusViewData(selectedProvider),
 			);
@@ -120,6 +136,12 @@ export const FocusView = () => {
 				.filter(bucket => bucket.pullRequests.length)
 		: pullRequestBuckets;
 
+	const onProviderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+		void storage.session.remove('focusViewData');
+		void storage.local.set({ focusViewSelectedProvider: e.target.value });
+		setSelectedProvider(e.target.value as FocusViewSupportedProvider);
+	};
+
 	if (loadingPullRequests) {
 		return (
 			<div className="focus-view text-center">
@@ -145,6 +167,18 @@ export const FocusView = () => {
 					{filterString && (
 						<i className="fa-regular fa-times icon text-xl" onClick={() => setFilterString('')} />
 					)}
+				</div>
+			)}
+			{connectedProviders.length > 1 && selectedProvider && (
+				<div className="provider-select text-secondary">
+					PRs: <img src={ProviderMeta[selectedProvider].iconSrc} height={14} />
+					<select className="text-secondary" value={selectedProvider} onChange={onProviderChange}>
+						{connectedProviders.map(provider => (
+							<option key={provider} value={provider}>
+								{ProviderMeta[provider].name}
+							</option>
+						))}
+					</select>
 				</div>
 			)}
 			<div className="pull-request-buckets">

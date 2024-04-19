@@ -2,6 +2,13 @@ import { AzureDevOps, Bitbucket, GitHub, GitLab } from '@gitkraken/provider-apis
 import { fetchProviderToken } from './gkApi';
 import type { FocusViewSupportedProvider, Provider } from './types';
 
+export const ProviderMeta: Record<FocusViewSupportedProvider, { name: string; iconSrc: string }> = {
+	github: { name: 'GitHub', iconSrc: 'img/github-color.svg' },
+	gitlab: { name: 'GitLab', iconSrc: 'img/gitlab-color.svg' },
+	bitbucket: { name: 'Bitbucket', iconSrc: 'img/bitbucket-color.svg' },
+	azure: { name: 'Azure DevOps', iconSrc: 'img/azure-color.svg' },
+};
+
 const fetchGitHubFocusViewData = async (token: string) => {
 	const github = new GitHub({ token: token });
 
