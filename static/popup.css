@@ -142,7 +142,7 @@ html {
 	display: flex;
 	flex-direction: column;
 }
-.connect-provider-prompt {
+.connect-provider-container .connect-provider-prompt {
 	width: 420px;
 	margin-top: 158px;
 	padding: 20px;
@@ -152,9 +152,28 @@ html {
 	backdrop-filter: blur(2px);
 	display: flex;
 	flex-direction: column;
+	align-items: center;
 }
-.connect-provider-prompt > *:not(:last-child) {
+.connect-provider-container .connect-provider-prompt > *:not(:last-child) {
 	margin-bottom: 16px;
+}
+.connect-provider-container .connect-provider-prompt .provider-buttons {
+	display: flex;
+}
+.connect-provider-container .connect-provider-prompt .provider-buttons > *:not(:last-child) {
+	margin-right: 8px;
+}
+.connect-provider-container .connect-provider-prompt .provider-buttons .provider-button {
+	width: 90px;
+	height: 90px;
+	background-color: var(--color-bg-02);
+	border-radius: 4px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+.connect-provider-container .connect-provider-prompt .provider-buttons .provider-button img {
+	margin-bottom: 8px;
 }
 
 /* Focus View - Filter Input */
