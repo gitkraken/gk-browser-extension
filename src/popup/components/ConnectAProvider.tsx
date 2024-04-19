@@ -10,7 +10,7 @@ export const ConnectAProvider = () => {
 					Integration Settings
 				</a>
 				<div className="text-sm text-secondary italic">
-					*Only GitHub, GitLab, and Bitbucket are currently supported. More support currently in development.
+					*Only cloud-hosted providers are currently supported.
 				</div>
 			</div>
 		</div>

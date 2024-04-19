@@ -61,7 +61,8 @@ export const FocusView = () => {
 				connection =>
 					(connection.provider === 'github' ||
 						connection.provider === 'gitlab' ||
-						connection.provider === 'bitbucket') &&
+						connection.provider === 'bitbucket' ||
+						connection.provider === 'azure') &&
 					!connection.domain,
 			);
 			if (supportedProvider) {

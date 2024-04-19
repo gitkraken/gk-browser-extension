@@ -1,4 +1,4 @@
-import { Bitbucket, GitHub, GitLab } from '@gitkraken/provider-apis';
+import { AzureDevOps, Bitbucket, GitHub, GitLab } from '@gitkraken/provider-apis';
 import { fetchProviderToken } from './gkApi';
 import type { FocusViewSupportedProvider, Provider } from './types';
 
@@ -44,6 +44,26 @@ const fetchBitbucketFocusViewData = async (token: string) => {
 	return { providerUser: providerUser, pullRequests: pullRequests };
 };
 
+const fetchAzureFocusViewData = async (token: string) => {
+	const azureDevOps = new AzureDevOps({ token: token });
+
+	// Getting a user's PRs requires getting their projects, which requires getting their organizations
+	const { data: providerUser } = await azureDevOps.getCurrentUser();
+
+	const { data: providerOrgs } = await azureDevOps.getOrgsForUser({ userId: providerUser.id });
+
+	const projectsResponses = await Promise.all(
+		providerOrgs.map(org => azureDevOps.getAzureProjects({ namespace: org.name })),
+	);
+	const projects = projectsResponses.flatMap(response => response.data);
+
+	const { data: pullRequests } = await azureDevOps.getPullRequestsForProjects({
+		projects: projects.map(project => ({ ...project, project: project.name })),
+	});
+
+	return { providerUser: providerUser, pullRequests: pullRequests };
+};
+
 export const fetchFocusViewData = async (provider: FocusViewSupportedProvider) => {
 	const providerToken = await fetchProviderToken(provider);
 	if (!providerToken) {
@@ -57,6 +77,8 @@ export const fetchFocusViewData = async (provider: FocusViewSupportedProvider) =
 			return fetchGitLabFocusViewData(providerToken.accessToken);
 		case 'bitbucket':
 			return fetchBitbucketFocusViewData(providerToken.accessToken);
+		case 'azure':
+			return fetchAzureFocusViewData(providerToken.accessToken);
 		default:
 			throw new Error(`Attempted to fetch pull requests for unsupported provider: ${provider as Provider}`);
 	}
