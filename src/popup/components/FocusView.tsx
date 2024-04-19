@@ -51,7 +51,8 @@ export const FocusView = () => {
 	const [connectedProviders, setConnectedProviders] = useState<FocusViewSupportedProvider[]>([]);
 	const [selectedProvider, setSelectedProvider] = useState<FocusViewSupportedProvider>();
 	const [pullRequestBuckets, setPullRequestBuckets] = useState<PullRequestBucket[]>();
-	const [loadingPullRequests, setLoadingPullRequests] = useState(true);
+	const [isFirstLoad, setIsFirstLoad] = useState(true);
+	const [isLoadingPullRequests, setIsLoadingPullRequests] = useState(true);
 	const [filterString, setFilterString] = useState('');
 
 	useEffect(() => {
@@ -83,7 +84,7 @@ export const FocusView = () => {
 				setSelectedProvider(providerToSelect);
 				void storage.local.set({ focusViewSelectedProvider: providerToSelect });
 			} else {
-				setLoadingPullRequests(false);
+				setIsLoadingPullRequests(false);
 				// Clear the cache so that if the user connects a provider, we'll fetch it the next
 				// time the popup is opened.
 				void storage.session.remove('providerConnections');
@@ -99,13 +100,14 @@ export const FocusView = () => {
 				return;
 			}
 
-			setLoadingPullRequests(true);
+			setIsLoadingPullRequests(true);
 			const focusViewData = await sessionCachedFetch('focusViewData', DefaultCacheTimeMinutes, () =>
 				fetchFocusViewData(selectedProvider),
 			);
 
 			if (!focusViewData) {
-				setLoadingPullRequests(false);
+				setIsLoadingPullRequests(false);
+				setIsFirstLoad(false);
 				return;
 			}
 
@@ -118,7 +120,8 @@ export const FocusView = () => {
 				.sort((a, b) => a.priority - b.priority);
 
 			setPullRequestBuckets(buckets);
-			setLoadingPullRequests(false);
+			setIsLoadingPullRequests(false);
+			setIsFirstLoad(false);
 		};
 
 		void loadData();
@@ -140,9 +143,10 @@ export const FocusView = () => {
 		void storage.session.remove('focusViewData');
 		void storage.local.set({ focusViewSelectedProvider: e.target.value });
 		setSelectedProvider(e.target.value as FocusViewSupportedProvider);
+		setFilterString('');
 	};
 
-	if (loadingPullRequests) {
+	if (isFirstLoad) {
 		return (
 			<div className="focus-view text-center">
 				<i className="fa-regular fa-spinner-third fa-spin" />
@@ -160,6 +164,7 @@ export const FocusView = () => {
 				<div className="focus-view-text-filter">
 					<i className="fa-regular fa-search icon text-xl" />
 					<input
+						disabled={isLoadingPullRequests}
 						onChange={e => setFilterString(e.target.value)}
 						placeholder="Search for pull requests"
 						value={filterString}
@@ -172,7 +177,12 @@ export const FocusView = () => {
 			{connectedProviders.length > 1 && selectedProvider && (
 				<div className="provider-select text-secondary">
 					PRs: <img src={ProviderMeta[selectedProvider].iconSrc} height={14} />
-					<select className="text-secondary" value={selectedProvider} onChange={onProviderChange}>
+					<select
+						className="text-secondary"
+						value={selectedProvider}
+						onChange={onProviderChange}
+						disabled={isLoadingPullRequests}
+					>
 						{connectedProviders.map(provider => (
 							<option key={provider} value={provider}>
 								{ProviderMeta[provider].name}
@@ -181,9 +191,15 @@ export const FocusView = () => {
 					</select>
 				</div>
 			)}
-			<div className="pull-request-buckets">
-				{filteredBuckets?.map(bucket => <Bucket key={bucket.id} bucket={bucket} />)}
-			</div>
+			{isLoadingPullRequests ? (
+				<div className="text-center">
+					<i className="fa-regular fa-spinner-third fa-spin" />
+				</div>
+			) : (
+				<div className="pull-request-buckets">
+					{filteredBuckets?.map(bucket => <Bucket key={bucket.id} bucket={bucket} />)}
+				</div>
+			)}
 		</div>
 	);
 };
