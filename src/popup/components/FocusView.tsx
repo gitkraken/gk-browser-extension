@@ -5,7 +5,7 @@ import { storage } from 'webextension-polyfill';
 import { fetchProviderConnections } from '../../gkApi';
 import { fetchFocusViewData, ProviderMeta } from '../../providers';
 import { DefaultCacheTimeMinutes, sessionCachedFetch } from '../../shared';
-import type { FocusViewSupportedProvider } from '../../types';
+import type { FocusViewData, FocusViewSupportedProvider } from '../../types';
 import { ConnectAProvider } from './ConnectAProvider';
 
 const PullRequestRow = ({ pullRequest }: { pullRequest: GitPullRequest }) => {
@@ -101,9 +101,15 @@ export const FocusView = () => {
 			}
 
 			setIsLoadingPullRequests(true);
-			const focusViewData = await sessionCachedFetch('focusViewData', DefaultCacheTimeMinutes, () =>
-				fetchFocusViewData(selectedProvider),
-			);
+
+			let focusViewData: FocusViewData | null = null;
+			try {
+				focusViewData = await sessionCachedFetch('focusViewData', DefaultCacheTimeMinutes, () =>
+					fetchFocusViewData(selectedProvider),
+				);
+			} catch (e) {
+				// If there was an error, fall through to the next if block to at least end the loading state.
+			}
 
 			if (!focusViewData) {
 				setIsLoadingPullRequests(false);
@@ -160,7 +166,7 @@ export const FocusView = () => {
 
 	return (
 		<div className="focus-view">
-			{pullRequestBuckets && (
+			{selectedProvider && (
 				<div className="focus-view-text-filter">
 					<i className="fa-regular fa-search icon text-xl" />
 					<input
@@ -174,7 +180,7 @@ export const FocusView = () => {
 					)}
 				</div>
 			)}
-			{connectedProviders.length > 1 && selectedProvider && (
+			{selectedProvider && connectedProviders.length > 1 && (
 				<div className="provider-select text-secondary">
 					PRs: <img src={ProviderMeta[selectedProvider].iconSrc} height={14} />
 					<select
