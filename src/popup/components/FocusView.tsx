@@ -1,14 +1,26 @@
 import type { GitPullRequest, PullRequestBucket } from '@gitkraken/provider-apis';
 import { GitHub, GitProviderUtils } from '@gitkraken/provider-apis';
 import React, { useEffect, useState } from 'react';
+import { storage } from 'webextension-polyfill';
 import { fetchProviderToken } from '../../gkApi';
+import { DefaultCacheTimeMinutes, sessionCachedFetch } from '../../shared';
 
 const PullRequestRow = ({ pullRequest }: { pullRequest: GitPullRequest }) => {
 	return (
 		<div className="pull-request">
 			<div className="pull-request-title truncate">{pullRequest.title}</div>
 			<div className="repository-name text-secondary truncate">{pullRequest.repository.name}</div>
-			<a className="pull-request-number text-link" href={pullRequest.url || undefined} target="_blank">
+			<a
+				className="pull-request-number text-link"
+				href={pullRequest.url || undefined}
+				target="_blank"
+				onClick={() => {
+					// Since there is a decent chance that the PR will be acted upon after the user clicks on it,
+					// invalidate the cache so that the PR shows up in the appropriate bucket (or not at all) the
+					// next time the popup is opened.
+					void storage.session.remove('focusViewData');
+				}}
+			>
 				#{pullRequest.number}
 			</a>
 			{/* <a>
@@ -39,24 +51,34 @@ export const FocusView = () => {
 
 	useEffect(() => {
 		const loadData = async () => {
-			const githubToken = await fetchProviderToken('github');
-			if (!githubToken) {
-				setLoadingPullRequests(false);
-				return;
-			}
+			const focusViewData = await sessionCachedFetch('focusViewData', DefaultCacheTimeMinutes, async () => {
+				const githubToken = await fetchProviderToken('github');
+				if (!githubToken) {
+					return null;
+				}
 
-			const providerClient = new GitHub({ token: githubToken.accessToken });
-			const { data: providerUser } = await providerClient.getCurrentUser();
-			if (!providerUser.username) {
-				setLoadingPullRequests(false);
-				return;
-			}
+				const providerClient = new GitHub({ token: githubToken.accessToken });
+				const { data: providerUser } = await providerClient.getCurrentUser();
+				if (!providerUser.username) {
+					return null;
+				}
 
-			const { data: pullRequests } = await providerClient.getPullRequestsAssociatedWithUser({
-				username: providerUser.username,
+				const { data: pullRequests } = await providerClient.getPullRequestsAssociatedWithUser({
+					username: providerUser.username,
+				});
+
+				return { providerUser: providerUser, pullRequests: pullRequests };
 			});
 
-			const bucketsMap = GitProviderUtils.groupPullRequestsIntoBuckets(pullRequests, providerUser);
+			if (!focusViewData) {
+				setLoadingPullRequests(false);
+				return;
+			}
+
+			const bucketsMap = GitProviderUtils.groupPullRequestsIntoBuckets(
+				focusViewData.pullRequests,
+				focusViewData.providerUser,
+			);
 			const buckets = Object.values(bucketsMap)
 				.filter(bucket => bucket.pullRequests.length)
 				.sort((a, b) => a.priority - b.priority);

@@ -40,3 +40,10 @@ export type EnterpriseProviderConnection = ProviderConnection & Required<Pick<Pr
 export interface CacheContext {
 	enterpriseConnectionsCache?: EnterpriseProviderConnection[];
 }
+
+export type SessionCacheKey = 'user' | 'providerConnections' | 'focusViewData';
+
+export type CachedFetchResponse<T> = {
+	data: T;
+	timestamp: number;
+};

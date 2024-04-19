@@ -1,6 +1,12 @@
-import { action } from 'webextension-polyfill';
+import { action, storage } from 'webextension-polyfill';
 import { fetchProviderConnections } from './gkApi';
-import type { CacheContext, EnterpriseProviderConnection, ProviderConnection } from './types';
+import type {
+	CacheContext,
+	CachedFetchResponse,
+	EnterpriseProviderConnection,
+	ProviderConnection,
+	SessionCacheKey,
+} from './types';
 
 declare const MODE: 'production' | 'development' | 'none';
 
@@ -90,3 +96,24 @@ export async function getEnterpriseConnections(context: CacheContext) {
 		return enterpriseConnections;
 	});
 }
+
+export const DefaultCacheTimeMinutes = 30;
+
+export const sessionCachedFetch = async <T>(
+	key: SessionCacheKey,
+	cacheTimeMinutes: number,
+	fetchFn: () => Promise<T>,
+) => {
+	const sessionStorage = await storage.session.get(key);
+	const data = sessionStorage[key] as CachedFetchResponse<T> | undefined;
+	if (data && data.timestamp > Date.now() - cacheTimeMinutes * 60 * 1000) {
+		return data.data;
+	}
+
+	const newData = await fetchFn();
+	if (newData) {
+		await storage.session.set({ [key]: { data: newData, timestamp: Date.now() } });
+	}
+
+	return newData;
+};
