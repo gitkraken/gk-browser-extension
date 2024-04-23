@@ -1,4 +1,4 @@
-import type { Account, GitPullRequest } from '@gitkraken/provider-apis';
+import type { Account, GitPullRequest, PullRequestBucket } from '@gitkraken/provider-apis';
 
 export interface User {
 	email: string;
@@ -24,9 +24,17 @@ export type Provider =
 
 export type FocusViewSupportedProvider = 'github' | 'gitlab' | 'bitbucket' | 'azure';
 
+export type GitPullRequestWithUniqueID = GitPullRequest & { uniqueId: string };
+
+export type PullRequestBucketWithUniqueIDs = Omit<PullRequestBucket, 'pullRequests'> & {
+	pullRequests: GitPullRequestWithUniqueID[];
+};
+
+export type PullRequestDraftCounts = Record<string, { count: number } | undefined>;
+
 export type FocusViewData = {
 	providerUser: Account;
-	pullRequests: GitPullRequest[];
+	pullRequests: GitPullRequestWithUniqueID[];
 };
 
 export interface ProviderConnection {
@@ -50,7 +58,7 @@ export interface CacheContext {
 	enterpriseConnectionsCache?: EnterpriseProviderConnection[];
 }
 
-export type SessionCacheKey = 'user' | 'providerConnections' | 'focusViewData';
+export type SessionCacheKey = 'user' | 'providerConnections' | 'focusViewData' | 'focusViewDraftCounts';
 
 export type CachedFetchResponse<T> = {
 	data: T;

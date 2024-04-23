@@ -1,7 +1,7 @@
 import { cookies, storage } from 'webextension-polyfill';
 import { checkOrigins } from './permissions-helper';
 import { DefaultCacheTimeMinutes, sessionCachedFetch, updateExtensionIcon } from './shared';
-import type { Provider, ProviderConnection, ProviderToken, User } from './types';
+import type { Provider, ProviderConnection, ProviderToken, PullRequestDraftCounts, User } from './types';
 
 declare const MODE: 'production' | 'development' | 'none';
 
@@ -139,4 +139,22 @@ export const fetchProviderToken = async (provider: Provider) => {
 
 	const payload = await res.json();
 	return payload.data as ProviderToken;
+};
+
+export const fetchDraftCounts = async (prUniqueIds: string[]) => {
+	const token = await getAccessToken();
+	if (!token) {
+		return null;
+	}
+
+	const res = await fetch(`${gkApiUrl}/v1/drafts/counts?type=suggested_pr_change`, {
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+		method: 'POST',
+		body: JSON.stringify({ prEntityIds: prUniqueIds }),
+	});
+
+	const payload = await res.json();
+	return payload.data as { counts: PullRequestDraftCounts };
 };

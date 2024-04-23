@@ -1,39 +1,66 @@
-import type { GitPullRequest, PullRequestBucket } from '@gitkraken/provider-apis';
+import type { PullRequestBucket } from '@gitkraken/provider-apis';
 import { GitProviderUtils } from '@gitkraken/provider-apis';
 import React, { useEffect, useState } from 'react';
 import { storage } from 'webextension-polyfill';
-import { fetchProviderConnections } from '../../gkApi';
+import { fetchDraftCounts, fetchProviderConnections } from '../../gkApi';
 import { fetchFocusViewData, ProviderMeta } from '../../providers';
-import { DefaultCacheTimeMinutes, sessionCachedFetch } from '../../shared';
-import type { FocusViewData, FocusViewSupportedProvider } from '../../types';
+import { DefaultCacheTimeMinutes, GKDotDevUrl, sessionCachedFetch } from '../../shared';
+import type {
+	FocusViewData,
+	FocusViewSupportedProvider,
+	GitPullRequestWithUniqueID,
+	PullRequestBucketWithUniqueIDs,
+} from '../../types';
 import { ConnectAProvider } from './ConnectAProvider';
 
-const PullRequestRow = ({ pullRequest }: { pullRequest: GitPullRequest }) => {
+type PullRequestRowProps = {
+	pullRequest: GitPullRequestWithUniqueID;
+	draftCount?: number;
+};
+
+const PullRequestRow = ({ pullRequest, draftCount = 0 }: PullRequestRowProps) => {
 	return (
-		<div className="pull-request">
-			<div className="pull-request-title truncate">{pullRequest.title}</div>
-			<div className="repository-name text-secondary truncate">{pullRequest.repository.name}</div>
-			<a
-				className="pull-request-number text-link"
-				href={pullRequest.url || undefined}
-				target="_blank"
-				onClick={() => {
-					// Since there is a decent chance that the PR will be acted upon after the user clicks on it,
-					// invalidate the cache so that the PR shows up in the appropriate bucket (or not at all) the
-					// next time the popup is opened.
-					void storage.session.remove('focusViewData');
-				}}
-			>
-				#{pullRequest.number}
-			</a>
-			{/* <a>
+		<>
+			<div className="pull-request">
+				<div className="pull-request-title truncate">{pullRequest.title}</div>
+				<div className="repository-name text-secondary truncate">{pullRequest.repository.name}</div>
+				<a
+					className="pull-request-number text-link"
+					href={pullRequest.url || undefined}
+					target="_blank"
+					onClick={() => {
+						// Since there is a decent chance that the PR will be acted upon after the user clicks on it,
+						// invalidate the cache so that the PR shows up in the appropriate bucket (or not at all) the
+						// next time the popup is opened.
+						void storage.session.remove('focusViewData');
+					}}
+				>
+					#{pullRequest.number}
+				</a>
+				{/* <a>
 				<i className="fa-brands fa-gitkraken icon text-link" />
 			</a> */}
-		</div>
+			</div>
+			{draftCount > 0 && (
+				<a
+					className="pr-drafts-badge text-disabled"
+					href={`${GKDotDevUrl}/drafts/suggested-change/${encodeURIComponent(pullRequest.uniqueId)}`}
+					target="_blank"
+				>
+					<i className="fa-regular fa-message-code icon" />
+					Code Suggestion{draftCount === 1 ? '' : 's'}
+				</a>
+			)}
+		</>
 	);
 };
 
-const Bucket = ({ bucket }: { bucket: PullRequestBucket }) => {
+type BucketProps = {
+	bucket: PullRequestBucketWithUniqueIDs;
+	prDraftCountsByEntityID: Record<string, { count: number } | undefined>;
+};
+
+const Bucket = ({ bucket, prDraftCountsByEntityID }: BucketProps) => {
 	return (
 		<div className="pull-request-bucket">
 			<div className="pull-request-bucket-header text-sm text-secondary bold">
@@ -41,7 +68,11 @@ const Bucket = ({ bucket }: { bucket: PullRequestBucket }) => {
 				{bucket.name}
 			</div>
 			{bucket.pullRequests.map(pullRequest => (
-				<PullRequestRow key={pullRequest.id} pullRequest={pullRequest} />
+				<PullRequestRow
+					key={pullRequest.id}
+					pullRequest={pullRequest}
+					draftCount={prDraftCountsByEntityID[pullRequest.uniqueId]?.count}
+				/>
 			))}
 		</div>
 	);
@@ -50,6 +81,9 @@ const Bucket = ({ bucket }: { bucket: PullRequestBucket }) => {
 export const FocusView = () => {
 	const [connectedProviders, setConnectedProviders] = useState<FocusViewSupportedProvider[]>([]);
 	const [selectedProvider, setSelectedProvider] = useState<FocusViewSupportedProvider>();
+	const [prDraftCountsByEntityID, setPRDraftCountsByEntityID] = useState<
+		Record<string, { count: number } | undefined>
+	>({});
 	const [pullRequestBuckets, setPullRequestBuckets] = useState<PullRequestBucket[]>();
 	const [isFirstLoad, setIsFirstLoad] = useState(true);
 	const [isLoadingPullRequests, setIsLoadingPullRequests] = useState(true);
@@ -129,6 +163,19 @@ export const FocusView = () => {
 			setPullRequestBuckets(buckets);
 			setIsLoadingPullRequests(false);
 			setIsFirstLoad(false);
+
+			if (selectedProvider === 'github' && focusViewData.pullRequests.length) {
+				const draftCounts = await sessionCachedFetch('focusViewDraftCounts', DefaultCacheTimeMinutes, () => {
+					if (!focusViewData) {
+						return null;
+					}
+					const prUniqueIds = focusViewData.pullRequests.map(pr => pr.uniqueId);
+					return fetchDraftCounts(prUniqueIds);
+				});
+				if (draftCounts) {
+					setPRDraftCountsByEntityID(draftCounts.counts);
+				}
+			}
 		};
 
 		void loadData();
@@ -147,7 +194,7 @@ export const FocusView = () => {
 		: pullRequestBuckets;
 
 	const onProviderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-		void storage.session.remove('focusViewData');
+		void storage.session.remove(['focusViewData', 'focusViewDraftCounts']);
 		void storage.local.set({ focusViewSelectedProvider: e.target.value });
 		setSelectedProvider(e.target.value as FocusViewSupportedProvider);
 		setFilterString('');
@@ -204,7 +251,13 @@ export const FocusView = () => {
 				</div>
 			) : (
 				<div className="pull-request-buckets">
-					{filteredBuckets?.map(bucket => <Bucket key={bucket.id} bucket={bucket} />)}
+					{filteredBuckets?.map(bucket => (
+						<Bucket
+							key={bucket.id}
+							bucket={bucket as PullRequestBucketWithUniqueIDs}
+							prDraftCountsByEntityID={prDraftCountsByEntityID}
+						/>
+					))}
 				</div>
 			)}
 		</div>
