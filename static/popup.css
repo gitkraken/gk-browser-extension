@@ -8,6 +8,7 @@
 
 	--color-text-primary: #0d1017;
 	--color-text-secondary: #63717c;
+	--color-text-disabled: #63717c;
 	--color-link: #009e78;
 
 	--color-bg-primary: #ebebeb;
@@ -252,6 +253,17 @@ html {
 .focus-view .pull-request-bucket .pull-request .pull-request-number {
 	width: 64px;
 }
+.focus-view .pull-request-bucket .pr-drafts-badge {
+	border: 1px solid var(--color-border-input);
+	border-radius: 12px;
+	padding: 4px 8px;
+	display: flex;
+	align-items: center;
+	width: fit-content;
+}
+.focus-view .pull-request-bucket .pr-drafts-badge .icon {
+	margin-right: 4px;
+}
 
 /* Generic components */
 button.icon-btn {
@@ -280,6 +292,9 @@ button.icon-btn {
 }
 .text-secondary {
 	color: var(--color-text-secondary);
+}
+.text-disabled {
+	color: var(--color-text-disabled);
 }
 .text-link {
 	color: var(--color-link);

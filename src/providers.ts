@@ -6,7 +6,7 @@ export const ProviderMeta: Record<FocusViewSupportedProvider, { name: string; ic
 	github: { name: 'GitHub', iconSrc: 'img/github-color.svg' },
 	gitlab: { name: 'GitLab', iconSrc: 'img/gitlab-color.svg' },
 	bitbucket: { name: 'Bitbucket', iconSrc: 'img/bitbucket-color.svg' },
-	azure: { name: 'Azure DevOps', iconSrc: 'img/azure-color.svg' },
+	azure: { name: 'Azure DevOps', iconSrc: 'img/azuredevops-color.svg' },
 };
 
 const fetchGitHubFocusViewData = async (token: string) => {
@@ -21,7 +21,13 @@ const fetchGitHubFocusViewData = async (token: string) => {
 		username: providerUser.username,
 	});
 
-	return { providerUser: providerUser, pullRequests: pullRequests };
+	return {
+		providerUser: providerUser,
+		pullRequests: pullRequests.map(pr => ({
+			...pr,
+			uniqueId: JSON.stringify(['github', 'pr', '1', '', pr.graphQLId || pr.id]),
+		})),
+	};
 };
 
 const fetchGitLabFocusViewData = async (token: string) => {
@@ -36,7 +42,7 @@ const fetchGitLabFocusViewData = async (token: string) => {
 		username: providerUser.username,
 	});
 
-	return { providerUser: providerUser, pullRequests: pullRequests };
+	return { providerUser: providerUser, pullRequests: pullRequests.map(pr => ({ ...pr, uniqueId: '' })) };
 };
 
 const fetchBitbucketFocusViewData = async (token: string) => {
@@ -48,7 +54,7 @@ const fetchBitbucketFocusViewData = async (token: string) => {
 		userId: providerUser.id,
 	});
 
-	return { providerUser: providerUser, pullRequests: pullRequests };
+	return { providerUser: providerUser, pullRequests: pullRequests.map(pr => ({ ...pr, uniqueId: '' })) };
 };
 
 const fetchAzureFocusViewData = async (token: string) => {
@@ -68,7 +74,7 @@ const fetchAzureFocusViewData = async (token: string) => {
 		projects: projects.map(project => ({ ...project, project: project.name })),
 	});
 
-	return { providerUser: providerUser, pullRequests: pullRequests };
+	return { providerUser: providerUser, pullRequests: pullRequests.map(pr => ({ ...pr, uniqueId: '' })) };
 };
 
 export const fetchFocusViewData = async (provider: FocusViewSupportedProvider): Promise<FocusViewData | null> => {

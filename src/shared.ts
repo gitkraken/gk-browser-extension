@@ -103,7 +103,7 @@ export const DefaultCacheTimeMinutes = 30;
 export const sessionCachedFetch = async <T>(
 	key: SessionCacheKey,
 	cacheTimeMinutes: number,
-	fetchFn: () => Promise<T>,
+	fetchFn: () => Promise<T> | T,
 ) => {
 	const sessionStorage = await storage.session.get(key);
 	const data = sessionStorage[key] as CachedFetchResponse<T> | undefined;
