@@ -85,6 +85,7 @@ export const FocusView = () => {
 				void storage.local.set({ focusViewSelectedProvider: providerToSelect });
 			} else {
 				setIsLoadingPullRequests(false);
+				setIsFirstLoad(false);
 				// Clear the cache so that if the user connects a provider, we'll fetch it the next
 				// time the popup is opened.
 				void storage.session.remove('providerConnections');
