@@ -1,3 +1,5 @@
+import type { Account, GitPullRequest } from '@gitkraken/provider-apis';
+
 export interface User {
 	email: string;
 	name?: string;
@@ -19,6 +21,13 @@ export type Provider =
 	| 'trello'
 	| 'githubEnterprise'
 	| 'gitlabSelfHosted';
+
+export type FocusViewSupportedProvider = 'github' | 'gitlab' | 'bitbucket' | 'azure';
+
+export type FocusViewData = {
+	providerUser: Account;
+	pullRequests: GitPullRequest[];
+};
 
 export interface ProviderConnection {
 	provider: Provider;

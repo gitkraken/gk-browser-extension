@@ -32,6 +32,12 @@ const getAccessToken = async () => {
 		onLoggedOut();
 	}
 
+	const { previousToken } = await storage.session.get('previousToken');
+	if (cookie?.value !== previousToken) {
+		await storage.session.clear();
+		await storage.session.set({ previousToken: cookie?.value });
+	}
+
 	return cookie?.value;
 };
 

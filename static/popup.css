@@ -131,7 +131,52 @@ html {
 	border-radius: 50%;
 }
 
-/* Focus View */
+/* Focus View - Connect a Provider */
+.connect-provider-container {
+	height: 100%;
+	background-image: url('img/keif-sign-in.png');
+	background-size: 416px;
+	background-repeat: no-repeat;
+	background-position-x: 210px;
+	background-position-y: 80px;
+	display: flex;
+	flex-direction: column;
+}
+.connect-provider-container .connect-provider-prompt {
+	width: 420px;
+	margin-top: 158px;
+	padding: 20px;
+	background-color: var(--color-bg-glass);
+	border: 1px solid var(--color-border-row);
+	border-radius: 6px;
+	backdrop-filter: blur(2px);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+.connect-provider-container .connect-provider-prompt > *:not(:last-child) {
+	margin-bottom: 16px;
+}
+.connect-provider-container .connect-provider-prompt .provider-buttons {
+	display: flex;
+}
+.connect-provider-container .connect-provider-prompt .provider-buttons > *:not(:last-child) {
+	margin-right: 8px;
+}
+.connect-provider-container .connect-provider-prompt .provider-buttons .provider-button {
+	width: 90px;
+	height: 90px;
+	background-color: var(--color-bg-02);
+	border-radius: 4px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+.connect-provider-container .connect-provider-prompt .provider-buttons .provider-button img {
+	margin-bottom: 8px;
+}
+
+/* Focus View - Filter Input */
 .focus-view .focus-view-text-filter {
 	display: flex;
 	align-items: center;
@@ -156,6 +201,26 @@ html {
 	right: 16px;
 }
 
+/* Focus View - Provider Dropdown */
+.focus-view .provider-select {
+	display: inline-block;
+	border: 1px solid var(--color-border-input);
+	padding: 4px 12px;
+	border-radius: 14px;
+	display: flex;
+	align-items: center;
+	width: fit-content;
+	margin-bottom: 12px;
+}
+.focus-view .provider-select img {
+	margin-left: 4px;
+}
+.focus-view .provider-select select {
+	background: none;
+	border: none;
+}
+
+/* Focus View - Pull Request Buckets */
 .focus-view .pull-request-bucket:not(:first-child) {
 	margin-top: 24px;
 }
@@ -224,6 +289,9 @@ button.icon-btn {
 }
 .bold {
 	font-weight: var(--font-weight-bold);
+}
+.italic {
+	font-style: italic;
 }
 
 .bg-02 {
