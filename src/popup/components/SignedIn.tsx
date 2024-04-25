@@ -45,11 +45,11 @@ export const SignedIn = ({ permissionsRequest, user }: { permissionsRequest?: Pe
 						<div>{user.name || user.username}</div>
 						<div className="text-sm text-secondary">{user.email}</div>
 					</div>
-					<a href={GKDotDevUrl} target="_blank">
+					<a href={GKDotDevUrl} target="_blank" title="Open gitkraken.dev">
 						<i className="fa-regular fa-arrow-up-right-from-square icon text-lg" />
 					</a>
 				</div>
-				<button className="icon-btn" onClick={onSignOutClick}>
+				<button className="icon-btn" onClick={onSignOutClick} title="Sign out">
 					<i className="fa-regular fa-right-from-bracket icon text-lg" />
 				</button>
 			</div>

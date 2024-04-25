@@ -15,10 +15,11 @@ import { ConnectAProvider } from './ConnectAProvider';
 
 type PullRequestRowProps = {
 	pullRequest: GitPullRequestWithUniqueID;
+	provider: FocusViewSupportedProvider;
 	draftCount?: number;
 };
 
-const PullRequestRow = ({ pullRequest, draftCount = 0 }: PullRequestRowProps) => {
+const PullRequestRow = ({ pullRequest, provider, draftCount = 0 }: PullRequestRowProps) => {
 	return (
 		<>
 			<div className="pull-request">
@@ -34,6 +35,7 @@ const PullRequestRow = ({ pullRequest, draftCount = 0 }: PullRequestRowProps) =>
 						// next time the popup is opened.
 						void storage.session.remove('focusViewData');
 					}}
+					title={`View pull request on ${ProviderMeta[provider].name}`}
 				>
 					#{pullRequest.number}
 				</a>
@@ -46,6 +48,7 @@ const PullRequestRow = ({ pullRequest, draftCount = 0 }: PullRequestRowProps) =>
 					className="pr-drafts-badge text-disabled"
 					href={`${GKDotDevUrl}/drafts/suggested-change/${encodeURIComponent(pullRequest.uniqueId)}`}
 					target="_blank"
+					title={`View code suggestion${draftCount === 1 ? '' : 's'} on gitkraken.dev`}
 				>
 					<i className="fa-regular fa-message-code icon" />
 					Code Suggestion{draftCount === 1 ? '' : 's'}
@@ -57,10 +60,11 @@ const PullRequestRow = ({ pullRequest, draftCount = 0 }: PullRequestRowProps) =>
 
 type BucketProps = {
 	bucket: PullRequestBucketWithUniqueIDs;
+	provider: FocusViewSupportedProvider;
 	prDraftCountsByEntityID: Record<string, { count: number } | undefined>;
 };
 
-const Bucket = ({ bucket, prDraftCountsByEntityID }: BucketProps) => {
+const Bucket = ({ bucket, provider, prDraftCountsByEntityID }: BucketProps) => {
 	return (
 		<div className="pull-request-bucket">
 			<div className="pull-request-bucket-header text-sm text-secondary bold">
@@ -71,6 +75,7 @@ const Bucket = ({ bucket, prDraftCountsByEntityID }: BucketProps) => {
 				<PullRequestRow
 					key={pullRequest.id}
 					pullRequest={pullRequest}
+					provider={provider}
 					draftCount={prDraftCountsByEntityID[pullRequest.uniqueId]?.count}
 				/>
 			))}
@@ -255,6 +260,7 @@ export const FocusView = () => {
 						<Bucket
 							key={bucket.id}
 							bucket={bucket as PullRequestBucketWithUniqueIDs}
+							provider={selectedProvider}
 							prDraftCountsByEntityID={prDraftCountsByEntityID}
 						/>
 					))}
