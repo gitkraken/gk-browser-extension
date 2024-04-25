@@ -1,6 +1,5 @@
 import type { InjectionProvider, LinkTarget } from '../provider';
-
-declare const MODE: 'production' | 'development' | 'none';
+import { GKDotDevUrl } from '../shared';
 
 export function injectionScope(url: string) {
 	class GitHubInjectionProvider implements InjectionProvider {
@@ -253,7 +252,7 @@ export function injectionScope(url: string) {
 		private transformUrl(action: 'open' | 'compare'): string {
 			const redirectUrl = new URL(this.getRedirectUrl('vscode', action));
 			console.debug('redirectUrl', redirectUrl);
-			const deepLinkUrl = MODE === 'production' ? 'https://gitkraken.dev/link' : 'https://dev.gitkraken.dev/link';
+			const deepLinkUrl = `${GKDotDevUrl}/link`;
 			const deepLink = new URL(`${deepLinkUrl}/${encodeURIComponent(btoa(redirectUrl.toString()))}`);
 			deepLink.searchParams.set('referrer', 'extension');
 			if (redirectUrl.searchParams.get('pr')) {
