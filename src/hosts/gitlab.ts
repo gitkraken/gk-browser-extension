@@ -1,7 +1,8 @@
-import type { InjectionProvider, LinkTarget } from '../provider';
-import { GKDotDevUrl } from '../shared';
+// IMPORTANT: Non-type imports cannot be used, only anything contained within the injectionScope function will actually be injected into the page.
 
-export function injectionScope(url: string) {
+import type { InjectionProvider, LinkTarget } from '../provider';
+
+export function injectionScope(url: string, gkDotDevUrl: string) {
 	class GitLabInjectionProvider implements InjectionProvider {
 		private _timer: ReturnType<typeof setTimeout> | undefined;
 		private _observer: MutationObserver | undefined;
@@ -252,7 +253,7 @@ export function injectionScope(url: string) {
 		private transformUrl(action: 'open' | 'compare'): string {
 			const redirectUrl = new URL(this.getRedirectUrl('vscode', action));
 			console.debug('redirectUrl', redirectUrl);
-			const deepLinkUrl = `${GKDotDevUrl}/link`;
+			const deepLinkUrl = `${gkDotDevUrl}/link`;
 			const deepLink = new URL(`${deepLinkUrl}/${encodeURIComponent(btoa(redirectUrl.toString()))}`);
 			deepLink.searchParams.set('referrer', 'extension');
 			if (redirectUrl.searchParams.get('pr')) {

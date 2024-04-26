@@ -1,12 +1,13 @@
+// IMPORTANT: Non-type imports cannot be used, only anything contained within the injectionScope function will actually be injected into the page.
+
 import type { InjectionProvider, LinkTarget } from '../provider';
-import { GKDotDevUrl } from '../shared';
 
 interface ReplaceSelector {
 	selector: string;
 	href: string;
 }
 
-export function injectionScope(url: string) {
+export function injectionScope(url: string, gkDotDevUrl: string) {
 	class AzureDevopsInjectionProvider implements InjectionProvider {
 		private _timer: ReturnType<typeof setTimeout> | undefined;
 		private _observer: MutationObserver | undefined;
@@ -180,7 +181,7 @@ export function injectionScope(url: string) {
 
 		private transformUrl(action: 'open' | 'compare', pathname: string, search: URLSearchParams): string {
 			const redirectUrl = new URL(this.getRedirectUrl('vscode', action, pathname, search));
-			const deepLinkUrl = `${GKDotDevUrl}/link`;
+			const deepLinkUrl = `${gkDotDevUrl}/link`;
 			const deepLink = new URL(`${deepLinkUrl}/${encodeURIComponent(btoa(redirectUrl.toString()))}`);
 			deepLink.searchParams.set('referrer', 'extension');
 			if (redirectUrl.searchParams.get('pr')) {

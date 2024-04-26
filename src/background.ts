@@ -6,7 +6,7 @@ import { injectionScope as inject_bitbucket } from './hosts/bitbucket';
 import { injectionScope as inject_github } from './hosts/github';
 import { injectionScope as inject_gitlab } from './hosts/gitlab';
 import { refreshPermissions } from './permissions-helper';
-import { getEnterpriseConnections, PermissionsGrantedMessage, PopupInitMessage } from './shared';
+import { getEnterpriseConnections, GKDotDevUrl, PermissionsGrantedMessage, PopupInitMessage } from './shared';
 import type { CacheContext } from './types';
 
 interface InjectionDomains {
@@ -73,7 +73,7 @@ async function addInjectionListener(context: CacheContext) {
 			target: { tabId: details.tabId },
 			// injectImmediately: true,
 			func: getInjectionFn(details.url, injectionDomains),
-			args: [details.url],
+			args: [details.url, GKDotDevUrl],
 		});
 	};
 
@@ -86,7 +86,10 @@ function urlHostHasDomain(url: URL, domains: string[]): boolean {
 	return domains.some(domain => url.hostname.endsWith(domain));
 }
 
-function getInjectionFn(rawUrl: string, injectionDomains: InjectionDomains): (url: string) => void {
+function getInjectionFn(
+	rawUrl: string,
+	injectionDomains: InjectionDomains,
+): (url: string, gkDotDevUrl: string) => void {
 	const url = new URL(rawUrl);
 	if (urlHostHasDomain(url, injectionDomains.github)) {
 		return inject_github;
