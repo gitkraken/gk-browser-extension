@@ -46,7 +46,7 @@ const PullRequestRow = ({ pullRequest, provider, draftCount = 0 }: PullRequestRo
 			{draftCount > 0 && (
 				<a
 					className="pr-drafts-badge text-disabled"
-					href={`${GKDotDevUrl}/drafts/suggested-change/${encodeURIComponent(pullRequest.uniqueId)}`}
+					href={`${GKDotDevUrl}/drafts/suggested-change/${encodeURIComponent(btoa(pullRequest.uniqueId))}`}
 					target="_blank"
 					title={`View code suggestion${draftCount === 1 ? '' : 's'} on gitkraken.dev`}
 				>
