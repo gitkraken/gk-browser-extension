@@ -152,6 +152,7 @@ export const FocusView = () => {
 			}
 
 			if (!focusViewData) {
+				setPullRequestBuckets([]);
 				setIsLoadingPullRequests(false);
 				setIsFirstLoad(false);
 				return;

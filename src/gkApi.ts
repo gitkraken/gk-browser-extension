@@ -121,6 +121,27 @@ export const fetchProviderConnections = async () => {
 	});
 };
 
+export const refreshProviderToken = async (provider: Provider) => {
+	const token = await getAccessToken();
+	if (!token) {
+		return null;
+	}
+
+	const res = await fetch(`${gkApiUrl}/v1/provider-tokens/${provider}/refresh`, {
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+		method: 'POST',
+	});
+
+	if (!res.ok) {
+		return null;
+	}
+
+	const payload = await res.json();
+	return payload.data as ProviderToken;
+};
+
 export const fetchProviderToken = async (provider: Provider) => {
 	const token = await getAccessToken();
 	if (!token) {
@@ -138,7 +159,13 @@ export const fetchProviderToken = async (provider: Provider) => {
 	}
 
 	const payload = await res.json();
-	return payload.data as ProviderToken;
+	const providerToken = payload.data as ProviderToken;
+	// Attempt to refresh expired OAuth tokens. Note: GitHub tokens don't expire.
+	if (provider !== 'github' && providerToken.expiresIn < 0 && providerToken.type === 'oauth') {
+		return refreshProviderToken(provider);
+	}
+
+	return providerToken;
 };
 
 export const fetchDraftCounts = async (prUniqueIds: string[]) => {
