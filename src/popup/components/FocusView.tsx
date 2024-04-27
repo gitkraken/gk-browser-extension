@@ -2,6 +2,7 @@ import type { PullRequestBucket } from '@gitkraken/provider-apis';
 import { GitProviderUtils } from '@gitkraken/provider-apis';
 import React, { useEffect, useState } from 'react';
 import { storage } from 'webextension-polyfill';
+import { openGitKrakenDeepLink } from '../../deepLink';
 import { fetchDraftCounts, fetchProviderConnections } from '../../gkApi';
 import { fetchFocusViewData, ProviderMeta } from '../../providers';
 import { DefaultCacheTimeMinutes, GKDotDevUrl, sessionCachedFetch } from '../../shared';
@@ -25,23 +26,31 @@ const PullRequestRow = ({ pullRequest, provider, draftCount = 0 }: PullRequestRo
 			<div className="pull-request">
 				<div className="pull-request-title truncate">{pullRequest.title}</div>
 				<div className="repository-name text-secondary truncate">{pullRequest.repository.name}</div>
-				<a
-					className="pull-request-number text-link"
-					href={pullRequest.url || undefined}
-					target="_blank"
-					onClick={() => {
-						// Since there is a decent chance that the PR will be acted upon after the user clicks on it,
-						// invalidate the cache so that the PR shows up in the appropriate bucket (or not at all) the
-						// next time the popup is opened.
-						void storage.session.remove('focusViewData');
-					}}
-					title={`View pull request on ${ProviderMeta[provider].name}`}
-				>
-					#{pullRequest.number}
-				</a>
-				{/* <a>
-				<i className="fa-brands fa-gitkraken icon text-link" />
-			</a> */}
+				<div className="pull-request-number">
+					<a
+						className="text-link"
+						href={pullRequest.url || undefined}
+						target="_blank"
+						onClick={() => {
+							// Since there is a decent chance that the PR will be acted upon after the user clicks on it,
+							// invalidate the cache so that the PR shows up in the appropriate bucket (or not at all) the
+							// next time the popup is opened.
+							void storage.session.remove('focusViewData');
+						}}
+						title={`View pull request on ${ProviderMeta[provider].name}`}
+					>
+						#{pullRequest.number}
+					</a>
+				</div>
+				{pullRequest.url && (
+					<a
+						href="#"
+						onClick={() => openGitKrakenDeepLink(provider, pullRequest.url)}
+						title="Open with GitKraken"
+					>
+						<i className="fa-brands fa-gitkraken icon text-link text-lg" />
+					</a>
+				)}
 			</div>
 			{draftCount > 0 && (
 				<a

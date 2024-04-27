@@ -253,7 +253,6 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 		private transformUrl(action: 'open' | 'compare'): string {
 			const redirectUrl = new URL(this.getRedirectUrl('vscode', action));
 			console.debug('redirectUrl', redirectUrl);
-			console.log('GKDotDevUrl', gkDotDevUrl);
 			const deepLinkUrl = `${gkDotDevUrl}/link`;
 			const deepLink = new URL(`${deepLinkUrl}/${encodeURIComponent(btoa(redirectUrl.toString()))}`);
 			deepLink.searchParams.set('referrer', 'extension');
