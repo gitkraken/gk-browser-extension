@@ -9,6 +9,7 @@
 		"plugin:@typescript-eslint/stylistic-type-checked",
 		"plugin:import/recommended",
 		"plugin:import/typescript",
+		"plugin:@tanstack/eslint-plugin-query/recommended",
 		"prettier"
 	],
 	"parser": "@typescript-eslint/parser",
