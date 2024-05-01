@@ -45,7 +45,9 @@ const PullRequestRow = ({ pullRequest, provider, draftCount = 0 }: PullRequestRo
 				{pullRequest.url && (
 					<a
 						href="#"
-						onClick={() => openGitKrakenDeepLink(provider, pullRequest.url)}
+						onClick={() => {
+							openGitKrakenDeepLink(provider, pullRequest.url);
+						}}
 						title="Open with GitKraken"
 					>
 						<i className="fa-brands fa-gitkraken icon text-link text-lg" />
@@ -55,7 +57,9 @@ const PullRequestRow = ({ pullRequest, provider, draftCount = 0 }: PullRequestRo
 			{draftCount > 0 && (
 				<a
 					className="pr-drafts-badge text-disabled"
-					href={`${GKDotDevUrl}/drafts/suggested-change/${encodeURIComponent(btoa(pullRequest.uniqueId))}`}
+					href={`${GKDotDevUrl}/drafts/suggested-change/${encodeURIComponent(
+						btoa(pullRequest.uniqueId),
+					)}?source=browserExtension`}
 					target="_blank"
 					title={`View code suggestion${draftCount === 1 ? '' : 's'} on gitkraken.dev`}
 				>
