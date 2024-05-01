@@ -1,26 +1,28 @@
-import type { PullRequestBucket } from '@gitkraken/provider-apis';
 import { GitProviderUtils } from '@gitkraken/provider-apis';
-import React, { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import React, { useEffect, useMemo, useState } from 'react';
 import { storage } from 'webextension-polyfill';
 import { openGitKrakenDeepLink } from '../../deepLink';
-import { fetchDraftCounts, fetchProviderConnections } from '../../gkApi';
-import { fetchFocusViewData, ProviderMeta } from '../../providers';
-import { DefaultCacheTimeMinutes, GKDotDevUrl, sessionCachedFetch } from '../../shared';
+import { ProviderMeta } from '../../providers';
+import { GKDotDevUrl } from '../../shared';
 import type {
-	FocusViewData,
 	FocusViewSupportedProvider,
 	GitPullRequestWithUniqueID,
 	PullRequestBucketWithUniqueIDs,
 } from '../../types';
+import { useFocusViewConnectedProviders, useFocusViewDataQuery, usePullRequestDraftCountsQuery } from '../hooks';
 import { ConnectAProvider } from './ConnectAProvider';
 
 type PullRequestRowProps = {
+	userId: string;
 	pullRequest: GitPullRequestWithUniqueID;
 	provider: FocusViewSupportedProvider;
 	draftCount?: number;
 };
 
-const PullRequestRow = ({ pullRequest, provider, draftCount = 0 }: PullRequestRowProps) => {
+const PullRequestRow = ({ userId, pullRequest, provider, draftCount = 0 }: PullRequestRowProps) => {
+	const queryClient = useQueryClient();
+
 	return (
 		<>
 			<div className="pull-request">
@@ -33,9 +35,8 @@ const PullRequestRow = ({ pullRequest, provider, draftCount = 0 }: PullRequestRo
 						target="_blank"
 						onClick={() => {
 							// Since there is a decent chance that the PR will be acted upon after the user clicks on it,
-							// invalidate the cache so that the PR shows up in the appropriate bucket (or not at all) the
-							// next time the popup is opened.
-							void storage.session.remove('focusViewData');
+							// mark the focus view data as stale so that it will be refetched when the user returns.
+							void queryClient.invalidateQueries({ queryKey: [userId, 'focusViewData', provider] });
 						}}
 						title={`View pull request on ${ProviderMeta[provider].name}`}
 					>
@@ -72,12 +73,13 @@ const PullRequestRow = ({ pullRequest, provider, draftCount = 0 }: PullRequestRo
 };
 
 type BucketProps = {
+	userId: string;
 	bucket: PullRequestBucketWithUniqueIDs;
 	provider: FocusViewSupportedProvider;
-	prDraftCountsByEntityID: Record<string, { count: number } | undefined>;
+	prDraftCountsByEntityID?: Record<string, { count: number } | undefined>;
 };
 
-const Bucket = ({ bucket, provider, prDraftCountsByEntityID }: BucketProps) => {
+const Bucket = ({ userId, bucket, provider, prDraftCountsByEntityID }: BucketProps) => {
 	return (
 		<div className="pull-request-bucket">
 			<div className="pull-request-bucket-header text-sm text-secondary bold">
@@ -87,118 +89,67 @@ const Bucket = ({ bucket, provider, prDraftCountsByEntityID }: BucketProps) => {
 			{bucket.pullRequests.map(pullRequest => (
 				<PullRequestRow
 					key={pullRequest.id}
+					userId={userId}
 					pullRequest={pullRequest}
 					provider={provider}
-					draftCount={prDraftCountsByEntityID[pullRequest.uniqueId]?.count}
+					draftCount={prDraftCountsByEntityID?.[pullRequest.uniqueId]?.count}
 				/>
 			))}
 		</div>
 	);
 };
 
-export const FocusView = () => {
-	const [connectedProviders, setConnectedProviders] = useState<FocusViewSupportedProvider[]>([]);
-	const [selectedProvider, setSelectedProvider] = useState<FocusViewSupportedProvider>();
-	const [prDraftCountsByEntityID, setPRDraftCountsByEntityID] = useState<
-		Record<string, { count: number } | undefined>
-	>({});
-	const [pullRequestBuckets, setPullRequestBuckets] = useState<PullRequestBucket[]>();
-	const [isFirstLoad, setIsFirstLoad] = useState(true);
-	const [isLoadingPullRequests, setIsLoadingPullRequests] = useState(true);
+export const FocusView = ({ userId }: { userId: string }) => {
+	const [selectedProvider, setSelectedProvider] = useState<FocusViewSupportedProvider | null | undefined>();
 	const [filterString, setFilterString] = useState('');
 
+	const connectedProviders = useFocusViewConnectedProviders(userId);
+	const focusViewDataQuery = useFocusViewDataQuery(userId, selectedProvider);
+	const prDraftCountsQuery = usePullRequestDraftCountsQuery(
+		userId,
+		selectedProvider,
+		focusViewDataQuery.data?.pullRequests,
+	);
+
+	// This effect sets which provider is selected after the provider connections are loaded/changed
 	useEffect(() => {
-		const loadData = async () => {
-			const [providerConnections, { focusViewSelectedProvider: savedSelectedProvider }] = await Promise.all([
-				fetchProviderConnections(),
-				storage.local.get('focusViewSelectedProvider'),
-			]);
+		const selectInitialProvider = async () => {
+			if (!connectedProviders) {
+				return;
+			}
 
-			const supportedProviders = (providerConnections || [])
-				.filter(
-					connection =>
-						(connection.provider === 'github' ||
-							connection.provider === 'gitlab' ||
-							connection.provider === 'bitbucket' ||
-							connection.provider === 'azure') &&
-						!connection.domain,
-				)
-				.map(connection => connection.provider as FocusViewSupportedProvider);
+			if (connectedProviders && connectedProviders.length > 0) {
+				const { focusViewSelectedProvider } = await storage.local.get('focusViewSelectedProvider');
 
-			setConnectedProviders(supportedProviders);
-
-			if (supportedProviders && supportedProviders.length > 0) {
 				const providerToSelect =
-					savedSelectedProvider && supportedProviders.includes(savedSelectedProvider)
-						? (savedSelectedProvider as FocusViewSupportedProvider)
-						: supportedProviders[0];
+					focusViewSelectedProvider && connectedProviders.includes(focusViewSelectedProvider)
+						? (focusViewSelectedProvider as FocusViewSupportedProvider)
+						: connectedProviders[0];
 
 				setSelectedProvider(providerToSelect);
 				void storage.local.set({ focusViewSelectedProvider: providerToSelect });
 			} else {
-				setIsLoadingPullRequests(false);
-				setIsFirstLoad(false);
-				// Clear the cache so that if the user connects a provider, we'll fetch it the next
-				// time the popup is opened.
-				void storage.session.remove('providerConnections');
+				setSelectedProvider(null);
+				void storage.local.remove('focusViewSelectedProvider');
 			}
 		};
 
-		void loadData();
-	}, []);
+		void selectInitialProvider();
+	}, [connectedProviders]);
 
-	useEffect(() => {
-		const loadData = async () => {
-			if (!selectedProvider) {
-				return;
-			}
+	const pullRequestBuckets = useMemo(() => {
+		if (!focusViewDataQuery.data) {
+			return null;
+		}
 
-			setIsLoadingPullRequests(true);
-
-			let focusViewData: FocusViewData | null = null;
-			try {
-				focusViewData = await sessionCachedFetch('focusViewData', DefaultCacheTimeMinutes, () =>
-					fetchFocusViewData(selectedProvider),
-				);
-			} catch (e) {
-				// If there was an error, fall through to the next if block to at least end the loading state.
-			}
-
-			if (!focusViewData) {
-				setPullRequestBuckets([]);
-				setIsLoadingPullRequests(false);
-				setIsFirstLoad(false);
-				return;
-			}
-
-			const bucketsMap = GitProviderUtils.groupPullRequestsIntoBuckets(
-				focusViewData.pullRequests,
-				focusViewData.providerUser,
-			);
-			const buckets = Object.values(bucketsMap)
-				.filter(bucket => bucket.pullRequests.length)
-				.sort((a, b) => a.priority - b.priority);
-
-			setPullRequestBuckets(buckets);
-			setIsLoadingPullRequests(false);
-			setIsFirstLoad(false);
-
-			if (selectedProvider === 'github' && focusViewData.pullRequests.length) {
-				const draftCounts = await sessionCachedFetch('focusViewDraftCounts', DefaultCacheTimeMinutes, () => {
-					if (!focusViewData) {
-						return null;
-					}
-					const prUniqueIds = focusViewData.pullRequests.map(pr => pr.uniqueId);
-					return fetchDraftCounts(prUniqueIds);
-				});
-				if (draftCounts) {
-					setPRDraftCountsByEntityID(draftCounts.counts);
-				}
-			}
-		};
-
-		void loadData();
-	}, [selectedProvider]);
+		const bucketsMap = GitProviderUtils.groupPullRequestsIntoBuckets(
+			focusViewDataQuery.data.pullRequests,
+			focusViewDataQuery.data.providerUser,
+		);
+		return Object.values(bucketsMap)
+			.filter(bucket => bucket.pullRequests.length)
+			.sort((a, b) => a.priority - b.priority);
+	}, [focusViewDataQuery.data]);
 
 	const lowercaseFilterString = filterString.toLowerCase().trim();
 	const filteredBuckets = lowercaseFilterString
@@ -213,13 +164,12 @@ export const FocusView = () => {
 		: pullRequestBuckets;
 
 	const onProviderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-		void storage.session.remove(['focusViewData', 'focusViewDraftCounts']);
 		void storage.local.set({ focusViewSelectedProvider: e.target.value });
 		setSelectedProvider(e.target.value as FocusViewSupportedProvider);
 		setFilterString('');
 	};
 
-	if (isFirstLoad) {
+	if (selectedProvider === undefined) {
 		return (
 			<div className="focus-view text-center">
 				<i className="fa-regular fa-spinner-third fa-spin" />
@@ -237,7 +187,7 @@ export const FocusView = () => {
 				<div className="focus-view-text-filter">
 					<i className="fa-regular fa-search icon text-xl" />
 					<input
-						disabled={isLoadingPullRequests}
+						disabled={focusViewDataQuery.isLoading}
 						onChange={e => setFilterString(e.target.value)}
 						placeholder="Search for pull requests"
 						value={filterString}
@@ -247,14 +197,14 @@ export const FocusView = () => {
 					)}
 				</div>
 			)}
-			{selectedProvider && connectedProviders.length > 1 && (
+			{selectedProvider && connectedProviders && connectedProviders.length > 1 && (
 				<div className="provider-select text-secondary">
 					PRs: <img src={ProviderMeta[selectedProvider].iconSrc} height={14} />
 					<select
 						className="text-secondary"
 						value={selectedProvider}
 						onChange={onProviderChange}
-						disabled={isLoadingPullRequests}
+						disabled={focusViewDataQuery.isLoading}
 					>
 						{connectedProviders.map(provider => (
 							<option key={provider} value={provider}>
@@ -264,7 +214,7 @@ export const FocusView = () => {
 					</select>
 				</div>
 			)}
-			{isLoadingPullRequests ? (
+			{focusViewDataQuery.isLoading ? (
 				<div className="text-center">
 					<i className="fa-regular fa-spinner-third fa-spin" />
 				</div>
@@ -273,9 +223,10 @@ export const FocusView = () => {
 					{filteredBuckets?.map(bucket => (
 						<Bucket
 							key={bucket.id}
+							userId={userId}
 							bucket={bucket as PullRequestBucketWithUniqueIDs}
 							provider={selectedProvider}
-							prDraftCountsByEntityID={prDraftCountsByEntityID}
+							prDraftCountsByEntityID={prDraftCountsQuery.data}
 						/>
 					))}
 				</div>

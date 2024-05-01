@@ -1,6 +1,7 @@
 import type { Account, GitPullRequest, PullRequestBucket } from '@gitkraken/provider-apis';
 
 export interface User {
+	id: string;
 	email: string;
 	name?: string;
 	proAccessState?: {
@@ -57,10 +58,3 @@ export type EnterpriseProviderConnection = ProviderConnection & Required<Pick<Pr
 export interface CacheContext {
 	enterpriseConnectionsCache?: EnterpriseProviderConnection[];
 }
-
-export type SessionCacheKey = 'user' | 'providerConnections' | 'focusViewData' | 'focusViewDraftCounts';
-
-export type CachedFetchResponse<T> = {
-	data: T;
-	timestamp: number;
-};
