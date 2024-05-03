@@ -175,3 +175,22 @@ export const fetchDraftCounts = async (prUniqueIds: string[]) => {
 	const payload = await res.json();
 	return payload.data as { counts: PullRequestDraftCounts };
 };
+
+export const postEvent = async (event: string, data?: Record<string, unknown>) => {
+	const token = await getAccessToken();
+	if (!token) {
+		return;
+	}
+
+	await fetch(`${gkApiUrl}/events`, {
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+		method: 'POST',
+		body: JSON.stringify({
+			source: 'browser_extension',
+			event: event,
+			data: data,
+		}),
+	});
+};
