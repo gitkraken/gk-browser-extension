@@ -31,7 +31,7 @@ export const SignedIn = ({ permissionsRequest, user }: { permissionsRequest?: Pe
 		<div className="popup-content signed-in">
 			{permissionsRequest && <RequestPermissionsBanner permissionsRequest={permissionsRequest} />}
 			<div className="main-ui">
-				<FocusView />
+				<FocusView userId={user.id} />
 			</div>
 			<div className="user-row">
 				<div className="user">

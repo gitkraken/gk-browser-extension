@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { runtime } from 'webextension-polyfill';
-import { fetchUser } from '../../gkApi';
+import { getAccessToken } from '../../gkApi';
 import type { PermissionsRequest } from '../../permissions-helper';
 import { PopupInitMessage } from '../../shared';
-import type { User } from '../../types';
+import { useUserQuery } from '../hooks';
 import { RequestPermissionsBanner } from './RequestPermissionsBanner';
 import { SignedIn } from './SignedIn';
 import { SignedOut } from './SignedOut';
@@ -14,26 +14,27 @@ const syncWithBackground = async () => {
 
 export const Popup = () => {
 	const [permissionsRequest, setPermissionsRequest] = useState<PermissionsRequest | undefined>(undefined);
-	const [user, setUser] = useState<User | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
+	const [isCheckingPermissions, setIsCheckingPermissions] = useState(true);
+	const [token, setToken] = useState<string | undefined>(undefined);
+
+	const userQuery = useUserQuery(token);
 
 	useEffect(() => {
-		const loadData = async () => {
+		const checkPermissions = async () => {
 			const newPermissionsRequest = await syncWithBackground();
 			setPermissionsRequest(newPermissionsRequest);
+			setIsCheckingPermissions(false);
 
-			if (!permissionsRequest?.hasRequired) {
-				const fetchedUser = await fetchUser();
-				setUser(fetchedUser);
+			if (!newPermissionsRequest?.hasRequired) {
+				const accessToken = await getAccessToken();
+				setToken(accessToken);
 			}
-
-			setIsLoading(false);
 		};
 
-		void loadData();
+		void checkPermissions();
 	}, []);
 
-	if (isLoading) {
+	if (isCheckingPermissions || (!permissionsRequest?.hasRequired && userQuery.isLoading)) {
 		return (
 			<div className="popup-content small text-center">
 				<i className="fa-regular fa-spinner-third fa-spin" />
@@ -49,8 +50,8 @@ export const Popup = () => {
 		);
 	}
 
-	if (user) {
-		return <SignedIn permissionsRequest={permissionsRequest} user={user} />;
+	if (userQuery.data) {
+		return <SignedIn permissionsRequest={permissionsRequest} user={userQuery.data} />;
 	}
 
 	return <SignedOut permissionsRequest={permissionsRequest} />;

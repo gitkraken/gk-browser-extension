@@ -1,6 +1,6 @@
 import { cookies, storage } from 'webextension-polyfill';
 import { checkOrigins } from './permissions-helper';
-import { DefaultCacheTimeMinutes, sessionCachedFetch, updateExtensionIcon } from './shared';
+import { updateExtensionIcon } from './shared';
 import type { Provider, ProviderConnection, ProviderToken, PullRequestDraftCounts, User } from './types';
 
 declare const MODE: 'production' | 'development' | 'none';
@@ -14,7 +14,7 @@ const onLoggedOut = () => {
 	void storage.session.clear();
 };
 
-const getAccessToken = async () => {
+export const getAccessToken = async () => {
 	// Check if the user has granted permission to GitKraken.dev
 	if (!(await checkOrigins(['gitkraken.dev']))) {
 		// If not, just assume we're logged out
@@ -48,26 +48,18 @@ export const fetchUser = async () => {
 		return null;
 	}
 
-	// Since the user object is unlikely to change, we can cache it for much longer than other data
-	const user = await sessionCachedFetch('user', 60 * 12 /* 12 hours */, async () => {
-		const res = await fetch(`${gkApiUrl}/user`, {
-			headers: {
-				Authorization: `Bearer ${token}`,
-			},
-		});
-
-		if (!res.ok) {
-			return null;
-		}
-
-		return res.json() as Promise<User>;
+	const res = await fetch(`${gkApiUrl}/user`, {
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
 	});
 
-	if (!user) {
+	if (!res.ok) {
 		onLoggedOut();
 		return null;
 	}
 
+	const user = (await res.json()) as User;
 	void updateExtensionIcon(true);
 	return user;
 };
@@ -105,20 +97,18 @@ export const fetchProviderConnections = async () => {
 		return null;
 	}
 
-	return sessionCachedFetch('providerConnections', DefaultCacheTimeMinutes, async () => {
-		const res = await fetch(`${gkApiUrl}/v1/provider-tokens/`, {
-			headers: {
-				Authorization: `Bearer ${token}`,
-			},
-		});
-
-		if (!res.ok) {
-			return null;
-		}
-
-		const payload = await res.json();
-		return payload.data as ProviderConnection[];
+	const res = await fetch(`${gkApiUrl}/v1/provider-tokens/`, {
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
 	});
+
+	if (!res.ok) {
+		return null;
+	}
+
+	const payload = await res.json();
+	return payload.data as ProviderConnection[];
 };
 
 export const refreshProviderToken = async (provider: Provider) => {
