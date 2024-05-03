@@ -3,6 +3,7 @@
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { postEvent } from '../gkApi';
 import { Popup } from './components/Popup';
 import { asyncStoragePersister, queryClient } from './queryClient';
 
@@ -14,6 +15,8 @@ function main() {
 			<Popup />
 		</PersistQueryClientProvider>,
 	);
+
+	void postEvent('browserExtensionPopupOpened');
 }
 
 main();
