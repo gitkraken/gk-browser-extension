@@ -151,7 +151,8 @@ export const fetchProviderToken = async (provider: Provider) => {
 	const payload = await res.json();
 	const providerToken = payload.data as ProviderToken;
 	// Attempt to refresh expired OAuth tokens. Note: GitHub tokens don't expire.
-	if (provider !== 'github' && providerToken.expiresIn < 0 && providerToken.type === 'oauth') {
+	// We also refresh tokens that are about to expire in 60 seconds (expiresIn is in seconds).
+	if (provider !== 'github' && providerToken.expiresIn < 60 && providerToken.type === 'oauth') {
 		return refreshProviderToken(provider);
 	}
 
