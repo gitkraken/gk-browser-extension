@@ -41,6 +41,30 @@ export const getAccessToken = async () => {
 	return cookie?.value;
 };
 
+export const checkin = async () => {
+	const token = await getAccessToken();
+	if (!token) {
+		return;
+	}
+
+	// Don't check in more than once every 12 hours to reduce amount of requests
+	const { lastCheckin } = await storage.local.get('lastCheckin');
+	if (lastCheckin && Date.now() - lastCheckin < 1000 * 60 * 60) {
+		return;
+	}
+
+	const res = await fetch(`${gkApiUrl}/browser-extension/checkin`, {
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+		method: 'POST',
+	});
+
+	if (res.ok) {
+		void storage.local.set({ lastCheckin: Date.now() });
+	}
+};
+
 export const fetchUser = async () => {
 	const token = await getAccessToken();
 	if (!token) {
