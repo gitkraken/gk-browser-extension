@@ -2,7 +2,7 @@ import { GitProviderUtils } from '@gitkraken/provider-apis';
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useEffect, useMemo, useState } from 'react';
 import { storage } from 'webextension-polyfill';
-import { openGitKrakenDeepLink } from '../../deepLink';
+import { getGitKrakenDeepLinkUrl } from '../../deepLink';
 import { ProviderMeta } from '../../providers';
 import { GKDotDevUrl } from '../../shared';
 import type {
@@ -23,6 +23,7 @@ type PullRequestRowProps = {
 
 const PullRequestRow = ({ userId, pullRequest, provider, draftCount = 0 }: PullRequestRowProps) => {
 	const queryClient = useQueryClient();
+	const deepLinkUrl = getGitKrakenDeepLinkUrl(provider, pullRequest.url);
 
 	return (
 		<>
@@ -43,16 +44,10 @@ const PullRequestRow = ({ userId, pullRequest, provider, draftCount = 0 }: PullR
 						#{pullRequest.number}
 					</ExternalLink>
 				</div>
-				{pullRequest.url && (
-					<a
-						href="#"
-						onClick={() => {
-							openGitKrakenDeepLink(provider, pullRequest.url);
-						}}
-						title="Open with GitKraken"
-					>
+				{deepLinkUrl && (
+					<ExternalLink href={deepLinkUrl} title="Open with GitKraken">
 						<i className="fa-brands fa-gitkraken icon text-link text-lg" />
-					</a>
+					</ExternalLink>
 				)}
 			</div>
 			{draftCount > 0 && (

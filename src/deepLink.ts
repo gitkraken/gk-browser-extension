@@ -229,12 +229,3 @@ export const getGitKrakenDeepLinkUrl = (provider: FocusViewSupportedProvider, ur
 
 	return getGKDotDevLinkUrl(redirectUrl);
 };
-
-export const openGitKrakenDeepLink = (provider: FocusViewSupportedProvider, url: string | null) => {
-	const deepLink = getGitKrakenDeepLinkUrl(provider, url);
-	if (!deepLink) {
-		return;
-	}
-
-	window.open(deepLink, '_blank');
-};
