@@ -12,6 +12,7 @@ import type {
 } from '../../types';
 import { useFocusViewConnectedProviders, useFocusViewDataQuery, usePullRequestDraftCountsQuery } from '../hooks';
 import { ConnectAProvider } from './ConnectAProvider';
+import { ExternalLink } from './ExternalLink';
 
 type PullRequestRowProps = {
 	userId: string;
@@ -29,10 +30,9 @@ const PullRequestRow = ({ userId, pullRequest, provider, draftCount = 0 }: PullR
 				<div className="pull-request-title truncate">{pullRequest.title}</div>
 				<div className="repository-name text-secondary truncate">{pullRequest.repository.name}</div>
 				<div className="pull-request-number">
-					<a
+					<ExternalLink
 						className="text-link"
 						href={pullRequest.url || undefined}
-						target="_blank"
 						onClick={() => {
 							// Since there is a decent chance that the PR will be acted upon after the user clicks on it,
 							// mark the focus view data as stale so that it will be refetched when the user returns.
@@ -41,7 +41,7 @@ const PullRequestRow = ({ userId, pullRequest, provider, draftCount = 0 }: PullR
 						title={`View pull request on ${ProviderMeta[provider].name}`}
 					>
 						#{pullRequest.number}
-					</a>
+					</ExternalLink>
 				</div>
 				{pullRequest.url && (
 					<a
@@ -56,17 +56,16 @@ const PullRequestRow = ({ userId, pullRequest, provider, draftCount = 0 }: PullR
 				)}
 			</div>
 			{draftCount > 0 && (
-				<a
+				<ExternalLink
 					className="pr-drafts-badge text-disabled"
 					href={`${GKDotDevUrl}/drafts/suggested-change/${encodeURIComponent(
 						btoa(pullRequest.uniqueId),
 					)}?source=browserExtension`}
-					target="_blank"
 					title={`View code suggestion${draftCount === 1 ? '' : 's'} on gitkraken.dev`}
 				>
 					<i className="fa-regular fa-message-code icon" />
 					Code Suggestion{draftCount === 1 ? '' : 's'}
-				</a>
+				</ExternalLink>
 			)}
 		</>
 	);

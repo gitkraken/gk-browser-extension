@@ -3,6 +3,7 @@ import { logoutUser } from '../../gkApi';
 import type { PermissionsRequest } from '../../permissions-helper';
 import { GKDotDevUrl } from '../../shared';
 import type { User } from '../../types';
+import { ExternalLink } from './ExternalLink';
 import { FocusView } from './FocusView';
 import { RequestPermissionsBanner } from './RequestPermissionsBanner';
 
@@ -45,9 +46,9 @@ export const SignedIn = ({ permissionsRequest, user }: { permissionsRequest?: Pe
 						<div>{user.name || user.username}</div>
 						<div className="text-sm text-secondary">{user.email}</div>
 					</div>
-					<a href={GKDotDevUrl} target="_blank" title="Open gitkraken.dev">
+					<ExternalLink href={GKDotDevUrl} title="Open gitkraken.dev">
 						<i className="fa-regular fa-arrow-up-right-from-square icon text-lg" />
-					</a>
+					</ExternalLink>
 				</div>
 				<button className="icon-btn" onClick={onSignOutClick} title="Sign out">
 					<i className="fa-regular fa-right-from-bracket icon text-lg" />
