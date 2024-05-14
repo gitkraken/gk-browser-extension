@@ -1,6 +1,7 @@
 import React from 'react';
 import type { PermissionsRequest } from '../../permissions-helper';
 import { GKDotDevUrl } from '../../shared';
+import { ExternalLink } from './ExternalLink';
 import { RequestPermissionsBanner } from './RequestPermissionsBanner';
 
 export const SignedOut = ({ permissionsRequest }: { permissionsRequest?: PermissionsRequest }) => {
@@ -9,13 +10,13 @@ export const SignedOut = ({ permissionsRequest }: { permissionsRequest?: Permiss
 			{permissionsRequest && <RequestPermissionsBanner permissionsRequest={permissionsRequest} />}
 			<div className="sign-in-prompt">
 				<div className="text-2xl bold">Sign in to view your Pull Requests</div>
-				<a className="sign-in-link text-sm text-secondary bg-02" href={`${GKDotDevUrl}/login`} target="_blank">
+				<ExternalLink className="sign-in-link text-sm text-secondary bg-02" href={`${GKDotDevUrl}/login`}>
 					<img src="img/gk-logo-36.svg" height={36} width={36} />
 					Sign in with GitKraken
-				</a>
-				<a className="text-link" href={`${GKDotDevUrl}/register`} target="_blank">
+				</ExternalLink>
+				<ExternalLink className="text-link" href={`${GKDotDevUrl}/register`}>
 					Create an account
-				</a>
+				</ExternalLink>
 			</div>
 		</div>
 	);
