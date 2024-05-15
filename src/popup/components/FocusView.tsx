@@ -1,3 +1,4 @@
+import type { GitPullRequest } from '@gitkraken/provider-apis';
 import { GitProviderUtils } from '@gitkraken/provider-apis';
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -19,6 +20,25 @@ type PullRequestRowProps = {
 	pullRequest: GitPullRequestWithUniqueID;
 	provider: FocusViewSupportedProvider;
 	draftCount?: number;
+};
+
+const pullRequestFuzzyMatch = (pullRequest: GitPullRequest, filterString: string) => {
+	if (pullRequest.number.toString().includes(filterString)) {
+		return true;
+	}
+
+	// Do a "fuzzy match" on the PR title
+	const title = pullRequest.title.toLowerCase();
+	let filterIndex = 0;
+	for (const char of title) {
+		if (char === filterString[filterIndex]) {
+			filterIndex++;
+		}
+		if (filterIndex === filterString.length) {
+			return true;
+		}
+	}
+	return false;
 };
 
 const PullRequestRow = ({ userId, pullRequest, provider, draftCount = 0 }: PullRequestRowProps) => {
@@ -150,9 +170,7 @@ export const FocusView = ({ userId }: { userId: string }) => {
 		? pullRequestBuckets
 				?.map(bucket => ({
 					...bucket,
-					pullRequests: bucket.pullRequests.filter(pr =>
-						pr.title.toLowerCase().includes(lowercaseFilterString),
-					),
+					pullRequests: bucket.pullRequests.filter(pr => pullRequestFuzzyMatch(pr, lowercaseFilterString)),
 				}))
 				.filter(bucket => bucket.pullRequests.length)
 		: pullRequestBuckets;
