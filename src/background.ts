@@ -1,11 +1,10 @@
-import type { WebNavigation } from 'webextension-polyfill';
 import { runtime, scripting, tabs, webNavigation } from 'webextension-polyfill';
 import { fetchUser } from './gkApi';
 import { injectionScope as inject_azureDevops } from './hosts/azureDevops';
 import { injectionScope as inject_bitbucket } from './hosts/bitbucket';
 import { injectionScope as inject_github } from './hosts/github';
 import { injectionScope as inject_gitlab } from './hosts/gitlab';
-import { refreshPermissions } from './permissions-helper';
+import { domainToMatchPattern, refreshPermissions } from './permissions-helper';
 import { getEnterpriseConnections, GKDotDevUrl, PermissionsGrantedMessage, PopupInitMessage } from './shared';
 import type { CacheContext } from './types';
 
@@ -68,17 +67,31 @@ async function addInjectionListener(context: CacheContext) {
 	const allDomains = Object.values<string[]>(injectionDomains as any).flat();
 
 	// note: This is a closure over injectionDomains
-	const injectScript = (details: WebNavigation.OnDOMContentLoadedDetailsType) => {
+	const injectScript = (tabId: number, tabUrl: string) => {
 		void scripting.executeScript({
-			target: { tabId: details.tabId },
+			target: { tabId: tabId },
 			// injectImmediately: true,
-			func: getInjectionFn(details.url, injectionDomains),
-			args: [details.url, GKDotDevUrl],
+			func: getInjectionFn(tabUrl, injectionDomains),
+			args: [tabUrl, GKDotDevUrl],
 		});
 	};
 
-	webNavigation.onDOMContentLoaded.addListener(injectScript, {
+	webNavigation.onDOMContentLoaded.addListener(details => injectScript(details.tabId, details.url), {
 		url: allDomains.map(domain => ({ hostContains: domain })),
+	});
+
+	// Immediately inject into the currently open compatible tabs. This is needed because when the background
+	// script is idle, its event listeners are not active. Opening a compatible tab will cause the background
+	// script to awaken and setup the event listeners again, but the tab will load before that happens.
+	const currentTabs = await tabs.query({
+		url: allDomains.map(domainToMatchPattern),
+		status: 'complete', // only query tabs that have finished loading
+		discarded: false, // discarded tabs will reload when focused so we don't need to inject into them now
+	});
+	currentTabs.forEach(tab => {
+		if (tab.id && tab.url) {
+			injectScript(tab.id, tab.url);
+		}
 	});
 }
 
