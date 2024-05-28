@@ -210,10 +210,12 @@ export const FocusView = ({ userId }: { userId: string }) => {
 				</div>
 			)}
 			{selectedProvider && connectedProviders && connectedProviders.length > 1 && (
-				<div className="provider-select text-secondary">
-					PRs: <img src={ProviderMeta[selectedProvider].iconSrc} height={14} />
+				<div className="provider-select-container">
+					<div className="provider-select-prefix text-secondary">
+						PRs: <img src={ProviderMeta[selectedProvider].iconSrc} height={14} />
+					</div>
 					<select
-						className="text-secondary"
+						className="provider-select text-secondary"
 						value={selectedProvider}
 						onChange={onProviderChange}
 						disabled={focusViewDataQuery.isLoading}
