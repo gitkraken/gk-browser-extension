@@ -32,11 +32,11 @@ export const useFocusViewConnectedProviders = (userId: string) => {
 		return providerConnectionsQuery.data
 			.filter(
 				connection =>
-					(connection.provider === 'github' ||
-						connection.provider === 'gitlab' ||
-						connection.provider === 'bitbucket' ||
-						connection.provider === 'azure') &&
-					!connection.domain,
+					connection.provider === 'github' ||
+					connection.provider === 'githubEnterprise' ||
+					connection.provider === 'gitlab' ||
+					connection.provider === 'bitbucket' ||
+					connection.provider === 'azure',
 			)
 			.map(connection => connection.provider as FocusViewSupportedProvider);
 	}, [providerConnectionsQuery.data]);

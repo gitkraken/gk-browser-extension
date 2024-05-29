@@ -37,9 +37,6 @@ export const ConnectAProvider = () => {
 						<div>Azure DevOps</div>
 					</ExternalLink>
 				</div>
-				<div className="text-sm text-secondary italic">
-					*Only cloud-hosted providers are currently supported.
-				</div>
 			</div>
 		</div>
 	);
