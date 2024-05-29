@@ -6,6 +6,7 @@ export const ProviderMeta: Record<FocusViewSupportedProvider, { name: string; ic
 	github: { name: 'GitHub', iconSrc: 'img/github-color.svg' },
 	githubEnterprise: { name: 'GitHub Enterprise Server', iconSrc: 'img/github-color.svg' },
 	gitlab: { name: 'GitLab', iconSrc: 'img/gitlab-color.svg' },
+	gitlabSelfHosted: { name: 'GitLab Self-Managed', iconSrc: 'img/gitlab-color.svg' },
 	bitbucket: { name: 'Bitbucket', iconSrc: 'img/bitbucket-color.svg' },
 	azure: { name: 'Azure DevOps', iconSrc: 'img/azuredevops-color.svg' },
 };
@@ -38,7 +39,7 @@ const fetchGitHubFocusViewData = async (token: ProviderToken) => {
 };
 
 const fetchGitLabFocusViewData = async (token: ProviderToken) => {
-	const gitlab = new GitLab({ token: token.accessToken });
+	const gitlab = new GitLab({ token: token.accessToken, baseUrl: token.domain });
 
 	const { data: providerUser } = await gitlab.getCurrentUser();
 	if (!providerUser.username) {
@@ -95,6 +96,7 @@ export const fetchFocusViewData = async (provider: FocusViewSupportedProvider): 
 		case 'githubEnterprise':
 			return fetchGitHubFocusViewData(providerToken);
 		case 'gitlab':
+		case 'gitlabSelfHosted':
 			return fetchGitLabFocusViewData(providerToken);
 		case 'bitbucket':
 			return fetchBitbucketFocusViewData(providerToken);

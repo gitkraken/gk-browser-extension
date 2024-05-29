@@ -23,7 +23,13 @@ export type Provider =
 	| 'githubEnterprise'
 	| 'gitlabSelfHosted';
 
-export type FocusViewSupportedProvider = 'github' | 'githubEnterprise' | 'gitlab' | 'bitbucket' | 'azure';
+export type FocusViewSupportedProvider =
+	| 'github'
+	| 'githubEnterprise'
+	| 'gitlab'
+	| 'gitlabSelfHosted'
+	| 'bitbucket'
+	| 'azure';
 
 export type GitPullRequestWithUniqueID = GitPullRequest & { uniqueId: string };
 
