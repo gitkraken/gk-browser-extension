@@ -33,6 +33,7 @@ export const RequestPermissionsBanner = ({ permissionsRequest }: { permissionsRe
 					const granted = await permissions.request(permissionsRequest.request);
 					if (granted) {
 						await sendPermissionsGranted();
+						window.close();
 					}
 				}}
 			>

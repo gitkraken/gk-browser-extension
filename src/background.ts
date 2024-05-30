@@ -51,8 +51,7 @@ runtime.onMessage.addListener(async msg => {
 		const context: CacheContext = {};
 		return refreshPermissions(context);
 	} else if (msg === PermissionsGrantedMessage) {
-		// Reload extension to update injection listener
-		runtime.reload();
+		await storage.session.remove('injectionDomains');
 		return undefined;
 	}
 	console.error('Recevied unknown runtime message', msg);
