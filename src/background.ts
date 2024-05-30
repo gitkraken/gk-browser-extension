@@ -4,7 +4,7 @@ import { injectionScope as inject_azureDevops } from './hosts/azureDevops';
 import { injectionScope as inject_bitbucket } from './hosts/bitbucket';
 import { injectionScope as inject_github } from './hosts/github';
 import { injectionScope as inject_gitlab } from './hosts/gitlab';
-import { refreshPermissions } from './permissions-helper';
+import { domainToMatchPattern, refreshPermissions } from './permissions-helper';
 import { getEnterpriseConnections, GKDotDevUrl, PermissionsGrantedMessage, PopupInitMessage } from './shared';
 import type { CacheContext } from './types';
 
@@ -23,12 +23,7 @@ const DefaultInjectionDomains: InjectionDomains = {
 };
 
 webNavigation.onDOMContentLoaded.addListener(async details => {
-	const { injectionDomains } = (await storage.session.get('injectionDomains')) as {
-		injectionDomains?: InjectionDomains;
-	};
-	if (!injectionDomains) {
-		return;
-	}
+	const injectionDomains = await getInjectionDomains();
 
 	const injectionFn = getInjectionFn(details.url, injectionDomains);
 	if (injectionFn) {
@@ -63,6 +58,48 @@ runtime.onMessage.addListener(async msg => {
 	console.error('Recevied unknown runtime message', msg);
 	return undefined;
 });
+
+runtime.onInstalled.addListener(injectIntoCurrentTabs);
+runtime.onStartup.addListener(injectIntoCurrentTabs);
+
+async function injectIntoCurrentTabs() {
+	const injectionDomains = await getInjectionDomains();
+	const allDomains = Object.values<string[]>(injectionDomains as any).flat();
+
+	const currentTabs = await tabs.query({
+		url: allDomains.map(domainToMatchPattern),
+		status: 'complete',
+		discarded: false,
+	});
+	currentTabs.forEach(tab => {
+		if (tab.id && tab.url) {
+			const injectionFn = getInjectionFn(tab.url, injectionDomains);
+			if (injectionFn) {
+				void scripting.executeScript({
+					target: { tabId: tab.id },
+					func: injectionFn,
+					args: [tab.url, GKDotDevUrl],
+				});
+			}
+		}
+	});
+}
+
+async function getInjectionDomains() {
+	let { injectionDomains } = (await storage.session.get('injectionDomains')) as {
+		injectionDomains?: InjectionDomains;
+	};
+	if (!injectionDomains) {
+		const context: CacheContext = {};
+		// This removes unneded permissions
+		await refreshPermissions(context);
+
+		injectionDomains = await computeInjectionDomains(context);
+		await storage.session.set({ injectionDomains: injectionDomains });
+	}
+
+	return injectionDomains;
+}
 
 async function computeInjectionDomains(context: CacheContext) {
 	const injectionDomains = structuredClone(DefaultInjectionDomains);
@@ -111,13 +148,6 @@ function getInjectionFn(
 async function main() {
 	// The fetchUser function also updates the extension icon if the user is logged in
 	await fetchUser();
-
-	const context: CacheContext = {};
-	// This removes unneded permissions
-	await refreshPermissions(context);
-
-	const injectionDomains = await computeInjectionDomains(context);
-	void storage.session.set({ injectionDomains: injectionDomains });
 }
 
 void main();
