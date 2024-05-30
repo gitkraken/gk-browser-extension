@@ -3,7 +3,7 @@ import { permissions } from 'webextension-polyfill';
 import { arrayDifference, CloudProviders, getEnterpriseConnections } from './shared';
 import type { CacheContext } from './types';
 
-function domainToMatchPattern(domain: string): string {
+export function domainToMatchPattern(domain: string): string {
 	return `*://*.${domain}/*`;
 }
 
