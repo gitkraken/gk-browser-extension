@@ -67,11 +67,11 @@ export const useFocusViewDataQuery = (
 export const usePullRequestDraftCountsQuery = (
 	userId: string,
 	selectedProvider: FocusViewSupportedProvider | null | undefined,
-	pullRequests: { uniqueId: string }[] | undefined,
+	pullRequests: { uuid: string }[] | undefined,
 ) => {
 	let prUniqueIds: string[] = [];
 	if (selectedProvider === 'github' && pullRequests?.length) {
-		prUniqueIds = pullRequests.map(pr => pr.uniqueId);
+		prUniqueIds = pullRequests.map(pr => pr.uuid);
 	}
 
 	return useQuery({

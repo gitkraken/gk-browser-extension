@@ -285,10 +285,10 @@
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.44.0.tgz#961a5903c74139390478bdc808bcde3fc45ab7af"
   integrity sha512-Ag+9YM4ocKQx9AarydN0KY2j0ErMHNIocPDrVo8zAE44xLTjEtz81OdR68/cydGtk6m6jDb5Za3r2useMzYmSw==
 
-"@gitkraken/provider-apis@0.19.1":
-  version "0.19.1"
-  resolved "https://registry.npmjs.org/@gitkraken/provider-apis/-/provider-apis-0.19.1.tgz#221556650aa3a0ff6f6841bbd603ca9641c1bce7"
-  integrity sha512-itXor6oELNOe3szzyBhKymS7KuBoDZQMZQh0Ohyp5fnv6W97nOqCmumtOmCYjRH509MMBLp6YBUT+tzRShItKw==
+"@gitkraken/provider-apis@0.22.7":
+  version "0.22.7"
+  resolved "https://registry.npmjs.org/@gitkraken/provider-apis/-/provider-apis-0.22.7.tgz#f217e1d275b578c33a38ce03564a10ee6b6b3e2c"
+  integrity sha512-twLjzIahStD4FkI10UxxikLLocE0r9IkX2qPjZiBfhyZbGKVdnFEdYdbZaeKOxTt87T6LyTPhdGnRLMrZfCWpA==
   dependencies:
     js-base64 "3.7.5"
     node-fetch "2.7.0"

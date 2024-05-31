@@ -27,7 +27,7 @@ const fetchGitHubFocusViewData = async (token: ProviderToken) => {
 		providerUser: providerUser,
 		pullRequests: pullRequests.map(pr => ({
 			...pr,
-			uniqueId: JSON.stringify([
+			uuid: JSON.stringify([
 				token.domain ? 'githubEnterprise' : 'github',
 				'pr',
 				'1',
@@ -50,7 +50,7 @@ const fetchGitLabFocusViewData = async (token: ProviderToken) => {
 		username: providerUser.username,
 	});
 
-	return { providerUser: providerUser, pullRequests: pullRequests.map(pr => ({ ...pr, uniqueId: '' })) };
+	return { providerUser: providerUser, pullRequests: pullRequests.map(pr => ({ ...pr, uuid: '' })) };
 };
 
 const fetchBitbucketFocusViewData = async (token: ProviderToken) => {
@@ -62,7 +62,7 @@ const fetchBitbucketFocusViewData = async (token: ProviderToken) => {
 		userId: providerUser.id,
 	});
 
-	return { providerUser: providerUser, pullRequests: pullRequests.map(pr => ({ ...pr, uniqueId: '' })) };
+	return { providerUser: providerUser, pullRequests: pullRequests.map(pr => ({ ...pr, uuid: '' })) };
 };
 
 const fetchAzureFocusViewData = async (token: ProviderToken) => {
@@ -82,7 +82,7 @@ const fetchAzureFocusViewData = async (token: ProviderToken) => {
 		projects: projects.map(project => ({ ...project, project: project.name })),
 	});
 
-	return { providerUser: providerUser, pullRequests: pullRequests.map(pr => ({ ...pr, uniqueId: '' })) };
+	return { providerUser: providerUser, pullRequests: pullRequests.map(pr => ({ ...pr, uuid: '' })) };
 };
 
 export const fetchFocusViewData = async (provider: FocusViewSupportedProvider): Promise<FocusViewData | null> => {
