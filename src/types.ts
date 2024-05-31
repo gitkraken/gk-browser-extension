@@ -21,7 +21,8 @@ export type Provider =
 	| 'jira'
 	| 'trello'
 	| 'githubEnterprise'
-	| 'gitlabSelfHosted';
+	| 'gitlabSelfHosted'
+	| 'bitbucketServer';
 
 export type FocusViewSupportedProvider =
 	| 'github'
@@ -29,6 +30,7 @@ export type FocusViewSupportedProvider =
 	| 'gitlab'
 	| 'gitlabSelfHosted'
 	| 'bitbucket'
+	| 'bitbucketServer'
 	| 'azure';
 
 export type PullRequestDraftCounts = Record<string, { count: number } | undefined>;

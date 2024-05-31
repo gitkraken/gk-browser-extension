@@ -1,3 +1,4 @@
+import type { Account, PullRequestWithUniqueID } from '@gitkraken/provider-apis';
 import {
 	AzureDevOps,
 	Bitbucket,
@@ -8,6 +9,7 @@ import {
 	GitLab,
 } from '@gitkraken/provider-apis';
 import { fetchProviderToken } from './gkApi';
+import { GKDotDevUrl } from './shared';
 import type { FocusViewData, FocusViewSupportedProvider, Provider, ProviderToken } from './types';
 
 export const ProviderMeta: Record<FocusViewSupportedProvider, { name: string; iconSrc: string }> = {
@@ -16,6 +18,7 @@ export const ProviderMeta: Record<FocusViewSupportedProvider, { name: string; ic
 	gitlab: { name: 'GitLab', iconSrc: 'img/gitlab-color.svg' },
 	gitlabSelfHosted: { name: 'GitLab Self-Managed', iconSrc: 'img/gitlab-color.svg' },
 	bitbucket: { name: 'Bitbucket', iconSrc: 'img/bitbucket-color.svg' },
+	bitbucketServer: { name: 'Bitbucket Server', iconSrc: 'img/bitbucket-color.svg' },
 	azure: { name: 'Azure DevOps', iconSrc: 'img/azuredevops-color.svg' },
 };
 
@@ -74,6 +77,39 @@ const fetchBitbucketFocusViewData = async (token: ProviderToken) => {
 	return { providerUser: providerUser, pullRequests: pullRequests.map(pr => ({ ...pr, uuid: '' })) };
 };
 
+const fetchBitbucketServerFocusViewData = async (token: ProviderToken) => {
+	// Bitbucket Server does not have the CORS header set to be able to make requests from the browser,
+	// so we proxy the request through the API.
+	const res = await fetch(`${GKDotDevUrl}/api/provider/bitbucket-server/proxy`, {
+		headers: {
+			Authorization: `Bearer ${token.accessToken}`,
+			XDestination: `${token.domain}/rest/api/latest/dashboard/pull-requests`,
+		},
+	});
+
+	if (!res.ok) {
+		throw new Error('Failed to fetch Bitbucket Server pull requests');
+	}
+
+	const data = await res.json();
+
+	return {
+		providerUser: data.user as Account,
+		pullRequests: (data.body.values as any[]).map(pullRequest => ({
+			// Bitbucket Server PR ids are just the number, they are not unique across repos, so instead
+			// we use the PR url as the id.
+			id: pullRequest.links.self[0].href,
+			number: pullRequest.id,
+			title: pullRequest.title,
+			url: pullRequest.links.self[0].href,
+			repository: {
+				name: pullRequest.fromRef.repository.name,
+			},
+			uuid: '',
+		})) as PullRequestWithUniqueID[],
+	};
+};
+
 const fetchAzureFocusViewData = async (token: ProviderToken) => {
 	const azureDevOps = new AzureDevOps({ token: token.accessToken });
 
@@ -109,6 +145,8 @@ export const fetchFocusViewData = async (provider: FocusViewSupportedProvider): 
 			return fetchGitLabFocusViewData(providerToken);
 		case 'bitbucket':
 			return fetchBitbucketFocusViewData(providerToken);
+		case 'bitbucketServer':
+			return fetchBitbucketServerFocusViewData(providerToken);
 		case 'azure':
 			return fetchAzureFocusViewData(providerToken);
 		default:
