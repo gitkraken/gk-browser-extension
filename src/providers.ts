@@ -1,4 +1,12 @@
-import { AzureDevOps, Bitbucket, GitHub, GitLab } from '@gitkraken/provider-apis';
+import {
+	AzureDevOps,
+	Bitbucket,
+	EntityIdentifierProviderType,
+	EntityIdentifierUtils,
+	EntityType,
+	GitHub,
+	GitLab,
+} from '@gitkraken/provider-apis';
 import { fetchProviderToken } from './gkApi';
 import type { FocusViewData, FocusViewSupportedProvider, Provider, ProviderToken } from './types';
 
@@ -27,13 +35,14 @@ const fetchGitHubFocusViewData = async (token: ProviderToken) => {
 		providerUser: providerUser,
 		pullRequests: pullRequests.map(pr => ({
 			...pr,
-			uuid: JSON.stringify([
-				token.domain ? 'githubEnterprise' : 'github',
-				'pr',
-				'1',
-				token.domain || '',
-				pr.graphQLId || pr.id,
-			]),
+			uuid: EntityIdentifierUtils.encode({
+				provider: token.domain
+					? EntityIdentifierProviderType.GithubEnterprise
+					: EntityIdentifierProviderType.Github,
+				entityType: EntityType.PullRequest,
+				domain: token.domain,
+				entityId: pr.graphQLId || pr.id,
+			}),
 		})),
 	};
 };
