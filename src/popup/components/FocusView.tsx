@@ -1,4 +1,4 @@
-import type { GitPullRequest } from '@gitkraken/provider-apis';
+import type { GitPullRequest, PullRequestBucket, PullRequestWithUniqueID } from '@gitkraken/provider-apis';
 import { GitProviderUtils } from '@gitkraken/provider-apis';
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -6,18 +6,14 @@ import { storage } from 'webextension-polyfill';
 import { getGitKrakenDeepLinkUrl } from '../../deepLink';
 import { ProviderMeta } from '../../providers';
 import { GKDotDevUrl } from '../../shared';
-import type {
-	FocusViewSupportedProvider,
-	GitPullRequestWithUniqueID,
-	PullRequestBucketWithUniqueIDs,
-} from '../../types';
+import type { FocusViewSupportedProvider } from '../../types';
 import { useFocusViewConnectedProviders, useFocusViewDataQuery, usePullRequestDraftCountsQuery } from '../hooks';
 import { ConnectAProvider } from './ConnectAProvider';
 import { ExternalLink } from './ExternalLink';
 
 type PullRequestRowProps = {
 	userId: string;
-	pullRequest: GitPullRequestWithUniqueID;
+	pullRequest: PullRequestWithUniqueID;
 	provider: FocusViewSupportedProvider;
 	draftCount?: number;
 };
@@ -74,7 +70,7 @@ const PullRequestRow = ({ userId, pullRequest, provider, draftCount = 0 }: PullR
 				<ExternalLink
 					className="pr-drafts-badge text-disabled"
 					href={`${GKDotDevUrl}/drafts/suggested-change/${encodeURIComponent(
-						btoa(pullRequest.uniqueId),
+						btoa(pullRequest.uuid),
 					)}?source=browserExtension`}
 					title={`View code suggestion${draftCount === 1 ? '' : 's'} on gitkraken.dev`}
 				>
@@ -88,7 +84,7 @@ const PullRequestRow = ({ userId, pullRequest, provider, draftCount = 0 }: PullR
 
 type BucketProps = {
 	userId: string;
-	bucket: PullRequestBucketWithUniqueIDs;
+	bucket: PullRequestBucket;
 	provider: FocusViewSupportedProvider;
 	prDraftCountsByEntityID?: Record<string, { count: number } | undefined>;
 };
@@ -106,7 +102,7 @@ const Bucket = ({ userId, bucket, provider, prDraftCountsByEntityID }: BucketPro
 					userId={userId}
 					pullRequest={pullRequest}
 					provider={provider}
-					draftCount={prDraftCountsByEntityID?.[pullRequest.uniqueId]?.count}
+					draftCount={prDraftCountsByEntityID?.[pullRequest.uuid]?.count}
 				/>
 			))}
 		</div>
@@ -238,7 +234,7 @@ export const FocusView = ({ userId }: { userId: string }) => {
 						<Bucket
 							key={bucket.id}
 							userId={userId}
-							bucket={bucket as PullRequestBucketWithUniqueIDs}
+							bucket={bucket}
 							provider={selectedProvider}
 							prDraftCountsByEntityID={prDraftCountsQuery.data}
 						/>

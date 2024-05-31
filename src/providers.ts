@@ -1,4 +1,12 @@
-import { AzureDevOps, Bitbucket, GitHub, GitLab } from '@gitkraken/provider-apis';
+import {
+	AzureDevOps,
+	Bitbucket,
+	EntityIdentifierProviderType,
+	EntityIdentifierUtils,
+	EntityType,
+	GitHub,
+	GitLab,
+} from '@gitkraken/provider-apis';
 import { fetchProviderToken } from './gkApi';
 import type { FocusViewData, FocusViewSupportedProvider, Provider, ProviderToken } from './types';
 
@@ -27,13 +35,14 @@ const fetchGitHubFocusViewData = async (token: ProviderToken) => {
 		providerUser: providerUser,
 		pullRequests: pullRequests.map(pr => ({
 			...pr,
-			uniqueId: JSON.stringify([
-				token.domain ? 'githubEnterprise' : 'github',
-				'pr',
-				'1',
-				token.domain || '',
-				pr.graphQLId || pr.id,
-			]),
+			uuid: EntityIdentifierUtils.encode({
+				provider: token.domain
+					? EntityIdentifierProviderType.GithubEnterprise
+					: EntityIdentifierProviderType.Github,
+				entityType: EntityType.PullRequest,
+				domain: token.domain,
+				entityId: pr.graphQLId || pr.id,
+			}),
 		})),
 	};
 };
@@ -50,7 +59,7 @@ const fetchGitLabFocusViewData = async (token: ProviderToken) => {
 		username: providerUser.username,
 	});
 
-	return { providerUser: providerUser, pullRequests: pullRequests.map(pr => ({ ...pr, uniqueId: '' })) };
+	return { providerUser: providerUser, pullRequests: pullRequests.map(pr => ({ ...pr, uuid: '' })) };
 };
 
 const fetchBitbucketFocusViewData = async (token: ProviderToken) => {
@@ -62,7 +71,7 @@ const fetchBitbucketFocusViewData = async (token: ProviderToken) => {
 		userId: providerUser.id,
 	});
 
-	return { providerUser: providerUser, pullRequests: pullRequests.map(pr => ({ ...pr, uniqueId: '' })) };
+	return { providerUser: providerUser, pullRequests: pullRequests.map(pr => ({ ...pr, uuid: '' })) };
 };
 
 const fetchAzureFocusViewData = async (token: ProviderToken) => {
@@ -82,7 +91,7 @@ const fetchAzureFocusViewData = async (token: ProviderToken) => {
 		projects: projects.map(project => ({ ...project, project: project.name })),
 	});
 
-	return { providerUser: providerUser, pullRequests: pullRequests.map(pr => ({ ...pr, uniqueId: '' })) };
+	return { providerUser: providerUser, pullRequests: pullRequests.map(pr => ({ ...pr, uuid: '' })) };
 };
 
 export const fetchFocusViewData = async (provider: FocusViewSupportedProvider): Promise<FocusViewData | null> => {
