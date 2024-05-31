@@ -210,9 +210,11 @@ export const getGitKrakenDeepLinkUrl = (provider: FocusViewSupportedProvider, ur
 	let redirectUrl = '';
 	switch (provider) {
 		case 'github':
+		case 'githubEnterprise':
 			redirectUrl = getGitHubRedirectUrl(url, 'vscode');
 			break;
 		case 'gitlab':
+		case 'gitlabSelfHosted':
 			redirectUrl = getGitLabRedirectUrl(url, 'vscode');
 			break;
 		case 'bitbucket':

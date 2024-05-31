@@ -37,8 +37,16 @@ export const ConnectAProvider = () => {
 						<div>Azure DevOps</div>
 					</ExternalLink>
 				</div>
-				<div className="text-sm text-secondary italic">
-					*Only cloud-hosted providers are currently supported.
+				<div className="named-divider">
+					<div className="divider-line" />
+					<div className="text-secondary">or</div>
+					<div className="divider-line" />
+				</div>
+				<div className="text-secondary">
+					Connect more integrations in the{' '}
+					<ExternalLink className="text-link" href={`${GKDotDevUrl}/settings/integrations`}>
+						Integration Settings
+					</ExternalLink>
 				</div>
 			</div>
 		</div>

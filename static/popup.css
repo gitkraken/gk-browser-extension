@@ -275,6 +275,20 @@ button.icon-btn {
 	border: none;
 }
 
+.named-divider {
+	width: 100%;
+	display: flex;
+	align-items: center;
+}
+.named-divider > *:not(:last-child) {
+	margin-right: 8px;
+}
+
+.divider-line {
+	border-top: 1px solid var(--color-border-row);
+	flex: 1 1 0%;
+}
+
 /* Utility classes */
 .text-sm {
 	font-size: var(--text-sm);

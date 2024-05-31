@@ -1,16 +1,18 @@
 import { AzureDevOps, Bitbucket, GitHub, GitLab } from '@gitkraken/provider-apis';
 import { fetchProviderToken } from './gkApi';
-import type { FocusViewData, FocusViewSupportedProvider, Provider } from './types';
+import type { FocusViewData, FocusViewSupportedProvider, Provider, ProviderToken } from './types';
 
 export const ProviderMeta: Record<FocusViewSupportedProvider, { name: string; iconSrc: string }> = {
 	github: { name: 'GitHub', iconSrc: 'img/github-color.svg' },
+	githubEnterprise: { name: 'GitHub Enterprise Server', iconSrc: 'img/github-color.svg' },
 	gitlab: { name: 'GitLab', iconSrc: 'img/gitlab-color.svg' },
+	gitlabSelfHosted: { name: 'GitLab Self-Managed', iconSrc: 'img/gitlab-color.svg' },
 	bitbucket: { name: 'Bitbucket', iconSrc: 'img/bitbucket-color.svg' },
 	azure: { name: 'Azure DevOps', iconSrc: 'img/azuredevops-color.svg' },
 };
 
-const fetchGitHubFocusViewData = async (token: string) => {
-	const github = new GitHub({ token: token });
+const fetchGitHubFocusViewData = async (token: ProviderToken) => {
+	const github = new GitHub({ token: token.accessToken, baseUrl: token.domain });
 
 	const { data: providerUser } = await github.getCurrentUser();
 	if (!providerUser.username) {
@@ -25,13 +27,19 @@ const fetchGitHubFocusViewData = async (token: string) => {
 		providerUser: providerUser,
 		pullRequests: pullRequests.map(pr => ({
 			...pr,
-			uniqueId: JSON.stringify(['github', 'pr', '1', '', pr.graphQLId || pr.id]),
+			uniqueId: JSON.stringify([
+				token.domain ? 'githubEnterprise' : 'github',
+				'pr',
+				'1',
+				token.domain || '',
+				pr.graphQLId || pr.id,
+			]),
 		})),
 	};
 };
 
-const fetchGitLabFocusViewData = async (token: string) => {
-	const gitlab = new GitLab({ token: token });
+const fetchGitLabFocusViewData = async (token: ProviderToken) => {
+	const gitlab = new GitLab({ token: token.accessToken, baseUrl: token.domain });
 
 	const { data: providerUser } = await gitlab.getCurrentUser();
 	if (!providerUser.username) {
@@ -45,8 +53,8 @@ const fetchGitLabFocusViewData = async (token: string) => {
 	return { providerUser: providerUser, pullRequests: pullRequests.map(pr => ({ ...pr, uniqueId: '' })) };
 };
 
-const fetchBitbucketFocusViewData = async (token: string) => {
-	const bitbucket = new Bitbucket({ token: token });
+const fetchBitbucketFocusViewData = async (token: ProviderToken) => {
+	const bitbucket = new Bitbucket({ token: token.accessToken });
 
 	const { data: providerUser } = await bitbucket.getCurrentUser();
 
@@ -57,8 +65,8 @@ const fetchBitbucketFocusViewData = async (token: string) => {
 	return { providerUser: providerUser, pullRequests: pullRequests.map(pr => ({ ...pr, uniqueId: '' })) };
 };
 
-const fetchAzureFocusViewData = async (token: string) => {
-	const azureDevOps = new AzureDevOps({ token: token });
+const fetchAzureFocusViewData = async (token: ProviderToken) => {
+	const azureDevOps = new AzureDevOps({ token: token.accessToken });
 
 	// Getting a user's PRs requires getting their projects, which requires getting their organizations
 	const { data: providerUser } = await azureDevOps.getCurrentUser();
@@ -85,13 +93,15 @@ export const fetchFocusViewData = async (provider: FocusViewSupportedProvider): 
 
 	switch (provider) {
 		case 'github':
-			return fetchGitHubFocusViewData(providerToken.accessToken);
+		case 'githubEnterprise':
+			return fetchGitHubFocusViewData(providerToken);
 		case 'gitlab':
-			return fetchGitLabFocusViewData(providerToken.accessToken);
+		case 'gitlabSelfHosted':
+			return fetchGitLabFocusViewData(providerToken);
 		case 'bitbucket':
-			return fetchBitbucketFocusViewData(providerToken.accessToken);
+			return fetchBitbucketFocusViewData(providerToken);
 		case 'azure':
-			return fetchAzureFocusViewData(providerToken.accessToken);
+			return fetchAzureFocusViewData(providerToken);
 		default:
 			throw new Error(`Attempted to fetch pull requests for unsupported provider: ${provider as Provider}`);
 	}
