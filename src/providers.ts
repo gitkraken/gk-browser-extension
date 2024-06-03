@@ -1,7 +1,8 @@
-import type { Account, PullRequestWithUniqueID } from '@gitkraken/provider-apis';
+import type { Account } from '@gitkraken/provider-apis';
 import {
 	AzureDevOps,
 	Bitbucket,
+	BitbucketServerUtils,
 	EntityIdentifierProviderType,
 	EntityIdentifierUtils,
 	EntityType,
@@ -60,6 +61,7 @@ const fetchGitLabFocusViewData = async (token: ProviderToken) => {
 
 	const { data: pullRequests } = await gitlab.getPullRequestsAssociatedWithUser({
 		username: providerUser.username,
+		includeFromArchivedRepos: false,
 	});
 
 	return { providerUser: providerUser, pullRequests: pullRequests.map(pr => ({ ...pr, uuid: '' })) };
@@ -96,17 +98,12 @@ const fetchBitbucketServerFocusViewData = async (token: ProviderToken) => {
 	return {
 		providerUser: data.user as Account,
 		pullRequests: (data.body.values as any[]).map(pullRequest => ({
+			...BitbucketServerUtils.restApiPullRequestToCommonPullRequest(pullRequest),
 			// Bitbucket Server PR ids are just the number, they are not unique across repos, so instead
 			// we use the PR url as the id.
 			id: pullRequest.links.self[0].href,
-			number: pullRequest.id,
-			title: pullRequest.title,
-			url: pullRequest.links.self[0].href,
-			repository: {
-				name: pullRequest.fromRef.repository.name,
-			},
 			uuid: '',
-		})) as PullRequestWithUniqueID[],
+		})),
 	};
 };
 
