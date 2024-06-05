@@ -37,6 +37,7 @@ export const useFocusViewConnectedProviders = (userId: string) => {
 					connection.provider === 'gitlab' ||
 					connection.provider === 'gitlabSelfHosted' ||
 					connection.provider === 'bitbucket' ||
+					connection.provider === 'bitbucketServer' ||
 					connection.provider === 'azure',
 			)
 			.map(connection => connection.provider as FocusViewSupportedProvider);
