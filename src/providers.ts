@@ -133,20 +133,27 @@ export const fetchFocusViewData = async (provider: FocusViewSupportedProvider): 
 		return null;
 	}
 
-	switch (provider) {
-		case 'github':
-		case 'githubEnterprise':
-			return fetchGitHubFocusViewData(providerToken);
-		case 'gitlab':
-		case 'gitlabSelfHosted':
-			return fetchGitLabFocusViewData(providerToken);
-		case 'bitbucket':
-			return fetchBitbucketFocusViewData(providerToken);
-		case 'bitbucketServer':
-			return fetchBitbucketServerFocusViewData(providerToken);
-		case 'azure':
-			return fetchAzureFocusViewData(providerToken);
-		default:
-			throw new Error(`Attempted to fetch pull requests for unsupported provider: ${provider as Provider}`);
+	try {
+		switch (provider) {
+			case 'github':
+			case 'githubEnterprise':
+				return await fetchGitHubFocusViewData(providerToken);
+			case 'gitlab':
+			case 'gitlabSelfHosted':
+				return await fetchGitLabFocusViewData(providerToken);
+			case 'bitbucket':
+				return await fetchBitbucketFocusViewData(providerToken);
+			case 'bitbucketServer':
+				return await fetchBitbucketServerFocusViewData(providerToken);
+			case 'azure':
+				return await fetchAzureFocusViewData(providerToken);
+			default:
+				throw new Error(`Attempted to fetch pull requests for unsupported provider: ${provider as Provider}`);
+		}
+	} catch (e) {
+		if (e) {
+			Object.assign(e, { provider: provider, domain: providerToken.domain });
+		}
+		throw e;
 	}
 };
