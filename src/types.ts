@@ -40,6 +40,11 @@ export type FocusViewData = {
 	pullRequests: PullRequestWithUniqueID[];
 };
 
+export type FocusViewDataError = Error & {
+	provider?: Provider;
+	domain?: string;
+};
+
 export interface ProviderConnection {
 	provider: Provider;
 	type: string;

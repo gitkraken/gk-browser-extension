@@ -269,6 +269,16 @@ html {
 	margin-right: 4px;
 }
 
+/* Focus View - Error */
+.focus-view .focus-view-error {
+	display: flex;
+	flex-direction: column;
+}
+.focus-view .focus-view-error .manage-integrations {
+	text-align: center;
+	margin-top: 8px;
+}
+
 /* Generic components */
 button.icon-btn {
 	background: none;

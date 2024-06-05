@@ -6,7 +6,7 @@ import { storage } from 'webextension-polyfill';
 import { getGitKrakenDeepLinkUrl } from '../../deepLink';
 import { ProviderMeta } from '../../providers';
 import { GKDotDevUrl } from '../../shared';
-import type { FocusViewSupportedProvider } from '../../types';
+import type { FocusViewDataError, FocusViewSupportedProvider } from '../../types';
 import { useFocusViewConnectedProviders, useFocusViewDataQuery, usePullRequestDraftCountsQuery } from '../hooks';
 import { ConnectAProvider } from './ConnectAProvider';
 import { ExternalLink } from './ExternalLink';
@@ -189,6 +189,52 @@ export const FocusView = ({ userId }: { userId: string }) => {
 		return <ConnectAProvider />;
 	}
 
+	let content: JSX.Element | null = null;
+	if (focusViewDataQuery.isLoading) {
+		content = (
+			<div className="text-center">
+				<i className="fa-regular fa-spinner-third fa-spin" />
+			</div>
+		);
+	} else if (focusViewDataQuery.error) {
+		const error = focusViewDataQuery.error as FocusViewDataError;
+		content = (
+			<div className="focus-view-error text-secondary">
+				<div className="italic">
+					An unexpected error occurred trying to load Launchpad data.{' '}
+					{error.domain ? (
+						<>
+							Make sure the service at{' '}
+							<ExternalLink className="text-link" href={error.domain}>
+								{error.domain}
+							</ExternalLink>{' '}
+							is reachable. If it is, make sure your access token is still valid.
+						</>
+					) : (
+						'Make sure your access token is still valid.'
+					)}
+				</div>
+				<ExternalLink className="text-link manage-integrations" href={`${GKDotDevUrl}/settings/integrations`}>
+					Manage Integration Settings
+				</ExternalLink>
+			</div>
+		);
+	} else {
+		content = (
+			<div className="pull-request-buckets">
+				{filteredBuckets?.map(bucket => (
+					<Bucket
+						key={bucket.id}
+						userId={userId}
+						bucket={bucket}
+						provider={selectedProvider}
+						prDraftCountsByEntityID={prDraftCountsQuery.data}
+					/>
+				))}
+			</div>
+		);
+	}
+
 	return (
 		<div className="focus-view">
 			{selectedProvider && (
@@ -224,23 +270,7 @@ export const FocusView = ({ userId }: { userId: string }) => {
 					</select>
 				</div>
 			)}
-			{focusViewDataQuery.isLoading ? (
-				<div className="text-center">
-					<i className="fa-regular fa-spinner-third fa-spin" />
-				</div>
-			) : (
-				<div className="pull-request-buckets">
-					{filteredBuckets?.map(bucket => (
-						<Bucket
-							key={bucket.id}
-							userId={userId}
-							bucket={bucket}
-							provider={selectedProvider}
-							prDraftCountsByEntityID={prDraftCountsQuery.data}
-						/>
-					))}
-				</div>
-			)}
+			{content}
 		</div>
 	);
 };
