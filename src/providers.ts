@@ -61,7 +61,6 @@ const fetchGitLabFocusViewData = async (token: ProviderToken) => {
 
 	const { data: pullRequests } = await gitlab.getPullRequestsAssociatedWithUser({
 		username: providerUser.username,
-		includeFromArchivedRepos: false,
 	});
 
 	return { providerUser: providerUser, pullRequests: pullRequests.map(pr => ({ ...pr, uuid: '' })) };
