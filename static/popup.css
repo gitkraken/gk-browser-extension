@@ -249,13 +249,10 @@ html {
 	margin-right: 12px;
 }
 .focus-view .pull-request-bucket .pull-request .pull-request-title {
-	width: 274;
+	width: 350px;
 }
 .focus-view .pull-request-bucket .pull-request .repository-name {
 	width: 148px;
-}
-.focus-view .pull-request-bucket .pull-request .pull-request-number {
-	width: 64px;
 }
 .focus-view .pull-request-bucket .pr-drafts-badge {
 	border: 1px solid var(--color-border-input);

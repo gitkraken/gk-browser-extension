@@ -44,22 +44,25 @@ const PullRequestRow = ({ userId, pullRequest, provider, draftCount = 0 }: PullR
 	return (
 		<>
 			<div className="pull-request">
-				<div className="pull-request-title truncate">{pullRequest.title}</div>
-				<div className="repository-name text-secondary truncate">{pullRequest.repository.name}</div>
-				<div className="pull-request-number">
+				<div className="pull-request-title truncate">
 					<ExternalLink
-						className="text-link"
+						className={pullRequest.url ? 'text-link' : undefined}
 						href={pullRequest.url || undefined}
 						onClick={() => {
+							if (!pullRequest.url) {
+								return;
+							}
+
 							// Since there is a decent chance that the PR will be acted upon after the user clicks on it,
 							// mark the focus view data as stale so that it will be refetched when the user returns.
 							void queryClient.invalidateQueries({ queryKey: [userId, 'focusViewData', provider] });
 						}}
 						title={`View pull request on ${ProviderMeta[provider].name}`}
 					>
-						#{pullRequest.number}
+						#{pullRequest.number} {pullRequest.title}
 					</ExternalLink>
 				</div>
+				<div className="repository-name text-secondary truncate">{pullRequest.repository.name}</div>
 				{deepLinkUrl && (
 					<ExternalLink href={deepLinkUrl} title="Open with GitKraken">
 						<i className="fa-brands fa-gitkraken icon text-link text-lg" />
