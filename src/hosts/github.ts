@@ -76,7 +76,8 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 			const [, , , type] = this.uri.pathname.split('/');
 			switch (type) {
 				case 'commit':
-					insertions.set('.commit > * #browse-at-time-link', {
+					// Insert button right before the "Browser files" button
+					insertions.set('#browse-at-time-link', {
 						// This is inside a flexbox, so ml-auto adds a ballooning margin that pushes the element to the right
 						html: /*html*/ `<a data-gk class="btn px-2 ml-auto flex-self-start" style="padding-top:2px !important; padding-bottom:1px !important;" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
 							22,
@@ -168,7 +169,8 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 						position: 'afterend',
 					});
 
-					insertions.set('#__primerPortalRoot__ > div > div > div > ul > div > ul > li:first-child', {
+					// Insert button inside the "Code" modal
+					insertions.set('#__primerPortalRoot__ > div > div > ul > div > ul > li:first-child', {
 						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
 	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">
 		${this.getGitKrakenSvg(16, 'mr-2')}
