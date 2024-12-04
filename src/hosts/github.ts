@@ -77,7 +77,7 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 			switch (type) {
 				case 'commit':
 					// Insert button right before the "Browser files" button
-					insertions.set('[aria-label="Browse the repository at this point in the history"]', {
+					insertions.set('#browse-at-time-link', {
 						// This is inside a flexbox, so ml-auto adds a ballooning margin that pushes the element to the right
 						html: /*html*/ `<a data-gk class="btn px-2 ml-auto flex-self-start" style="padding-top:2px !important; padding-bottom:1px !important;" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
 							22,
