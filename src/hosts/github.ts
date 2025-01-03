@@ -76,7 +76,18 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 			const [, , , type] = this.uri.pathname.split('/');
 			switch (type) {
 				case 'commit':
-					// Insert button right before the "Browser files" button
+					// Insert button right before the "Browser files" button (Logged out version)
+					insertions.set('#browse-at-time-link', {
+						// This is inside a flexbox, so ml-auto adds a ballooning margin that pushes the element to the right
+						html: /*html*/ `<a data-gk class="btn px-2 ml-auto flex-self-start" style="padding-top:2px !important; padding-bottom:1px !important;" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
+							22,
+							undefined,
+							'position:relative; top:2px;',
+						)}</a>`,
+						position: 'beforebegin',
+					});
+
+					// Insert button right before the "Browser files" button (Logged in version)
 					insertions.set('[aria-label="Browse the repository at this point in the history"]', {
 						// This is inside a flexbox, so ml-auto adds a ballooning margin that pushes the element to the right
 						html: /*html*/ `<a data-gk class="btn px-2 ml-auto flex-self-start" style="padding-top:2px !important; padding-bottom:1px !important;" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
