@@ -1,0 +1,39 @@
+name: Scheduled Playwright Tests
+on:
+    schedule:
+        - cron: '0 * * * *'
+jobs:
+    test:
+        timeout-minutes: 5
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: 18
+            - name: Install dependencies
+              run: yarn
+            - name: Install Playwright Browsers
+              run: yarn playwright install --with-deps chromium
+            - name: Build Extension files
+              run: yarn build:chromium
+            - name: Run Playwright tests
+              run: yarn playwright test
+
+            - name: Notify Slack
+              if: always()
+              uses: slackapi/slack-github-action@v1.24.0
+              with:
+                  payload: |
+                      {
+                        "channel": "feed-packages",
+                        "attachments": [
+                          {
+                            "color": "#000000",
+                            "text": "gk-browser-extension ran scheduled tests"
+                          }
+                        ]
+                      }
+              env:
+                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+                  SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
