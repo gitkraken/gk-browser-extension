@@ -13,10 +13,6 @@ jobs:
             - uses: actions/setup-node@v3
               with:
                   node-version: 18
-            - name: Update package lists
-              run: sudo apt-get update
-            - name: Install dependencies
-              run: sudo apt-get install -y libasound2
             - name: Install dependencies
               run: yarn
             - name: Install Playwright Browsers
