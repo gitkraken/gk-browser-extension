@@ -64,23 +64,26 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 					}
 					case 'pull-requests': {
 						const compareUrl = this.transformUrl('compare', pathname);
-						insertions.set('.css-1oy5iav', {
-							html: /*html*/ `<a data-gk class="gk-insert-pr css-w97uih" href="${openUrl}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
-								20,
-								undefined,
-								'position:relative; top:4px; left:-5px;',
-							)}Open with GitKraken</a>
+						insertions.set(
+							'[data-qa="page-header-wrapper"] [role="group"], .prCssVarContainer [role="group"]',
+							{
+								html: /*html*/ `<a data-gk class="gk-insert-pr css-w97uih" href="${openUrl}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+									20,
+									undefined,
+									'position:relative; top:4px; left:-5px;',
+								)}Open with GitKraken</a>
 							<a data-gk class="gk-insert-comparison css-w97uih" href="${compareUrl}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
 								20,
 								undefined,
 								'position:relative; top:4px; left:-5px;',
 							)}Open Comparison with GitKraken</a>`,
-							position: 'afterbegin',
-							replaceSelectorList: [
-								{ selector: '.gk-insert-pr', href: openUrl },
-								{ selector: '.gk-insert-comparison', href: compareUrl },
-							],
-						});
+								position: 'afterbegin',
+								replaceSelectorList: [
+									{ selector: '.gk-insert-pr', href: openUrl },
+									{ selector: '.gk-insert-comparison', href: compareUrl },
+								],
+							},
+						);
 						break;
 					}
 					case 'branches': {
