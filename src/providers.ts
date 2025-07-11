@@ -18,7 +18,7 @@ export const ProviderMeta: Record<FocusViewSupportedProvider, { name: string; ic
 	gitlab: { name: 'GitLab', iconSrc: 'img/gitlab-color.svg' },
 	gitlabSelfHosted: { name: 'GitLab Self-Managed', iconSrc: 'img/gitlab-color.svg' },
 	bitbucket: { name: 'Bitbucket', iconSrc: 'img/bitbucket-color.svg' },
-	bitbucketServer: { name: 'Bitbucket Server', iconSrc: 'img/bitbucket-color.svg' },
+	bitbucketServer: { name: 'Bitbucket Data Center', iconSrc: 'img/bitbucket-color.svg' },
 	azure: { name: 'Azure DevOps', iconSrc: 'img/azuredevops-color.svg' },
 };
 
@@ -80,7 +80,7 @@ const fetchBitbucketFocusViewData = async (token: ProviderToken) => {
 const fetchBitbucketServerFocusViewData = async (token: ProviderToken) => {
 	const bitbucketServer = new BitbucketServer({
 		token: token.accessToken,
-		// Bitbucket Server does not have the CORS header set to be able to make requests from the browser,
+		// Bitbucket Data Center does not have the CORS header set to be able to make requests from the browser,
 		// so we proxy the request through the API.
 		baseUrl: `${GKDotDevUrl}/api/provider/bitbucket-server/proxy/${encodeURIComponent(
 			`${token.domain?.replace(/\/+$/, '')}/rest/api/latest`,
