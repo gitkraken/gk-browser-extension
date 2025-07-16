@@ -1,8 +1,7 @@
-import type { Account } from '@gitkraken/provider-apis';
 import {
 	AzureDevOps,
 	Bitbucket,
-	BitbucketServerUtils,
+	BitbucketServer,
 	EntityIdentifierProviderType,
 	EntityIdentifierUtils,
 	EntityType,
@@ -19,7 +18,7 @@ export const ProviderMeta: Record<FocusViewSupportedProvider, { name: string; ic
 	gitlab: { name: 'GitLab', iconSrc: 'img/gitlab-color.svg' },
 	gitlabSelfHosted: { name: 'GitLab Self-Managed', iconSrc: 'img/gitlab-color.svg' },
 	bitbucket: { name: 'Bitbucket', iconSrc: 'img/bitbucket-color.svg' },
-	bitbucketServer: { name: 'Bitbucket Server', iconSrc: 'img/bitbucket-color.svg' },
+	bitbucketServer: { name: 'Bitbucket Data Center', iconSrc: 'img/bitbucket-color.svg' },
 	azure: { name: 'Azure DevOps', iconSrc: 'img/azuredevops-color.svg' },
 };
 
@@ -79,28 +78,23 @@ const fetchBitbucketFocusViewData = async (token: ProviderToken) => {
 };
 
 const fetchBitbucketServerFocusViewData = async (token: ProviderToken) => {
-	// Bitbucket Server does not have the CORS header set to be able to make requests from the browser,
-	// so we proxy the request through the API.
-	const res = await fetch(`${GKDotDevUrl}/api/provider/bitbucket-server/proxy`, {
-		headers: {
-			Authorization: `Bearer ${token.accessToken}`,
-			XDestination: `${token.domain}/rest/api/latest/dashboard/pull-requests`,
-		},
+	const bitbucketServer = new BitbucketServer({
+		token: token.accessToken,
+		// Bitbucket Data Center does not have the CORS header set to be able to make requests from the browser,
+		// so we proxy the request through the API.
+		baseUrl: `${GKDotDevUrl}/api/provider/bitbucket-server/proxy/${encodeURIComponent(
+			`${token.domain?.replace(/\/+$/, '')}/rest/api/latest`,
+		)}`,
 	});
 
-	if (!res.ok) {
-		throw new Error('Failed to fetch Bitbucket Server pull requests');
-	}
+	const { data: providerUser } = await bitbucketServer.getCurrentUser();
 
-	const data = await res.json();
+	const { data: pullRequests } = await bitbucketServer.getPullRequestsForCurrentUser({});
 
 	return {
-		providerUser: data.user as Account,
-		pullRequests: (data.body.values as any[]).map(pullRequest => ({
-			...BitbucketServerUtils.restApiPullRequestToCommonPullRequest(pullRequest),
-			// Bitbucket Server PR ids are just the number, they are not unique across repos, so instead
-			// we use the PR url as the id.
-			id: pullRequest.links.self[0].href,
+		providerUser: providerUser,
+		pullRequests: (pullRequests || []).map(pr => ({
+			...pr,
 			uuid: '',
 		})),
 	};
