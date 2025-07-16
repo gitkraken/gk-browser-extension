@@ -22,7 +22,7 @@ jobs:
               run: yarn playwright test
 
             - name: Notify Slack On Failure
-              if: failure()
+              if: failure() || cancelled()
               uses: slackapi/slack-github-action@v1.24.0
               with:
                   payload: |

@@ -181,15 +181,18 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 					});
 
 					// Insert button inside the "Code" modal
-					insertions.set('#__primerPortalRoot__ > div > div > ul > div > ul > li:first-child', {
-						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
-	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">
+					insertions.set(
+						'#__primerPortalRoot__ .react-overview-code-button-action-list > div > ul > li:first-child',
+						{
+							html: /*html*/ `<li data-gk style="margin-inline: var(--base-size-8, .5rem);">
+	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" style="padding-block: var(--control-medium-paddingBlock, .375rem); padding-inline: var(--control-medium-paddingInline-condensed, .5rem);" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">
 		${this.getGitKrakenSvg(16, 'mr-2')}
 		${label}
 	</a>
 </li>`,
-						position: 'afterend',
-					});
+							position: 'beforebegin',
+						},
+					);
 
 					break;
 				default: {
