@@ -93,7 +93,7 @@ const fetchBitbucketServerFocusViewData = async (token: ProviderToken) => {
 
 	return {
 		providerUser: providerUser,
-		pullRequests: pullRequests.map(pr => ({
+		pullRequests: (pullRequests || []).map(pr => ({
 			...pr,
 			uuid: '',
 		})),
