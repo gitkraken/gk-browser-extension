@@ -73,12 +73,12 @@ jobs:
             - name: Package extension
               run: yarn run package
             - name: Publish chromium artifact
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v4
               with:
                   name: ${{ env.PACKAGE_NAME }}-chromium.zip
                   path: ./${{ env.PACKAGE_NAME }}-chromium.zip
             - name: Publish firefox artifact
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v4
               with:
                   name: ${{ env.FF_ADDON_NAME }}.xpi
                   path: ./${{ env.FF_ADDON_NAME }}.xpi
