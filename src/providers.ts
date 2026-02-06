@@ -5,6 +5,7 @@ import {
 	EntityIdentifierProviderType,
 	EntityIdentifierUtils,
 	EntityType,
+	EntityVersion,
 	GitHub,
 	GitLab,
 } from '@gitkraken/provider-apis';
@@ -39,6 +40,12 @@ const fetchGitHubFocusViewData = async (token: ProviderToken) => {
 		pullRequests: pullRequests.map(pr => ({
 			...pr,
 			uuid: EntityIdentifierUtils.encode({
+				version: EntityVersion.One,
+				resourceId: null,
+				accountOrOrgId: null,
+				organizationName: null,
+				projectId: null,
+				repoId: null,
 				provider: token.domain
 					? EntityIdentifierProviderType.GithubEnterprise
 					: EntityIdentifierProviderType.Github,
@@ -70,9 +77,15 @@ const fetchBitbucketFocusViewData = async (token: ProviderToken) => {
 
 	const { data: providerUser } = await bitbucket.getCurrentUser();
 
-	const { data: pullRequests } = await bitbucket.getPullRequestsForUser({
-		userId: providerUser.id,
-	});
+	const { data: workspaces } = await bitbucket.getWorkspacesForCurrentUser();
+
+	const pullRequestsResponses = await Promise.all(
+		workspaces.map(workspace =>
+			bitbucket.getPullRequestsForUserAndWorkspace({ userId: providerUser.id, workspaceSlug: workspace.slug }),
+		),
+	);
+
+	const pullRequests = pullRequestsResponses.flatMap(response => response.data);
 
 	return { providerUser: providerUser, pullRequests: pullRequests.map(pr => ({ ...pr, uuid: '' })) };
 };
