@@ -139,8 +139,11 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 						position: 'afterend',
 					});
 
-					insertions.set('#__primerPortalRoot__ > div > div > div > ul > div > ul > li:first-child', {
-						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
+					// Insert button inside the "Code" modal
+					insertions.set(
+						'#__primerPortalRoot__ .react-overview-code-button-action-list > ul > ul > li:first-child',
+						{
+							html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
 	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">
 		${this.getGitKrakenSvg(16, 'mr-2')}
 		${label}
@@ -152,8 +155,9 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 		Open Comparison with GitKraken
 	</a>
 </li>`,
-						position: 'afterend',
-					});
+							position: 'afterend',
+						},
+					);
 
 					break;
 				}
