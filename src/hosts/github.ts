@@ -6,267 +6,318 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 	class GitHubInjectionProvider implements InjectionProvider {
 		private _timer: ReturnType<typeof setTimeout> | undefined;
 		private _observer: MutationObserver | undefined;
-		private _domTimer: ReturnType<typeof setTimeout> | undefined;
-		private _domObserver: MutationObserver | undefined;
+		private readonly _onNavigation = () => this.schedule();
+		private readonly _onMessage = (request: { message?: string; details?: { frameId?: number; url?: string } }) => {
+			if (request.message === 'onHistoryStateUpdated' && (request.details?.frameId ?? 0) === 0) {
+				this.schedule();
+			}
+		};
 
 		constructor(private uri: URL) {}
 
 		inject(): void {
-			document.addEventListener('pjax:end', () => {
-				this.uri = new URL(window.location.href);
-				this.render();
-			});
-			document.addEventListener('turbo:render', () => {
-				this.uri = new URL(window.location.href);
-				this.render();
-			});
+			const hostWindow = window as Window & { __gkGithubInjection?: GitHubInjectionProvider };
+			hostWindow.__gkGithubInjection?.dispose();
+			hostWindow.__gkGithubInjection = this;
+			this.ensureStyles();
 
-			this._domObserver = new MutationObserver((mutationRecord: MutationRecord[]) => {
-				const portalchange = mutationRecord.find(
-					e => e.target && (e.target as HTMLElement).id === '__primerPortalRoot__',
-				);
-				if (portalchange) {
-					if (this._domTimer != null) {
-						return;
-					}
-
-					this._domTimer = setTimeout(() => {
-						this._domTimer = undefined;
-						this.render();
-					}, 100);
-				}
-			});
-			this._domObserver.observe(document.body, { childList: true, subtree: true });
-
-			this.render();
-		}
-
-		private render() {
-			// Reset pending watchers
-			if (this._timer != null) {
-				clearTimeout(this._timer);
-				this._timer = undefined;
-			}
-			if (this._observer != null) {
-				this._observer.disconnect();
-				this._observer = undefined;
-			}
-
-			// Remove all previous injected elements
-			const els = document.querySelectorAll('[data-gk]');
-			for (const el of els) {
-				el.remove();
-			}
-
-			try {
-				const insertions = this.getInsertions();
-				this.insertHTML(insertions);
-			} catch (ex) {
-				debugger;
-				console.error(ex);
-			}
-		}
-
-		private getInsertions(): Map<string, { html: string; position: InsertPosition }> {
-			const insertions = new Map<string, { html: string; position: InsertPosition }>();
-
-			const label = 'Open with GitKraken';
-			const openUrl = this.transformUrl('open');
-
-			const [, , , type] = this.uri.pathname.split('/');
-			switch (type) {
-				case 'commit':
-					// Insert button right before the "Browser files" button (Logged out version)
-					insertions.set('#browse-at-time-link', {
-						// This is inside a flexbox, so ml-auto adds a ballooning margin that pushes the element to the right
-						html: /*html*/ `<a data-gk class="btn px-2 ml-auto flex-self-start" style="padding-top:2px !important; padding-bottom:1px !important;" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
-							22,
-							undefined,
-							'position:relative; top:2px;',
-						)}</a>`,
-						position: 'beforebegin',
-					});
-
-					// Insert button right before the "Browser files" button (Logged in version)
-					insertions.set('[aria-label="Browse the repository at this point in the history"]', {
-						// This is inside a flexbox, so ml-auto adds a ballooning margin that pushes the element to the right
-						html: /*html*/ `<a data-gk class="btn px-2 ml-auto flex-self-start" style="padding-top:2px !important; padding-bottom:1px !important;" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
-							22,
-							undefined,
-							'position:relative; top:2px;',
-						)}</a>`,
-						position: 'beforebegin',
-					});
-
-					// For GitHub Enterprise 3.11.2
-					insertions.set('.commit > #browse-at-time-link', {
-						html: /*html*/ `<a data-gk class="btn mr-2 px-2 float-right" style="padding-top:2px !important; padding-bottom:1px !important;" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
-							22,
-							undefined,
-							'position:relative; top:2px;',
-						)}</a>`,
-						position: 'afterend',
-					});
-
-					break;
-				case 'compare':
-					insertions.set('.js-range-editor', {
-						html: /*html*/ `<a data-gk class="btn mr-2 px-2 float-right" style="padding-top:2px !important; padding-bottom:1px !important;" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
-							22,
-							undefined,
-							'position:relative; top:2px;',
-						)}</a>`,
-						position: 'afterbegin',
-					});
-
-					break;
-				case 'pull': {
-					const compareUrl = this.transformUrl('compare');
-
-					insertions.set('[data-target="get-repo.modal"] #local-panel ul li:first-child', {
-						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
-	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">
-		${this.getGitKrakenSvg(16, 'mr-2')}
-		${label}
-	</a>
-</li>
-<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
-	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${compareUrl}" target="_blank" title="Open Comparison with GitKraken" aria-label="Open Comparison with GitKraken">
-		${this.getGitKrakenSvg(16, 'mr-2')}
-		Open Comparison with GitKraken
-	</a>
-</li>`,
-						position: 'afterend',
-					});
-
-					// Insert button inside the "Code" modal
-					insertions.set(
-						'#__primerPortalRoot__ .react-overview-code-button-action-list > ul > ul > li:first-child',
-						{
-							html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
-	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">
-		${this.getGitKrakenSvg(16, 'mr-2')}
-		${label}
-	</a>
-</li>
-<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
-	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${compareUrl}" target="_blank" title="Open Comparison with GitKraken" aria-label="Open Comparison with GitKraken">
-		${this.getGitKrakenSvg(16, 'mr-2')}
-		Open Comparison with GitKraken
-	</a>
-</li>`,
-							position: 'afterend',
-						},
+			document.addEventListener('pjax:end', this._onNavigation);
+			document.addEventListener('turbo:render', this._onNavigation);
+			window.addEventListener('popstate', this._onNavigation);
+			chrome.runtime.onMessage.addListener(this._onMessage);
+			const isGkOwned = (node: Node) =>
+				node.nodeType === Node.ELEMENT_NODE && (node as Element).closest('[data-gk-owner="github"]') != null;
+			this._observer = new MutationObserver(records => {
+				const hostChanged = records.some(record => {
+					if ((record.target as Element).closest?.('[data-gk-owner="github"]')) return false;
+					if (record.type === 'attributes') return true;
+					// Insertions and relocations of our own nodes are not host changes. A bare removal still is, since the host may have dropped them
+					return !(
+						record.addedNodes.length > 0 && [...record.addedNodes, ...record.removedNodes].every(isGkOwned)
 					);
-
-					break;
-				}
-				case 'tree':
-				case undefined:
-					// Enterpise v3.11.2
-					insertions.set('[data-target="get-repo.modal"] ul li:last-child', {
-						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
-	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">
-		${this.getGitKrakenSvg(16, 'mr-2')}
-		${label}
-	</a>
-</li>`,
-						position: 'afterend',
-					});
-
-					insertions.set('[data-target="get-repo.modal"] #local-panel ul li:first-child', {
-						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
-	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">
-		${this.getGitKrakenSvg(16, 'mr-2')}
-		${label}
-	</a>
-</li>`,
-						position: 'afterend',
-					});
-
-					// Insert button inside the "Code" modal
-					insertions.set(
-						'#__primerPortalRoot__ .react-overview-code-button-action-list > div > ul > li:first-child',
-						{
-							html: /*html*/ `<li data-gk style="margin-inline: var(--base-size-8, .5rem);">
-	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" style="padding-block: var(--control-medium-paddingBlock, .375rem); padding-inline: var(--control-medium-paddingInline-condensed, .5rem);" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">
-		${this.getGitKrakenSvg(16, 'mr-2')}
-		${label}
-	</a>
-</li>`,
-							position: 'beforebegin',
-						},
-					);
-
-					break;
-				default: {
-					insertions.set('.file-navigation get-repo', {
-						html: /*html*/ `<a data-gk class="btn mr-2 px-2 py-0" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
-							22,
-							undefined,
-							'position:relative; top:2px;',
-						)}</a>`,
-						position: 'beforebegin',
-					});
-					insertions.set('[data-target="get-repo.modal"] #local-panel ul li:first-child', {
-						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
-	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">
-		${this.getGitKrakenSvg(16, 'mr-2')}
-		${label}
-	</a>
-</li>`,
-						position: 'afterend',
-					});
-
-					insertions.set('#__primerPortalRoot__ > div > div > div > ul > div > ul > li:first-child', {
-						html: /*html*/ `<li data-gk class="Box-row Box-row--hover-gray p-3 mt-0 rounded-0">
-	<a class="d-flex flex-items-center color-fg-default text-bold no-underline" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}">
-		${this.getGitKrakenSvg(16, 'mr-2')}
-		${label}
-	</a>
-</li>`,
-						position: 'afterend',
-					});
-
-					break;
-				}
-			}
-			return insertions;
-		}
-
-		private insertHTML(insertions: Map<string, { html: string; position: InsertPosition }>) {
-			if (insertions.size) {
-				for (const [selector, { html, position }] of insertions) {
-					const el = document.querySelector(selector);
-					if (el) {
-						insertions.delete(selector);
-						el.insertAdjacentHTML(position, html);
-					}
-				}
-
-				if (!insertions.size) return;
-
-				this._observer = new MutationObserver(() => {
-					if (this._timer != null) {
-						clearTimeout(this._timer);
-					}
-
-					this._timer = setTimeout(() => {
-						for (const [selector, { html, position }] of insertions) {
-							const el = document.querySelector(selector);
-							if (el) {
-								insertions.delete(selector);
-								el.insertAdjacentHTML(position, html);
-							}
-						}
-
-						if (!insertions.size) {
-							this._observer?.disconnect();
-							this._observer = undefined;
-						}
-					}, 100);
 				});
-				this._observer.observe(document.body, { childList: true, subtree: true });
+				if (hostChanged) this.schedule();
+			});
+			this._observer.observe(document.documentElement, {
+				attributes: true,
+				attributeFilter: ['aria-expanded', 'hidden', 'href'],
+				childList: true,
+				subtree: true,
+			});
+			this.reconcile();
+		}
+
+		dispose(): void {
+			if (this._timer != null) clearTimeout(this._timer);
+			this._observer?.disconnect();
+			document.removeEventListener('pjax:end', this._onNavigation);
+			document.removeEventListener('turbo:render', this._onNavigation);
+			window.removeEventListener('popstate', this._onNavigation);
+			chrome.runtime.onMessage.removeListener(this._onMessage);
+			document.querySelector('[data-gk-style="github-actions"]')?.remove();
+			const hostWindow = window as Window & { __gkGithubInjection?: GitHubInjectionProvider };
+			if (hostWindow.__gkGithubInjection === this) delete hostWindow.__gkGithubInjection;
+		}
+
+		private ensureStyles(): void {
+			if (document.querySelector('[data-gk-style="github-actions"]')) return;
+			const style = document.createElement('style');
+			style.dataset.gkStyle = 'github-actions';
+			style.textContent = `
+				.gk-github-menu-link:hover { background-color: var(--control-transparent-bgColor-hover, rgba(177, 186, 196, .12)); text-decoration: none; }
+				.gk-github-menu-link:focus-visible, .gk-github-inline-action:focus-visible { outline: 2px solid var(--focus-outlineColor, #4493f8); outline-offset: -2px; }
+				.gk-github-inline-action:hover { background-color: var(--button-default-bgColor-hover, rgba(177, 186, 196, .12)); text-decoration: none; }
+			`;
+			document.head.append(style);
+		}
+
+		private schedule(): void {
+			if (this._timer != null) clearTimeout(this._timer);
+			this._timer = setTimeout(() => {
+				this._timer = undefined;
+				this.reconcile();
+			}, 100);
+		}
+
+		private reconcile(): void {
+			this.uri = new URL(window.location.href);
+			const route = this.getRepositoryRoute();
+			const desiredSlots = new Set<string>();
+			if (route) {
+				const { owner, repo, type } = route;
+				if (type === 'commit') {
+					const action = this.getCommitActionTarget(owner, repo);
+					if (action) {
+						desiredSlots.add('github-commit');
+						this.upsertAction(
+							action,
+							'github-commit',
+							'open',
+							'Open with GitKraken',
+							this.transformUrl('open'),
+						);
+					}
+				} else if (type === 'compare') {
+					const rangeEditor = document.querySelector<HTMLElement>('.js-range-editor');
+					if (rangeEditor) {
+						desiredSlots.add('github-compare');
+						this.upsertAction(
+							{ element: rangeEditor, position: 'afterbegin', list: false },
+							'github-compare',
+							'open',
+							'Open with GitKraken',
+							this.transformUrl('open'),
+						);
+					}
+				} else if (type === 'pull') {
+					const list = this.getPullRequestActionList(owner, repo);
+					if (list) {
+						const openUrl = this.transformUrl('open');
+						desiredSlots.add('github-pull-open');
+						desiredSlots.add('github-pull-compare');
+						this.upsertAction(list, 'github-pull-open', 'open', 'Open with GitKraken', openUrl);
+						this.upsertAction(
+							list,
+							'github-pull-compare',
+							'compare',
+							'Open Comparison with GitKraken',
+							this.transformUrl('compare'),
+						);
+					}
+				} else if (type === undefined || type === 'tree') {
+					const list = this.getRepositoryActionList(owner, repo);
+					if (list) {
+						desiredSlots.add('github-repository-code');
+						this.upsertAction(
+							list,
+							'github-repository-code',
+							'open',
+							'Open with GitKraken',
+							this.transformUrl('open'),
+						);
+					}
+				}
+			}
+
+			for (const element of document.querySelectorAll<HTMLElement>('[data-gk-owner="github"]')) {
+				if (!desiredSlots.has(element.dataset.gkSlot ?? '')) element.remove();
+			}
+		}
+
+		private getRepositoryRoute(): { owner: string; repo: string; type?: string } | undefined {
+			const segments = this.uri.pathname.split('/').filter(Boolean);
+			const [owner, repo, type] = segments;
+			const reserved = new Set([
+				'account',
+				'apps',
+				'collections',
+				'enterprise',
+				'events',
+				'explore',
+				'features',
+				'issues',
+				'login',
+				'logout',
+				'marketplace',
+				'new',
+				'notifications',
+				'orgs',
+				'organizations',
+				'pulls',
+				'search',
+				'settings',
+				'sponsors',
+				'starred',
+				'topics',
+				'users',
+			]);
+			if (!owner || !repo || reserved.has(owner.toLowerCase())) return undefined;
+
+			// GitHub serves any casing of a repository path, but its header links always use the canonical casing
+			const repoPath = `/${owner}/${repo}`.toLowerCase();
+			const evidenceLinks = document.querySelectorAll<HTMLAnchorElement>(
+				'a[data-testid="repo-name-link"], a[data-component="Breadcrumbs.Item"], a#code-view-repo-link, a[data-tab-item="code"], a#code-tab, strong[itemprop="name"] a',
+			);
+			for (const link of evidenceLinks) {
+				const href = link.getAttribute('href');
+				if (!href || href.toLowerCase() !== repoPath) continue;
+
+				const [canonicalOwner, canonicalRepo] = href.split('/').filter(Boolean);
+				return { owner: canonicalOwner, repo: canonicalRepo, type: type };
+			}
+			return undefined;
+		}
+
+		private getRepositoryActionList(owner: string, repo: string): HTMLElement | undefined {
+			const repoArchive = `/${owner}/${repo}/archive/`.toLowerCase();
+			const isRepoArchive = (link: HTMLAnchorElement) =>
+				(link.getAttribute('href') ?? '').toLowerCase().startsWith(repoArchive);
+			const actionList = [...document.querySelectorAll<HTMLElement>('ul[aria-label="Repository actions"]')].find(
+				list => [...list.querySelectorAll<HTMLAnchorElement>('a[href]')].some(isRepoArchive),
+			);
+			if (actionList) return actionList;
+
+			// Only trust archive links that live in the Code menu; other pages list archives too (e.g. release assets)
+			const archiveList = [...document.querySelectorAll<HTMLAnchorElement>('a[href*="/archive/"]')]
+				.filter(isRepoArchive)
+				.map(link => link.closest<HTMLElement>('ul'))
+				.find(
+					list =>
+						list != null &&
+						(list.matches('[data-component="ActionList"]') ||
+							list.closest(
+								'#__primerPortalRoot__, [role="dialog"], [data-target="get-repo.modal"], get-repo',
+							) != null),
+				);
+			if (archiveList) return archiveList;
+
+			const legacyLists = [...document.querySelectorAll<HTMLElement>('[data-target="get-repo.modal"] ul')];
+			return legacyLists.find(list => list.closest('#local-panel') || list.querySelector('a[href*="/archive/"]'));
+		}
+
+		private getPullRequestActionList(owner: string, repo: string): HTMLElement | undefined {
+			const localOptions = document.querySelector<HTMLElement>('ul[aria-label="Local checkout options"]');
+			if (localOptions) return localOptions;
+			const reactItem = document.querySelector<HTMLElement>(
+				'#__primerPortalRoot__ .react-overview-code-button-action-list > ul > ul > li:first-child',
+			);
+			if (reactItem?.parentElement) return reactItem.parentElement;
+			const legacy = document.querySelector<HTMLElement>('[data-target="get-repo.modal"] #local-panel ul');
+			if (legacy) return legacy;
+			const repoPrefix = `/${owner}/${repo}/`.toLowerCase();
+			return [...document.querySelectorAll<HTMLElement>('[data-target="get-repo.modal"] ul')].find(list =>
+				[...list.querySelectorAll<HTMLAnchorElement>('a[href]')].some(link =>
+					(link.getAttribute('href') ?? '').toLowerCase().startsWith(repoPrefix),
+				),
+			);
+		}
+
+		private getCommitActionTarget(
+			owner: string,
+			repo: string,
+		): { element: HTMLElement; position: InsertPosition; list: boolean } | undefined {
+			const treePrefix = `/${owner}/${repo}/tree/`.toLowerCase();
+			const browseFiles = [
+				...document.querySelectorAll<HTMLAnchorElement>('a[data-component="Button"][href]'),
+			].find(
+				link =>
+					link.getAttribute('href')?.toLowerCase().startsWith(treePrefix) &&
+					link.textContent?.trim() === 'Browse files',
+			);
+			if (browseFiles) return { element: browseFiles, position: 'beforebegin', list: false };
+			const legacy = document.querySelector<HTMLElement>(
+				'#browse-at-time-link, [aria-label="Browse the repository at this point in the history"]',
+			);
+			return legacy ? { element: legacy, position: 'beforebegin', list: false } : undefined;
+		}
+
+		// insertAdjacentHTML puts beforebegin/afterend wrappers next to the target (in its parent), but afterbegin/beforeend inside of it
+		private isPlaced(
+			wrapper: HTMLElement,
+			{ element, position }: { element: HTMLElement; position: InsertPosition },
+		): boolean {
+			switch (position) {
+				case 'beforebegin':
+					return wrapper.parentElement === element.parentElement && wrapper.nextElementSibling === element;
+				case 'afterend':
+					return wrapper.parentElement === element.parentElement && element.nextElementSibling === wrapper;
+				default:
+					return wrapper.parentElement === element;
+			}
+		}
+
+		private upsertAction(
+			target: HTMLElement | { element: HTMLElement; position: InsertPosition; list: boolean },
+			slot: string,
+			action: 'open' | 'compare',
+			label: string,
+			href: string,
+		): void {
+			const location =
+				target instanceof HTMLElement
+					? { element: target, position: 'beforeend' as InsertPosition, list: true }
+					: target;
+			const existing = [
+				...document.querySelectorAll<HTMLElement>(`[data-gk-owner="github"][data-gk-slot="${slot}"]`),
+			];
+			let wrapper = existing.shift();
+			for (const duplicate of existing) duplicate.remove();
+			if (wrapper && (!this.isPlaced(wrapper, location) || wrapper.dataset.gkList !== String(location.list))) {
+				wrapper.remove();
+				wrapper = undefined;
+			}
+
+			const elementTag = location.list ? 'li' : 'a';
+			if (!wrapper) {
+				const html = location.list
+					? `<li data-gk data-gk-owner="github" data-gk-action="${action}" data-gk-slot="${slot}" data-gk-list="true" data-component="ActionList.Item" data-has-description="false" style="list-style:none;margin:0 8px"><a class="gk-github-menu-link" data-component="Link" data-size="medium" href="${href}" target="_blank" title="${label}" aria-label="${label}" style="box-sizing:border-box;display:flex;align-items:center;width:100%;height:32px;padding:6px 8px;border-radius:6px;color:var(--fgColor-default,inherit);font-size:14px;line-height:20px;text-decoration:none"><span style="box-sizing:border-box;display:flex;align-items:center;justify-content:center;flex:0 0 20px;width:20px;height:20px;margin-right:8px">${this.getGitKrakenSvg(
+							16,
+							undefined,
+							'display:block;flex:0 0 auto;',
+					  )}</span><span style="display:block;font-size:14px;line-height:20px">${label}</span></a></li>`
+					: `<a data-gk data-gk-owner="github" data-gk-action="${action}" data-gk-slot="${slot}" data-gk-list="false" data-component="Button" data-size="small" class="gk-github-inline-action" href="${href}" target="_blank" title="${label}" aria-label="${label}" style="box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:0 8px;border:1px solid var(--button-default-borderColor,var(--borderColor-default,#d1d9e0));border-radius:6px;color:var(--button-default-fgColor,var(--fgColor-default,inherit));text-decoration:none;cursor:pointer">${this.getGitKrakenSvg(
+							18,
+							undefined,
+							'display:block;flex:0 0 auto;',
+					  )}<span class="sr-only">${label}</span></a>`;
+				location.element.insertAdjacentHTML(location.position, html);
+				wrapper = (
+					location.position === 'beforebegin'
+						? location.element.previousElementSibling
+						: location.position === 'afterend'
+						? location.element.nextElementSibling
+						: location.position === 'afterbegin'
+						? location.element.firstElementChild
+						: location.element.lastElementChild
+				) as HTMLElement;
+			}
+			wrapper.dataset.gkList = String(location.list);
+			const link =
+				elementTag === 'li' ? wrapper.querySelector<HTMLAnchorElement>('a') : (wrapper as HTMLAnchorElement);
+			if (link && (link.href !== href || link.getAttribute('aria-label') !== label)) {
+				link.href = href;
+				link.setAttribute('aria-label', label);
+				link.title = label;
 			}
 		}
 
@@ -280,6 +331,47 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 				deepLink.searchParams.set('context', 'pr');
 			}
 			return deepLink.toString();
+		}
+
+		private getPullRequestBranches():
+			| {
+					head: { owner: string; repo: string; branch: string };
+					base?: { owner: string; repo: string; branch: string };
+			  }
+			| undefined {
+			// Path segments stay percent-encoded, like the tree/compare routes (decoding would turn `fix%23123` into a hash)
+			const parseBranch = (link: HTMLAnchorElement | null | undefined) => {
+				if (!link) return undefined;
+				const parts = new URL(link.href, this.uri.origin).pathname.split('/').filter(Boolean);
+				if (parts.indexOf('tree') !== 2 || !parts[0] || !parts[1] || !parts.slice(3).length) return undefined;
+				return { owner: parts[0], repo: parts[1], branch: parts.slice(3).join('/') };
+			};
+
+			// The header renders `base` then `head` as sibling branch links (twice, with a sticky copy). The smallest
+			// container holding two links is the real pair, unless the head is not a link (e.g. a deleted branch), in
+			// which case the two links found are base copies with the same href
+			const selector = 'a[data-component="BranchName"][href]';
+			let container = document.querySelector<HTMLAnchorElement>(selector)?.parentElement;
+			while (container && container !== document.body) {
+				const links = container.querySelectorAll<HTMLAnchorElement>(selector);
+				if (links.length >= 2) {
+					if (links[0].href !== links[1].href) {
+						const base = parseBranch(links[0]);
+						const head = parseBranch(links[1]);
+						if (base && head) return { base: base, head: head };
+					}
+					break;
+				}
+				container = container.parentElement;
+			}
+
+			// Classic markup (GitHub Enterprise Server)
+			const head = parseBranch(document.querySelector<HTMLAnchorElement>('.commit-ref.head-ref a'));
+			if (!head) return undefined;
+			return {
+				head: head,
+				base: parseBranch(document.querySelector<HTMLAnchorElement>('.commit-ref.base-ref a')),
+			};
 		}
 
 		private getRedirectUrl(target: LinkTarget, action: 'open' | 'compare'): string {
@@ -311,46 +403,32 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 				}
 				case 'pull': {
 					const [prNumber] = rest;
-
-					const headTreeUrl = document.querySelector<HTMLAnchorElement>('.commit-ref.head-ref a')?.href;
-					if (headTreeUrl) {
-						const [, prOwner, prRepo, , ...prBranch] = new URL(headTreeUrl).pathname.split('/');
-
-						if (action === 'compare') {
-							const baseTreeUrl =
-								document.querySelector<HTMLAnchorElement>('.commit-ref.base-ref a')?.href;
-							if (baseTreeUrl) {
-								const [, baseOwner, baseRepo, , ...baseBranch] = new URL(baseTreeUrl).pathname.split(
-									'/',
-								);
-
-								const baseBranchString = `${baseOwner}/${baseRepo}:${baseBranch.join('/')}`;
-								const prBranchString = `${prOwner}/${prRepo}:${prBranch.join('/')}`;
-
-								redirectUrl = new URL(
-									`${target}://eamodio.gitlens/link/r/${repoId}/compare/${baseBranchString}...${prBranchString}`,
-								);
-							}
-						}
-
-						if (redirectUrl === null) {
+					const branches = this.getPullRequestBranches();
+					if (branches) {
+						const { head } = branches;
+						if (action === 'compare' && branches.base) {
+							const baseBranch = `${branches.base.owner}/${branches.base.repo}:${branches.base.branch}`;
+							const headBranch = `${head.owner}/${head.repo}:${head.branch}`;
 							redirectUrl = new URL(
-								`${target}://eamodio.gitlens/link/r/${repoId}/b/${prBranch.join('/')}`,
+								`${target}://eamodio.gitlens/link/r/${repoId}/compare/${baseBranch}...${headBranch}`,
 							);
+						}
+						if (redirectUrl === null) {
+							redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}/b/${head.branch}`);
 						}
 
 						redirectUrl.searchParams.set('pr', prNumber);
 						redirectUrl.searchParams.set('prUrl', this.uri.toString());
 
-						if (prOwner !== owner || prRepo !== repo) {
+						if (head.owner !== owner || head.repo !== repo) {
 							const prRepoUrl = new URL(this.uri.toString());
 							prRepoUrl.hash = '';
 							prRepoUrl.search = '';
 							prRepoUrl.pathname = `/${owner}/${repo}.git`;
 							redirectUrl.searchParams.set('prRepoUrl', prRepoUrl.toString());
 
-							owner = prOwner;
-							repo = prRepo;
+							owner = head.owner;
+							repo = head.repo;
 						}
 					} else {
 						redirectUrl = new URL(`${target}://eamodio.gitlens/link/r/${repoId}`);

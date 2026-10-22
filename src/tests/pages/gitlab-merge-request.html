@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>Merge request · GitLab</title>
+	</head>
+	<body>
+		<main>
+			<!-- Live shape (gitlab.com): both groups exist before the menu is opened -->
+			<div data-testid="mr-code-dropdown" class="gl-new-dropdown gl-disclosure-dropdown">
+				<button id="code-menu" type="button" aria-expanded="false" aria-controls="mr-code-panel">Code</button>
+				<div id="mr-code-panel" class="gl-new-dropdown-panel" hidden>
+					<div class="gl-new-dropdown-inner">
+						<ul data-testid="disclosure-content" class="gl-new-dropdown-contents">
+							<li>
+								<div class="gl-py-2 gl-pl-4 gl-text-sm gl-font-bold">Check out</div>
+								<ul class="gl-new-dropdown-item-group gl-mb-0 gl-list-none">
+									<li class="gl-new-dropdown-item" tabindex="0">
+										<button type="button" class="gl-new-dropdown-item-content">
+											Check out branch
+										</button>
+									</li>
+									<li class="gl-new-dropdown-item" tabindex="0">
+										<button type="button" class="gl-new-dropdown-item-content">
+											Open in Workspace
+										</button>
+									</li>
+								</ul>
+							</li>
+							<li class="gl-border-t gl-border-t-gray-200 gl-pt-2 gl-mt-2">
+								<div class="gl-py-2 gl-pl-4 gl-text-sm gl-font-bold">Open in your IDE</div>
+								<ul class="gl-new-dropdown-item-group gl-mb-0 gl-list-none">
+									<li class="gl-new-dropdown-item" tabindex="0">
+										<a class="gl-new-dropdown-item-content" href="vscode://example/clone"
+											>Visual Studio Code (SSH)</a
+										>
+									</li>
+								</ul>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</main>
+		<script>
+			document.querySelector('#code-menu').addEventListener('click', () => {
+				const menu = document.querySelector('#mr-code-panel');
+				menu.hidden = !menu.hidden;
+				document.querySelector('#code-menu').setAttribute('aria-expanded', String(!menu.hidden));
+			});
+		</script>
+	</body>
+</html>

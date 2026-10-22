@@ -37,8 +37,9 @@ webNavigation.onDOMContentLoaded.addListener(async details => {
 
 webNavigation.onHistoryStateUpdated.addListener(details => {
 	// used to detect when the user navigates to a different page in the same tab
+	if (details.frameId !== 0) return;
 	const url = new URL(details.url);
-	if (url.host === 'bitbucket.org' || url.host === 'dev.azure.com') {
+	if (url.host === 'github.com' || url.host === 'bitbucket.org' || url.host === 'dev.azure.com') {
 		tabs.sendMessage(details.tabId, {
 			message: 'onHistoryStateUpdated',
 			details: details,

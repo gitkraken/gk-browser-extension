@@ -20,4 +20,11 @@ jobs:
             - name: Build Extension files
               run: yarn build:chromium
             - name: Run Playwright tests
-              run: yarn playwright test
+              run: yarn playwright test 'src/tests/injection-.*\.spec\.ts' --project=chromium
+            - name: Upload Playwright diagnostics
+              if: failure()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: playwright-diagnostics
+                  path: test-results/
+                  if-no-files-found: ignore

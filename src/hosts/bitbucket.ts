@@ -15,7 +15,19 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 		constructor(private readonly uri: URL) {}
 
 		inject(): void {
+			this.ensureStyles();
 			this.render();
+		}
+
+		private ensureStyles(): void {
+			if (document.querySelector('[data-gk-style="bitbucket-actions"]')) return;
+			const style = document.createElement('style');
+			style.dataset.gkStyle = 'bitbucket-actions';
+			style.textContent = `
+				.gk-bitbucket-action:hover { background: var(--ds-background-neutral-subtle-hovered, #0515240f); text-decoration: none; }
+				.gk-bitbucket-action:focus-visible { outline: 2px solid var(--ds-border-focused, #388bff); outline-offset: 2px; }
+			`;
+			(document.head ?? document.documentElement).append(style);
 		}
 
 		private render() {
@@ -43,6 +55,9 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 			try {
 				const label = 'Open with GitKraken';
 				const openUrl = this.transformUrl('open', pathname);
+				const actionStyle =
+					'box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:6px 12px;border:0;border-radius:6px;box-shadow:inset 0 0 0 1px var(--ds-border,rgba(11,18,14,.14));color:var(--ds-text-subtle,rgb(80,82,88));font-size:14px;font-weight:500;line-height:20px;text-decoration:none;white-space:nowrap;cursor:pointer';
+				const iconStyle = 'display:block;flex:0 0 16px;width:16px;height:16px;margin-right:8px';
 
 				const [, , , type] = pathname.split('/');
 				switch (type) {
@@ -50,13 +65,11 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 						// TODO update the url when the dropdown changes/url changes
 						const compareUrl = this.transformUrl('compare', pathname);
 						insertions.set('#compare-toolbar .aui-buttons', {
-							html: /*html*/ `<a data-gk class="aui-button gk-insert-compare" style="padding-top:0px !important; padding-bottom:0px !important;" href="${compareUrl}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
-								22,
+							html: /*html*/ `<a data-gk class="aui-button gk-bitbucket-action gk-insert-compare" style="${actionStyle}" href="${compareUrl}" target="_blank" title="${label}" aria-label="${label}">${this.getGitKrakenSvg(
+								16,
 								undefined,
-								'position:relative; top:5px;',
-							)}
-							Open Comparison with GitKraken
-							</a>`,
+								iconStyle,
+							)}Open Comparison with GitKraken</a>`,
 							position: 'afterbegin',
 							replaceSelectorList: [{ selector: '.gk-insert-compare', href: compareUrl }],
 						});
@@ -67,15 +80,15 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 						insertions.set(
 							'[data-qa="page-header-wrapper"] [role="group"], .prCssVarContainer [role="group"]',
 							{
-								html: /*html*/ `<a data-gk class="gk-insert-pr css-w97uih" href="${openUrl}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
-									20,
+								html: /*html*/ `<a data-gk class="gk-bitbucket-action gk-insert-pr" style="${actionStyle}" href="${openUrl}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+									16,
 									undefined,
-									'position:relative; top:4px; left:-5px;',
+									iconStyle,
 								)}Open with GitKraken</a>
-							<a data-gk class="gk-insert-comparison css-w97uih" href="${compareUrl}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
-								20,
+							<a data-gk class="gk-bitbucket-action gk-insert-comparison" style="${actionStyle}" href="${compareUrl}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+								16,
 								undefined,
-								'position:relative; top:4px; left:-5px;',
+								iconStyle,
 							)}Open Comparison with GitKraken</a>`,
 								position: 'afterbegin',
 								replaceSelectorList: [
@@ -88,10 +101,10 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 					}
 					case 'branches': {
 						insertions.set('.css-1bvc4cc', {
-							html: /*html*/ `<a data-gk class="css-w97uih" style="margin-right:4px !important;" href="${openUrl}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
-								20,
+							html: /*html*/ `<a data-gk class="gk-bitbucket-action gk-insert-branch" style="${actionStyle};margin-right:4px" href="${openUrl}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+								16,
 								undefined,
-								'position:relative; top:4px; left:-5px;',
+								iconStyle,
 							)}Open with GitKraken</a>`,
 							position: 'afterbegin',
 						});
@@ -102,10 +115,10 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 					case 'src':
 					case undefined: {
 						insertions.set('.css-1oy5iav', {
-							html: /*html*/ `<a data-gk class="gk-insert css-w97uih" href="${openUrl}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
-								20,
+							html: /*html*/ `<a data-gk class="gk-bitbucket-action gk-insert" style="${actionStyle}" href="${openUrl}" target="_blank" title="${label}" role="menuitem" aria-label="${label}">${this.getGitKrakenSvg(
+								16,
 								undefined,
-								'position:relative; top:4px; left:-5px;',
+								iconStyle,
 							)}Open with GitKraken</a>`,
 							position: 'afterbegin',
 							replaceSelectorList: [{ selector: '.gk-insert', href: openUrl }],
@@ -351,7 +364,7 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 		}
 
 		private getGitKrakenSvg(size: number, classes?: string, style?: string) {
-			return /*html*/ `<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" width="${size}" height="${size}" fill="var(--color-btn-text)" viewBox="0 0 32 32"${
+			return /*html*/ `<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" width="${size}" height="${size}" fill="currentColor" viewBox="0 0 32 32"${
 				classes ? ` class="${classes}"` : ''
 			} style="pointer-events:none; ${style ?? ''}">
 	<path d="M0 16C0 7.177 7.177 0 16 0s16 7.177 16 16-7.177 16-16 16S0 24.823 0 16Zm28.226-4.714a.607.607 0 0 0-.269-.317l-.004-.001c-.123-.07-.268-.095-.409-.07a.613.613 0 0 0-.5.6c.002.073.014.144.04.214.502 1.337.757 2.741.756 4.17a11.835 11.835 0 0 1-10.188 11.729v-5.396c.284-.058.566-.134.84-.226v4.67l.111-.027a11.128 11.128 0 0 0 6.042-3.864 10.939 10.939 0 0 0 2.406-6.884 11.052 11.052 0 0 0-5.703-9.685.618.618 0 0 0-.476-.046.61.61 0 0 0-.113 1.113 9.846 9.846 0 0 1-1.031 17.733v-3.954a1.666 1.666 0 0 0 1.104-1.387 1.67 1.67 0 0 0-.768-1.606c.237-2.17.927-2.598 1.433-2.913.302-.186.561-.348.561-.817v-.668c0-.692-.687-2.307-2.224-4.353-2.127-2.834-3.34-3.13-3.659-3.153-.12-.012-.223-.007-.337 0h-.012c-.321.023-1.534.32-3.664 3.153-1.539 2.046-2.227 3.661-2.227 4.353v.666c0 .47.26.63.56.817.506.313 1.197.742 1.433 2.912a1.664 1.664 0 0 0-.779 1.423c0 .692.456 1.33 1.117 1.572v3.955a9.837 9.837 0 0 1-4.364-3.51 9.784 9.784 0 0 1-1.752-5.604c0-3.578 1.95-6.88 5.088-8.62a.609.609 0 0 0-.294-1.14h-.001a.593.593 0 0 0-.29.076 11.057 11.057 0 0 0-5.71 9.684c0 2.53.833 4.91 2.407 6.885a11.131 11.131 0 0 0 6.041 3.864l.111.027v-4.669c.275.092.557.168.84.226v5.395A11.834 11.834 0 0 1 4.154 15.884c0-1.43.255-2.833.76-4.17a.612.612 0 0 0-.017-.464.597.597 0 0 0-.34-.316.611.611 0 0 0-.655.155.61.61 0 0 0-.125.202 13.133 13.133 0 0 0-.744 6.067A13.135 13.135 0 0 0 5.128 23.1a13.134 13.134 0 0 0 4.477 4.162 13.14 13.14 0 0 0 5.88 1.672l.093.003v-6.565a17.775 17.775 0 0 0 .479.012c.08-.002.233-.006.362-.012v6.565l.093-.003a13.156 13.156 0 0 0 5.878-1.676 13.152 13.152 0 0 0 4.477-4.163 13.145 13.145 0 0 0 2.097-5.741 13.146 13.146 0 0 0-.738-6.068ZM13.664 20.01a.977.977 0 0 0-.436-1.442.978.978 0 0 0-1.329.71.978.978 0 0 0 .583 1.09.974.974 0 0 0 1.183-.357h-.002Zm6.343-.994a.971.971 0 0 0-1.14-.475.978.978 0 0 0-.69 1.025.975.975 0 0 0 .968.881.974.974 0 0 0 .861-1.431h.001Z" />

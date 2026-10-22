@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>Pull request · GitHub</title>
+	</head>
+	<body>
+		<header>
+			<a href="/microsoft/vscode" data-component="Breadcrumbs.Item">vscode</a>
+		</header>
+		<main>
+			<!-- The Code menu shape below is synthetic; it has not been verified against a signed-in session -->
+			<button id="code-menu" type="button" aria-expanded="false" aria-controls="local-checkout-options">
+				Code
+			</button>
+			<ul id="local-checkout-options" aria-label="Local checkout options" hidden>
+				<li><button type="button">Checkout with GitHub Desktop</button></li>
+			</ul>
+			<!-- Live shape: the PR header renders twice (main header plus a sticky copy); tests fill these in -->
+			<div id="pr-header"></div>
+			<div id="pr-header-sticky"></div>
+		</main>
+		<script>
+			document.querySelector('#code-menu').addEventListener('click', () => {
+				const menu = document.querySelector('#local-checkout-options');
+				menu.hidden = !menu.hidden;
+				document.querySelector('#code-menu').setAttribute('aria-expanded', String(!menu.hidden));
+			});
+		</script>
+	</body>
+</html>

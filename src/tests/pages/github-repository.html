@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>microsoft/vscode · GitHub</title>
+	</head>
+	<body>
+		<header>
+			<a href="/microsoft">microsoft</a>
+			<a href="/microsoft/vscode" data-component="Breadcrumbs.Item">vscode</a>
+			<a hidden id="code-view-repo-link" href="/microsoft/vscode">vscode</a>
+			<a href="/microsoft/vscode" data-testid="repo-name-link">vscode</a>
+			<button id="code-menu" type="button" aria-expanded="false" aria-controls="repository-actions">Code</button>
+		</header>
+		<main data-repository="microsoft/vscode"></main>
+		<!-- Live shape: the Code menu renders in the Primer portal root -->
+		<div id="__primerPortalRoot__">
+			<ul
+				id="repository-actions"
+				class="prc-ActionList-ActionList-rPFF2 border-top"
+				data-component="ActionList"
+				data-variant="inset"
+				aria-label="Repository actions"
+				hidden
+			>
+				<li data-component="ActionList.Item"><button type="button">Open with GitHub Desktop</button></li>
+				<li data-component="ActionList.Item">
+					<a href="/microsoft/vscode/archive/refs/heads/main.zip">Download ZIP</a>
+				</li>
+			</ul>
+		</div>
+		<script>
+			const menuButton = document.querySelector('#code-menu');
+			menuButton.addEventListener('click', () => {
+				const menu = document.querySelector('#repository-actions');
+				menu.hidden = !menu.hidden;
+				menuButton.setAttribute('aria-expanded', String(!menu.hidden));
+			});
+		</script>
+	</body>
+</html>
