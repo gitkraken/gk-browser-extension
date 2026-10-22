@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>gitlab-org/gitlab · GitLab</title>
+	</head>
+	<body>
+		<header><a href="/gitlab-org/gitlab" data-testid="project-name">gitlab</a></header>
+		<main>
+			<div class="git-clone-holder" data-testid="code-dropdown" project-path="gitlab-org/gitlab">
+				<button id="code-menu" type="button" aria-expanded="false" aria-controls="download-source">Code</button>
+				<div class="gl-new-dropdown-container">
+					<div id="download-source" class="gl-new-dropdown-panel" hidden>
+						<div class="gl-new-dropdown-inner">
+							<ul class="gl-new-dropdown-item-group">
+								<li>
+									<div role="group"><label>Clone with HTTPS</label></div>
+								</li>
+							</ul>
+							<ul aria-labelledby="download-source-heading" class="gl-new-dropdown-item-group">
+								<li>
+									<div class="gl-button-group" role="group">
+										<a href="/gitlab-org/gitlab/-/archive/master/gitlab-master.zip?ref_type=heads"
+											>zip</a
+										><a
+											href="/gitlab-org/gitlab/-/archive/master/gitlab-master.tar.gz?ref_type=heads"
+											>tar.gz</a
+										>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+		<script>
+			document.querySelector('#code-menu').addEventListener('click', () => {
+				const menu = document.querySelector('#download-source');
+				menu.hidden = !menu.hidden;
+				document.querySelector('#code-menu').setAttribute('aria-expanded', String(!menu.hidden));
+			});
+		</script>
+	</body>
+</html>

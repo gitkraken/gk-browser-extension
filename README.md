@@ -50,3 +50,21 @@ yarn watch:firefox
 ```
 
 Open `about:debugging#/runtime/this-firefox`, click "Load Temporary Add-on", then select any file in the root of the `gk-browser-extension` folder.
+
+### Browser injection tests
+
+Install dependencies and Playwright's Chromium browser, then build the unpacked Chromium extension before running the deterministic injection fixtures:
+
+```sh
+yarn playwright install chromium
+yarn build:chromium
+yarn playwright test 'src/tests/injection-.*\.spec\.ts' --project=chromium
+```
+
+The scheduled GitHub smoke tests use the live public site and run separately:
+
+```sh
+yarn playwright test src/tests/github-live.spec.ts --project=chromium --workers=1
+```
+
+Set `GK_TEST_REDIRECT_ORIGIN=https://gitkraken.dev` when running fixture tests against a production bundle; the default is the development redirect host.

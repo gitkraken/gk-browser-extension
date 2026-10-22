@@ -59,7 +59,7 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 						if (rest.length) {
 							// only insert if we know what we're comparing
 							insertions.set('form.js-requires-input .gl-display-flex:last-child .btn-confirm', {
-								html: /*html*/ `<a data-gk type="button" class="gl-button btn btn-defualt btn-md" href="${openUrl}" target="_blank">
+								html: /*html*/ `<a data-gk type="button" class="gl-button btn btn-default btn-md" href="${openUrl}" target="_blank" title="Compare with GitKraken" aria-label="Compare with GitKraken">
 		<span class="gl-button-text">
 			${this.getGitKrakenSvg(22, 's16 gl-icon gl-button-icon', undefined)}
 			Compare with GitKraken
@@ -79,7 +79,24 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 						}
 
 						const compareUrl = this.transformUrl('compare');
+						insertions.set(
+							'[data-testid="mr-code-dropdown"] [data-testid="disclosure-content"] > li:first-child > ul.gl-new-dropdown-item-group',
+							{
+								html: /*html*/ `<li data-gk data-gk-owner="gitlab" data-gk-action="open" data-gk-slot="gitlab-merge-request-code" class="gl-new-dropdown-item" tabindex="0"><a class="gl-new-dropdown-item-content" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}"><span class="gl-new-dropdown-item-text-wrapper"><span style="display:inline-flex;align-items:center;margin-right:8px">${this.getGitKrakenSvg(
+									16,
+									'gl-icon',
+									'display:block;flex:0 0 auto;',
+								)}</span>${label}</span></a></li>
+<li data-gk data-gk-owner="gitlab" data-gk-action="compare" data-gk-slot="gitlab-merge-request-code-compare" class="gl-new-dropdown-item" tabindex="0"><a class="gl-new-dropdown-item-content" href="${compareUrl}" target="_blank" title="Open Comparison with GitKraken" aria-label="Open Comparison with GitKraken"><span class="gl-new-dropdown-item-text-wrapper"><span style="display:inline-flex;align-items:center;margin-right:8px">${this.getGitKrakenSvg(
+									16,
+									'gl-icon',
+									'display:block;flex:0 0 auto;',
+								)}</span>Open Comparison with GitKraken</span></a></li>`,
+								position: 'beforeend',
+							},
+						);
 
+						// Legacy dropdown (self-managed and older versions)
 						const container = document.querySelector<HTMLElement>(
 							'.merge-request .dropdown-menu .gl-dropdown-inner',
 						);
@@ -106,7 +123,7 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 </li>
 <li data-gk class="gl-dropdown-item">
 	<a class="dropdown-item" href="${compareUrl}" style="align-items: center !important;" target="_blank">
-		<div class="gl-dropdown-item-text-wrapper"" style="display: flex; align-items: center !important;">
+		<div class="gl-dropdown-item-text-wrapper" style="display: flex; align-items: center !important;">
 			${this.getGitKrakenSvg(16, 'mr-2 gl-icon', 'flex: 0 0 auto;')}
 			Open Comparison with GitKraken
 		</div>
@@ -119,6 +136,30 @@ export function injectionScope(url: string, gkDotDevUrl: string) {
 					}
 					case 'tree':
 					case undefined: {
+						const { owner, subgroups, repo } = this.parseUrl(this.uri.pathname);
+						const projectPath = [owner, ...subgroups, repo].filter(Boolean).join('/');
+						const archivePath = `/${projectPath}/-/archive/`;
+						// Avoid `:has()`, which throws on Firefox < 121: find the archive links' list in script and mark it
+						const modernCodeList = [
+							...document.querySelectorAll<HTMLElement>('[data-testid="code-dropdown"]'),
+						]
+							.filter(dropdown => dropdown.getAttribute('project-path') === projectPath)
+							.flatMap(dropdown => [...dropdown.querySelectorAll<HTMLAnchorElement>('a[href]')])
+							.find(link => (link.getAttribute('href') ?? '').startsWith(archivePath))
+							?.closest<HTMLElement>('ul');
+						if (modernCodeList) {
+							modernCodeList.dataset.gkAnchor = 'gitlab-repository-code';
+							insertions.set('ul[data-gk-anchor="gitlab-repository-code"]', {
+								html: /*html*/ `<li data-gk data-gk-owner="gitlab" data-gk-action="open" data-gk-slot="gitlab-repository-code" class="gl-new-dropdown-item gl-px-3 gl-py-2" tabindex="0"><a class="gl-new-dropdown-item-content" href="${openUrl}" target="_blank" title="${label}" aria-label="${label}"><div class="gl-new-dropdown-item-text-wrapper" style="display:flex;align-items:center"><span style="display:inline-flex;align-items:center;margin-right:8px">${this.getGitKrakenSvg(
+									16,
+									'gl-icon',
+									'display:block;flex:0 0 auto;',
+								)}</span><span>${label}</span></div></a></li>`,
+								position: 'beforeend',
+							});
+							break;
+						}
+
 						// Cloud (as of 2024-02-29)
 						insertions.set(
 							'.git-clone-holder .code-dropdown .gl-new-dropdown-panel .gl-new-dropdown-inner .gl-new-dropdown-contents > li:last-child',
