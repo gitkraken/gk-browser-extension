@@ -57,7 +57,7 @@
 		"webextension-polyfill": "0.10.0"
 	},
 	"devDependencies": {
-		"@playwright/test": "1.49.1",
+		"@playwright/test": "1.55.1",
 		"@tanstack/eslint-plugin-query": "5.28.11",
 		"@types/chrome": "0.0.246",
 		"@types/react-dom": "18.2.23",
@@ -65,8 +65,8 @@
 		"@typescript-eslint/eslint-plugin": "6.0.0",
 		"@typescript-eslint/parser": "6.0.0",
 		"clean-webpack-plugin": "4.0.0",
-		"esbuild": "0.18.13",
-		"esbuild-loader": "3.0.1",
+		"esbuild": "0.28.2",
+		"esbuild-loader": "4.5.0",
 		"eslint": "8.45.0",
 		"eslint-cli": "1.1.1",
 		"eslint-config-prettier": "8.8.0",
@@ -75,11 +75,14 @@
 		"eslint-plugin-import": "2.27.5",
 		"fork-ts-checker-webpack-plugin": "6.5.3",
 		"prettier": "3.0.0",
-		"sign-addon": "^6.0.0",
-		"terser-webpack-plugin": "5.3.9",
+		"terser-webpack-plugin": "5.6.1",
 		"typescript": "5.1.6",
-		"webpack": "5.94.0",
+		"web-ext": "10.8.0",
+		"webpack": "5.112.2",
 		"webpack-cli": "5.1.4",
 		"x-var": "2.0.1"
+	},
+	"resolutions": {
+		"**/@typescript-eslint/typescript-estree/minimatch": "9.0.9"
 	}
 }
